@@ -622,7 +622,7 @@
       if (!email || !pass) return showToast('Isi email dan password!');
       auth.signInWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-        .catch(() => showToast('Email atau password salah. Belum punya akun? Klik "Daftar Akun Baru".'));
+        .catch(e => showToast(e.message));
     }
 
     function handleRegister() {
