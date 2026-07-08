@@ -930,7 +930,6 @@
       if (isDisposableEmail(email)) return showToast('Email sekali pakai tidak diizinkan. Gunakan email asli.');
       auth.createUserWithEmailAndPassword(email, pass)
         .then(cred => {
-          cred.user.sendEmailVerification().catch(() => {});
           return db.collection('userProfiles').doc(cred.user.uid).set({
             name, phone, email, role: 'user', emailVerified: false,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
