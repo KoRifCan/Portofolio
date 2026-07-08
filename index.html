@@ -946,13 +946,17 @@
       const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
       const phone = profileData.phone || '-';
       const photoAvatar = profileData.photoURL
-        ? '<img src="' + profileData.photoURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 16px;">'
-        : '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>';
+        ? '<img src="' + profileData.photoURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 8px;">'
+        : '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 8px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>';
       profileMenu = document.createElement('div');
       profileMenu.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);display:grid;place-items:center;';
       profileMenu.innerHTML = '<div id="profileMenuInner" style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
+        + '<div style="position:relative;display:inline-block;">'
         + photoAvatar
-        + '<p style="font-weight:600;margin-bottom:2px;" id="profileMenuName">' + name + '</p>'
+        + '<label for="menuPhotoInput" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></label>'
+        + '</div>'
+        + '<input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">'
+        + '<p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">' + name + '</p>'
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">' + currentUser.email + '</p>'
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">' + phone + '</p>'
         + '<button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>'
@@ -962,6 +966,21 @@
         + '</div>';
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
+      document.getElementById('menuPhotoInput')?.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          const dataURL = e.target.result;
+          db.collection('userProfiles').doc(currentUser.uid).set({ photoURL: dataURL }, { merge: true }).then(() => {
+            profileData.photoURL = dataURL;
+            const img = document.querySelector('#profileMenuInner img');
+            if (img) img.src = dataURL;
+            showToast('Foto profil berhasil diubah!');
+          }).catch(err => showToast(err.message));
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     function showEditProfile() {
