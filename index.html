@@ -1154,7 +1154,7 @@
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + esc(d.text) + '"</blockquote>'
-            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div><div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div></div></div>'
+            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div>' + (d.showEmail ? '<div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div>' : '') + '</div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'

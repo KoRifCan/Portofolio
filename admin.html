@@ -426,6 +426,9 @@
                 <i class="far fa-star" data-v="5"></i>
               </div>
             </div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer;margin-bottom:12px;">
+              <input type="checkbox" id="testiShowEmail"> Tampilkan email (sensor)
+            </label>
             <button onclick="saveTestimonial()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
           </div>
           <div class="filter-group" id="testiFilterAdmin"></div>
@@ -851,7 +854,7 @@
               + ' <span class="badge ' + (d.visible ? 'badge-active' : 'badge-pending') + '">' + (d.visible ? 'Aktif' : 'Pending') + '</span>'
             + '</div>'
             + (d.role ? '<div class="meta">' + esc(d.role) + '</div>' : '')
-            + '<div class="meta">' + esc(d.email || d.userEmail || '') + '</div>'
+            + (d.showEmail ? '<div class="meta">' + esc(maskEmail(d.email || d.userEmail || '')) + '</div>' : '')
             + '<div class="text">"' + esc(d.text) + '"</div>'
             + '<div style="margin-top:4px;">' + starHTML(d.rating) + '</div>'
             + '<div class="date">' + dateStr(d.createdAt) + '</div>'
@@ -903,12 +906,13 @@
       const role = document.getElementById('testiRole')?.value.trim();
       const picker = document.getElementById('testiRating');
       const rating = picker ? parseInt(picker.dataset.value) : 0;
+      const showEmail = document.getElementById('testiShowEmail').checked;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi.');
       if (rating < 1) return showToast('Pilih rating terlebih dahulu.');
       db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
         const pdata = prof.exists ? prof.data() : {};
         const testiData = {
-          name, text, role: role || '', rating,
+          name, text, role: role || '', rating, showEmail,
           visible: true,
           userId: currentUser.uid,
           userRole: pdata.role || 'user',
@@ -921,11 +925,12 @@
           document.getElementById('testiName').value = '';
           document.getElementById('testiText').value = '';
           document.getElementById('testiRole').value = '';
+          document.getElementById('testiShowEmail').checked = false;
           picker.dataset.value = '0'; initStarPicker(picker);
         }).catch(e => showToast('Gagal: ' + e.message));
       }).catch(() => {
         db.collection('testimonials').add({
-          name, text, role: role || '', rating,
+          name, text, role: role || '', rating, showEmail,
           visible: true, userId: currentUser.uid, userRole: 'user', userEmail: currentUser.email,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
@@ -933,6 +938,7 @@
           document.getElementById('testiName').value = '';
           document.getElementById('testiText').value = '';
           document.getElementById('testiRole').value = '';
+          document.getElementById('testiShowEmail').checked = false;
           picker.dataset.value = '0'; initStarPicker(picker);
         }).catch(e => showToast('Gagal: ' + e.message));
       });
