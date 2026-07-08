@@ -109,6 +109,7 @@
       margin-bottom: 48px;
     }
     .text-center { text-align: center; }
+    .text-left { text-align: left; }
     .text-center .section-subtitle { margin-left: auto; margin-right: auto; }
 
     /* Hero */
@@ -226,6 +227,28 @@
     .project-card .links { display: flex; gap: 16px; }
     .project-card .links a { font-size: .85rem; font-weight: 600; color: #6366f1; transition: color .2s; }
     .project-card .links a:hover { color: #4338ca; }
+
+    /* Certificates */
+    #certificates { background: var(--section-alt); }
+    .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .cert-card {
+      background: var(--card-bg); border: 1px solid var(--border-light);
+      border-radius: 16px; padding: 24px; transition: all .25s;
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .cert-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #6366f1; }
+    .cert-card .cert-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: grid; place-items: center; color: #fff; font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .cert-card .cert-body { min-width: 0; }
+    .cert-card .cert-body h3 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
+    .cert-card .cert-body .issuer { font-size: .82rem; color: var(--text-light); margin-bottom: 6px; }
+    .cert-card .cert-body a { font-size: .8rem; color: #6366f1; font-weight: 600; }
+    .cert-card .cert-body a:hover { text-decoration: underline; }
+    @media (max-width: 768px) { .cert-grid { grid-template-columns: 1fr; } }
 
     /* Testimonials */
     #testimonials { background: var(--section-alt); }
@@ -352,6 +375,7 @@
         <li><a href="#about">Tentang</a></li>
         <li><a href="#skills">Keahlian</a></li>
         <li><a href="#experience">Pengalaman</a></li>
+        <li><a href="#certificates">Sertifikat</a></li>
         <li><a href="#projects">Proyek</a></li>
         <li><a href="#testimonials">Testimoni</a></li>
         <li><a href="#contact">Kontak</a></li>
@@ -499,6 +523,56 @@
           <h3>Sales Handphone</h3>
           <div class="company">Brawijaya Cell · Madiun</div>
           <p>Menawarkan produk handphone dan melakukan penjualan setiap hari agar mencapai target setiap bulan.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Certificates -->
+  <section id="certificates" class="reveal">
+    <div class="container text-center">
+      <div class="section-title">Sertifikat</div>
+      <div class="section-subtitle">Sertifikat yang telah saya peroleh.</div>
+      <div class="cert-grid text-left">
+        <div class="cert-card">
+          <div class="cert-icon"><i class="fas fa-laptop"></i></div>
+          <div class="cert-body">
+            <h3>Troubleshooting Microsoft Office</h3>
+            <div class="issuer">CloudSwyft Global Systems, Inc.</div>
+            <a href="https://www.credential.net/40007f81-41be-4638-9686-a47eb9613801" target="_blank" rel="noopener">Lihat Sertifikat <i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon"><i class="fas fa-train"></i></div>
+          <div class="cert-body">
+            <h3>Basic Services for Train Attendant</h3>
+            <div class="issuer">PT Reska Multi Usaha (KAI Services)</div>
+            <a href="https://www.credential.net/f5369786-236b-4e27-b7fa-6acd739a4653" target="_blank" rel="noopener">Lihat Sertifikat <i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon"><i class="fas fa-mobile-alt"></i></div>
+          <div class="cert-body">
+            <h3>Handheld Product Samsung Tech Institute</h3>
+            <div class="issuer">Samsung Tech Institute (2017–2020)</div>
+            <a href="https://www.credential.net/2bcac300-f576-4dce-9066-d88da34abfc4" target="_blank" rel="noopener">Lihat Sertifikat <i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon"><i class="fas fa-tools"></i></div>
+          <div class="cert-body">
+            <h3>Praktek Kerja Industri (PRAKERIN)</h3>
+            <div class="issuer">Klinik Android Klaten</div>
+            <a href="https://www.credential.net/252cbbb2-290c-4da1-a28a-fe7b369a13a6" target="_blank" rel="noopener">Lihat Sertifikat <i class="fas fa-external-link-alt"></i></a>
+          </div>
+        </div>
+        <div class="cert-card">
+          <div class="cert-icon"><i class="fas fa-microchip"></i></div>
+          <div class="cert-body">
+            <h3>Kerja Praktek Android &amp; iPhone</h3>
+            <div class="issuer">Klinik Android Klaten</div>
+            <a href="https://www.credential.net/8458a59c-bd45-4ec6-9905-3efd74efa0b2" target="_blank" rel="noopener">Lihat Sertifikat <i class="fas fa-external-link-alt"></i></a>
+          </div>
         </div>
       </div>
     </div>
@@ -910,8 +984,8 @@
     // ===== LANGUAGE =====
     const langData = {
       nav: {
-        id: ['Beranda', 'Tentang', 'Keahlian', 'Pengalaman', 'Proyek', 'Testimoni', 'Kontak'],
-        en: ['Home', 'About', 'Skills', 'Experience', 'Projects', 'Testimonials', 'Contact']
+        id: ['Beranda', 'Tentang', 'Keahlian', 'Pengalaman', 'Sertifikat', 'Proyek', 'Testimoni', 'Kontak'],
+        en: ['Home', 'About', 'Skills', 'Experience', 'Certificates', 'Projects', 'Testimonials', 'Contact']
       },
       heroTitle: {
         id: 'Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Multimedia &amp; Teknologi',
@@ -935,6 +1009,8 @@
       skillsSub: { id: 'Teknologi yang saya gunakan sehari-hari.', en: 'Technologies I work with on a daily basis.' },
       expTitle: { id: 'Pengalaman', en: 'Experience' },
       expSub: { id: 'Perjalanan profesional saya sejauh ini.', en: 'My professional journey so far.' },
+      certTitle: { id: 'Sertifikat', en: 'Certificates' },
+      certSub: { id: 'Sertifikat yang telah saya peroleh.', en: 'Certificates I have earned.' },
       projTitle: { id: 'Proyek Unggulan', en: 'Featured Projects' },
       projSub: { id: 'Beberapa karya yang baru saja saya buat.', en: 'Some things I\'ve built recently.' },
       testTitle: { id: 'Kata Mereka', en: 'Testimonials' },
@@ -987,6 +1063,8 @@
       document.querySelector('#skills .section-subtitle').textContent = langData.skillsSub[lang];
       document.querySelector('#experience .section-title').textContent = langData.expTitle[lang];
       document.querySelector('#experience .section-subtitle').textContent = langData.expSub[lang];
+      document.querySelector('#certificates .section-title').textContent = langData.certTitle[lang];
+      document.querySelector('#certificates .section-subtitle').textContent = langData.certSub[lang];
       document.querySelector('#projects .section-title').textContent = langData.projTitle[lang];
       document.querySelector('#projects .section-subtitle').textContent = langData.projSub[lang];
       document.querySelector('#testimonials .section-title').textContent = langData.testTitle[lang];
