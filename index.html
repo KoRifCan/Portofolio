@@ -660,12 +660,12 @@
       if (profileMenu) { profileMenu.remove(); profileMenu = null; return; }
       profileMenu = document.createElement('div');
       profileMenu.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);display:grid;place-items:center;';
-      profileMenu.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
+      profileMenu.innerHTML = '<div style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
         + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
         + '<p style="font-weight:600;margin-bottom:4px;">' + currentUser.email + '</p>'
         + '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:24px;">Sudah login</p>'
         + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\');" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
-        + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="margin-top:8px;background:none;border:none;color:var(--text-light);cursor:pointer;font-size:.85rem;">Tutup</button>'
+        + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>';
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
