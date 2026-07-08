@@ -227,6 +227,31 @@
     .project-card .links { display: flex; gap: 16px; }
     .project-card .links a { font-size: .85rem; font-weight: 600; color: #6366f1; transition: color .2s; }
     .project-card .links a:hover { color: #4338ca; }
+    .project-card .comment-toggle {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+      font-size: .82rem; font-weight: 600; color: var(--text-light); cursor: pointer;
+      background: none; border: none; padding: 4px 0; transition: color .2s;
+    }
+    .project-card .comment-toggle:hover { color: #6366f1; }
+    .project-card .comment-area { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); display: none; }
+    .project-card .comment-area.open { display: block; }
+    .project-card .comment-area textarea {
+      width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-family: inherit; font-size: .85rem;
+      resize: vertical; min-height: 60px; margin-bottom: 8px;
+    }
+    .project-card .comment-area .btn-primary { font-size: .8rem; padding: 8px 16px; justify-content: center; }
+    .comment-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-item .c-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: #6366f1;
+      display: grid; place-items: center; color: #fff; font-size: .75rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .comment-item .c-body { flex: 1; min-width: 0; }
+    .comment-item .c-body .c-name { font-size: .82rem; font-weight: 600; }
+    .comment-item .c-body .c-date { font-size: .7rem; color: var(--text-light); }
+    .comment-item .c-body .c-text { font-size: .85rem; margin-top: 4px; color: var(--text-muted); }
 
     /* Certificates */
     #certificates { background: var(--section-alt); }
@@ -630,6 +655,15 @@
               <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
               <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
             </div>
+            <button class="comment-toggle" onclick="toggleComment(this)"><i class="far fa-comment"></i> <span>Komentar</span></button>
+            <div class="comment-area">
+              <div id="commentsContainer"></div>
+              <div class="comment-form" style="display:none;">
+                <textarea id="commentInput" placeholder="Tulis komentar..." rows="2"></textarea>
+                <button onclick="submitComment()" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim</button>
+              </div>
+              <p style="font-size:.8rem;color:var(--text-light);margin-top:8px;" id="commentLoginMsg"><a href="#" onclick="openLogin();return false;">Login</a> untuk berkomentar.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -838,7 +872,7 @@
       let allTestimonials = [];
       let page = 0;
       let filterRating = 0;
-      const perPage = 5;
+      const perPage = 4;
       const grid = document.getElementById('testimonialsGrid');
       const pag = document.getElementById('testiPagination');
       const filterEl = document.getElementById('testiFilter');
@@ -1117,6 +1151,48 @@
           else showToast(e.message);
         });
       });
+    }
+
+    // ===== COMMENTS =====
+    function toggleComment(btn) {
+      const area = btn.nextElementSibling;
+      const open = area.classList.toggle('open');
+      btn.querySelector('span').textContent = open ? 'Tutup Komentar' : 'Komentar';
+      btn.querySelector('i').className = open ? 'fas fa-comment' : 'far fa-comment';
+      if (open) {
+        const form = area.querySelector('.comment-form');
+        const msg = area.querySelector('#commentLoginMsg');
+        if (currentUser) { form.style.display = 'block'; msg.style.display = 'none'; }
+        else { form.style.display = 'none'; msg.style.display = 'block'; }
+        loadComments();
+      }
+    }
+    function loadComments() {
+      const container = document.getElementById('commentsContainer');
+      if (!container) return;
+      db.collection('comments').where('projectId', '==', 'shopwave').orderBy('createdAt', 'asc').onSnapshot(snap => {
+        if (snap.empty) { container.innerHTML = '<p style="font-size:.82rem;color:var(--text-light);">Belum ada komentar.</p>'; return; }
+        container.innerHTML = snap.map(doc => {
+          const d = doc.data();
+          const initials = d.userEmail[0].toUpperCase();
+          const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '';
+          return '<div class="comment-item"><div class="c-avatar">' + initials + '</div><div class="c-body"><div class="c-name">' + d.userEmail + ' <span class="c-date">' + date + '</span></div><div class="c-text">' + d.text + '</div></div></div>';
+        }).join('');
+      });
+    }
+    function submitComment() {
+      const input = document.getElementById('commentInput');
+      const text = input.value.trim();
+      if (!text) return showToast('Tulis komentar dulu!');
+      if (!currentUser) return showToast('Login dulu!');
+      db.collection('comments').add({
+        projectId: 'shopwave',
+        userId: currentUser.uid,
+        userEmail: currentUser.email,
+        text,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
+      .catch(e => showToast(e.message));
     }
 
     // ===== SCROLL SPY =====
