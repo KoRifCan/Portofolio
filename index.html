@@ -684,9 +684,9 @@
         <div class="project-card">
           <div class="thumb" id="themeSlider">
             <div class="slider-overlay" id="sliderOverlay">
-              <img class="slider-img" src="screenshot-dark.png" alt="dark" style="object-position:right;">
+              <img class="slider-img" id="darkImg" alt="dark" style="object-position:right;">
             </div>
-            <img class="slider-img" src="screenshot-light.png" alt="light">
+            <img class="slider-img" id="lightImg" alt="light">
             <div class="slider-handle" id="sliderHandle"><div class="knob">⟷</div></div>
           </div>
           <div class="body">
@@ -2462,6 +2462,8 @@
     const slider = document.getElementById('themeSlider');
     const overlay = document.getElementById('sliderOverlay');
     const handle = document.getElementById('sliderHandle');
+    const lightImg = document.getElementById('lightImg');
+    const darkImg = document.getElementById('darkImg');
     let isDragging = false;
     function updateSlider(x) {
       const rect = slider.getBoundingClientRect();
@@ -2477,7 +2479,27 @@
     slider.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); });
     document.addEventListener('touchmove', e => { if (isDragging) updateSlider(e.touches[0].clientX); });
     document.addEventListener('touchend', () => { isDragging = false; });
+
+    async function captureSlider() {
+      if (typeof html2canvas === 'undefined') return;
+      const orig = document.documentElement.getAttribute('data-theme') || 'light';
+      await new Promise(r => setTimeout(r, 300));
+
+      document.documentElement.setAttribute('data-theme', 'light');
+      await new Promise(r => setTimeout(r, 150));
+      const c1 = await html2canvas(document.documentElement, { scale: 0.4, useCORS: true, allowTaint: false });
+      lightImg.src = c1.toDataURL('image/jpeg', 0.6);
+
+      document.documentElement.setAttribute('data-theme', 'dark');
+      await new Promise(r => setTimeout(r, 150));
+      const c2 = await html2canvas(document.documentElement, { scale: 0.4, useCORS: true, allowTaint: false });
+      darkImg.src = c2.toDataURL('image/jpeg', 0.6);
+
+      document.documentElement.setAttribute('data-theme', orig);
+    }
+    setTimeout(captureSlider, 1500);
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
 </html>
