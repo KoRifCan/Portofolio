@@ -821,7 +821,7 @@
             return;
           }
           currentUserRole = doc.exists ? doc.data().role : null;
-        }).catch(() => {});
+      }).catch(() => {});
       }
       const overlay = document.getElementById('loadingOverlay');
       if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 500); }
@@ -958,6 +958,7 @@
       profileMenu.innerHTML = `<div id="profileMenuInner" class="menu-card"><p style="color:var(--text-light);">Memuat...</p></div>`;
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
+      currentUser.reload().then(() => {
       db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
         profileData = doc.exists ? doc.data() : {};
         const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
@@ -973,11 +974,12 @@
         <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
         <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin)}</p>
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">${currentUser.email}</p>
-        ${currentUser.emailVerified ? '' : '<p style="color:#f59e0b;font-size:.75rem;margin-bottom:4px;"><i class="fas fa-exclamation-triangle"></i> Email belum diverifikasi</p><button onclick="sendVerification()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;font-size:.8rem;border-color:#f59e0b;color:#f59e0b;"><i class="fas fa-envelope"></i> Kirim Verifikasi</button>'}
+        ${currentUser.emailVerified ? '<p style="color:#10b981;font-size:.75rem;margin-bottom:4px;"><i class="fas fa-check-circle"></i> Email terverifikasi</p>' : '<p style="color:#f59e0b;font-size:.75rem;margin-bottom:4px;"><i class="fas fa-exclamation-triangle"></i> Email belum diverifikasi</p><button onclick="sendVerification()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;font-size:.8rem;border-color:#f59e0b;color:#f59e0b;"><i class="fas fa-envelope"></i> Kirim Verifikasi</button>'}
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">${phone}</p>
         <button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>
         ${isAdmin ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>' : ''}
         <div class="admin-btn-area"><button onclick="showPublicTestiForm();" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni & Masukan</button></div>
+        <button onclick="deleteMyAccount()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;border-color:#ef4444;color:#ef4444;font-size:.8rem;"><i class="fas fa-trash"></i> Hapus Akun</button>
         <div class="logout-btn-area"><button onclick="auth.signOut(); showToast('Berhasil logout!'); profileMenu.remove(); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button></div>
         <button onclick="profileMenu.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>`;
         const menuInput = document.getElementById('menuPhotoInput');
@@ -1008,6 +1010,7 @@
           reader.readAsDataURL(file);
         });
       }).catch(() => {});
+      });
     }
 
     function showEditProfile() {
@@ -2079,6 +2082,37 @@
       const user = firebase.auth().currentUser;
       if (!user) return;
       user.sendEmailVerification().then(() => showToast('Email verifikasi dikirim! Cek kotak masuk (termasuk spam).')).catch(() => showToast('Gagal mengirim. Coba lagi nanti.'));
+    }
+
+    function deleteMyAccount() {
+      if (!currentUser) return;
+      showConfirm('Yakin ingin menghapus akun Anda? Semua data (testimoni, komentar, dll) akan dihapus permanen dan tidak bisa dikembalikan.').then(async ok => {
+        if (!ok) return;
+        const uid = currentUser.uid;
+        const btn = document.querySelector('.menu-card button[onclick*="deleteMyAccount"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Menghapus...'; }
+        try {
+          const batch = db.batch();
+          const [testiSnap, commSnap] = await Promise.all([
+            db.collection('testimonials').where('userId', '==', uid).get(),
+            db.collection('comments').where('userId', '==', uid).get()
+          ]);
+          testiSnap.forEach(d => batch.delete(d.ref));
+          commSnap.forEach(d => batch.delete(d.ref));
+          batch.delete(db.collection('userProfiles').doc(uid));
+          await batch.commit();
+          await currentUser.delete();
+          showToast('Akun berhasil dihapus.');
+        } catch (e) {
+          if (e.code === 'auth/requires-recent-login') {
+            showToast('Butuh login ulang untuk menghapus akun. Logout dulu lalu login lagi.');
+          } else {
+            showToast('Gagal: ' + e.message);
+          }
+        }
+        if (btn) { btn.disabled = false; }
+        if (profileMenu) { profileMenu.remove(); profileMenu = null; }
+      });
     }
     const spySections = document.querySelectorAll('section[id]');
     const spyLinks = document.querySelectorAll('.nav-links a');
