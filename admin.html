@@ -893,13 +893,24 @@
         visible: true, isAdmin: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
-      if (photoURL) testiData.userPhotoURL = photoURL;
-      db.collection('testimonials').add(testiData).then(() => {
+      if (photoURL) {
+        testiData.userPhotoURL = photoURL;
+        doSave(testiData);
+      } else {
+        db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
+          if (prof.exists && prof.data().photoURL) testiData.userPhotoURL = prof.data().photoURL;
+          doSave(testiData);
+        }).catch(() => doSave(testiData));
+      }
+    }
+    function doSave(data) {
+      db.collection('testimonials').add(data).then(() => {
         showToast('Testimoni berhasil ditambahkan!');
         document.getElementById('testiName').value = '';
         document.getElementById('testiText').value = '';
         document.getElementById('testiRole').value = '';
         document.getElementById('testiPhotoURL').value = '';
+        const picker = document.getElementById('testiRating');
         picker.dataset.value = '0'; initStarPicker(picker);
       }).catch(e => showToast('Gagal: ' + e.message));
     }
