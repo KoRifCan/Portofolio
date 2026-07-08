@@ -1567,7 +1567,7 @@
         const pdata = p.exists ? p.data() : {};
         const testiData = {
           name, text, role, rating,
-          visible: false,
+          visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
           isAdmin: pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com'
@@ -1575,17 +1575,17 @@
         if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
         db.collection('testimonials').add(testiData).then(() => {
           btn.closest('div').parentElement.remove();
-          showToast('Testimoni terkirim! Menunggu persetujuan.');
+          showToast('Testimoni terkirim!');
         }).catch(e => { showToast(e.message); btn.disabled = false; });
       }).catch(() => {
         db.collection('testimonials').add({
           name, text, role, rating,
-          visible: false,
+          visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid
         }).then(() => {
           btn.closest('div').parentElement.remove();
-          showToast('Testimoni terkirim! Menunggu persetujuan.');
+          showToast('Testimoni terkirim!');
         }).catch(e => { showToast(e.message); btn.disabled = false; });
       });
     }
