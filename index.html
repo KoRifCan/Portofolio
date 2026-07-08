@@ -62,13 +62,6 @@
       border-bottom: 1px solid var(--border);
       z-index: 1000;
     }
-    nav::before {
-      content: ''; position: absolute; bottom: 0; left: -100%; width: 200%; height: 3px;
-      background: linear-gradient(90deg, transparent, #6366f1, #a855f7, #6366f1, transparent);
-      animation: navMotion 3s linear infinite;
-    }
-    @keyframes navMotion { 0% { transform: translateX(0); } 100% { transform: translateX(50%); } }
-    [data-theme="dark"] nav::before { background: linear-gradient(90deg, transparent, #818cf8, #c084fc, #818cf8, transparent); }
     nav .container { display: flex; align-items: center; justify-content: space-between; height: 64px; }
     .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -.02em; }
     .logo span { color: #6366f1; }
