@@ -1375,7 +1375,7 @@
             return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;">'
               + getAvatarHTML(d.name, d.photoURL, 40)
               + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + (d.name || 'Tanpa Nama') + adminBadge(d.role === 'admin', d.email) + '</div>'
-              + '<div style="font-size:.8rem;color:var(--text-light);">' + d.email + (d.phone ? ' &middot; ' + d.phone : '') + '</div></div>'
+              + '<div style="font-size:.8rem;color:var(--text-light);">' + maskEmail(d.email) + (d.phone ? ' &middot; ' + maskPhone(d.phone) : '') + '</div></div>'
               + '<div style="font-size:.75rem;color:var(--text-light);flex-shrink:0;text-align:right;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;background:' + (d.role === 'admin' ? '#dbeafe' : 'var(--card-bg)') + ';color:' + (d.role === 'admin' ? '#3b82f6' : 'var(--text-light)') + ';">' + (d.role || 'user') + '</span><br>' + date + '</div>'
               + '</div>';
           }).join('') + '</div>';
@@ -1887,6 +1887,19 @@
     }
     function adminBadge(isAdmin, email) {
       return (isAdmin || email === 'rifan.eko25@gmail.com') ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
+    }
+    function maskEmail(email) {
+      if (!email) return '';
+      const parts = email.split('@');
+      if (parts.length !== 2) return email;
+      const local = parts[0];
+      const domain = parts[1];
+      if (local.length <= 1) return local + '***@' + domain;
+      return local[0] + '****@' + domain;
+    }
+    function maskPhone(phone) {
+      if (!phone || phone.length < 6) return phone || '';
+      return phone.slice(0, 2) + '******' + phone.slice(-2);
     }
 
     // ===== SCROLL SPY =====
