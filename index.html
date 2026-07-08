@@ -63,6 +63,13 @@
 
     .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
 
+    @keyframes adminFade {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    #adminContent { animation: adminFade .35s ease; }
+    #adminPanel > div { animation: adminFade .4s ease; }
+
     /* Nav */
     nav {
       position: fixed; top: 0; left: 0; right: 0;
