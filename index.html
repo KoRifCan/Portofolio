@@ -278,6 +278,15 @@
       .projects-grid { grid-template-columns: 1fr; }
       .testimonials-grid { grid-template-columns: 1fr; }
     }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--text); color: var(--bg); padding: 14px 28px;
+      border-radius: 14px; font-size: .9rem; font-weight: 500;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15); z-index: 9999;
+      opacity: 0; transition: all .35s ease; pointer-events: none;
+      max-width: 90%; text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
   </style>
 </head>
 <body>
@@ -542,6 +551,7 @@
     </div>
   </div>
 
+  <div id="toast" class="toast"></div>
   <footer>
     <div class="container">
       &copy; 2026 Rifan Eko Candra Maulana. Dibuat dengan <i class="fas fa-heart" style="color:#ef4444;"></i> dan segelas <i class="fas fa-coffee"></i>.
@@ -549,6 +559,13 @@
   </footer>
 
   <script>
+    // ===== TOAST =====
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
     // ===== FIREBASE INIT =====
     const firebaseConfig = {
       apiKey: "AIzaSyBQkb3mKlnC6gzRuufRcnqBEFY_KJ1RKSM",
@@ -571,7 +588,7 @@
       if (user) {
         btn.innerHTML = '<i class="fas fa-user-check"></i>';
         btn.title = user.email;
-        btn.onclick = () => { if (confirm('Logout ' + user.email + '?')) { auth.signOut(); } };
+        btn.onclick = () => { auth.signOut(); showToast('Berhasil logout!'); };
       } else {
         btn.innerHTML = '<i class="fas fa-user"></i>';
         btn.title = 'Login';
@@ -592,20 +609,20 @@
     function handleLogin() {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
-      if (!email || !pass) return alert('Isi email dan password!');
+      if (!email || !pass) return showToast('Isi email dan password!');
       auth.signInWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-        .catch(() => alert('Email atau password salah. Belum punya akun? Klik "Daftar Akun Baru".'));
+        .catch(() => showToast('Email atau password salah. Belum punya akun? Klik "Daftar Akun Baru".'));
     }
 
     function handleRegister() {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
-      if (!email || !pass) return alert('Isi email dan password dulu!');
-      if (pass.length < 6) return alert('Password minimal 6 karakter.');
+      if (!email || !pass) return showToast('Isi email dan password dulu!');
+      if (pass.length < 6) return showToast('Password minimal 6 karakter.');
       auth.createUserWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-        .catch(e => alert(e.message));
+        .catch(e => showToast(e.message));
     }
     document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
@@ -639,7 +656,7 @@
           starsEl.onclick = () => {
             if (!currentUser) { openLogin(); return; }
             const existing = snapshot.docs.find(d => d.data().project === proj && d.data().userId === currentUser.uid);
-            if (existing) { alert('Kamu sudah memberi rating untuk ' + projectNames[proj]); return; }
+            if (existing) { showToast('Kamu sudah memberi rating untuk ' + projectNames[proj]); return; }
             showRatingPicker(proj);
           };
         });
@@ -687,7 +704,7 @@
         if (!selected) return;
         db.collection('ratings').add({ project: proj, userId: currentUser.uid, userEmail: currentUser.email, rating: selected, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
           .then(() => { picker.remove(); })
-          .catch(e => alert(e.message));
+          .catch(e => showToast(e.message));
       });
     }
 
