@@ -807,18 +807,20 @@
     const spySections = document.querySelectorAll('section[id]');
     const spyLinks = document.querySelectorAll('.nav-links a');
     function updateSpy() {
-      requestAnimationFrame(() => {
-        let best = '';
-        const check = window.scrollY + 100;
+      try {
+        let best = spySections[0].id;
+        const check = window.pageYOffset + 100;
         spySections.forEach(s => {
-          if (s.offsetTop <= check) best = s.id;
+          const top = s.getBoundingClientRect().top + window.pageYOffset;
+          if (top <= check) best = s.id;
         });
         spyLinks.forEach(a => a.classList.remove('active'));
         const el = document.querySelector('.nav-links a[href="#' + best + '"]');
         if (el) el.classList.add('active');
-      });
+      } catch(e) {}
     }
     window.addEventListener('scroll', updateSpy, { passive: true });
+    window.addEventListener('touchmove', updateSpy, { passive: true });
     updateSpy();
 
     // ===== HAMBURGER =====
