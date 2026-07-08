@@ -808,11 +808,11 @@
     const navAnchors = document.querySelectorAll('.nav-links a');
     function updateActiveNav() {
       let current = '';
-      let maxVis = 0;
+      let minDist = Infinity;
       sections.forEach(s => {
-        const rect = s.getBoundingClientRect();
-        const visible = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-        if (visible > maxVis) { maxVis = visible; current = s.id; }
+        const mid = s.getBoundingClientRect().top + s.offsetHeight / 2;
+        const dist = Math.abs(mid - 150);
+        if (dist < minDist) { minDist = dist; current = s.id; }
       });
       navAnchors.forEach(a => a.classList.remove('active'));
       if (current) {
