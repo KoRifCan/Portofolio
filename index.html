@@ -67,14 +67,16 @@
     .logo span { color: #6366f1; }
     .nav-links { display: flex; gap: 32px; font-size: .9rem; font-weight: 500; }
     .nav-links a { transition: color .2s; position: relative; }
-    .nav-links a:hover { color: #6366f1; }
+    .nav-links a:hover,
+    .nav-links a.active { color: #6366f1; }
     .nav-links a::after {
       content: ''; position: absolute; bottom: -4px; left: 0;
       width: 0; height: 2px; background: #6366f1;
       transition: width .25s;
     }
     .nav-links a:hover { color: #6366f1; }
-    .nav-links a:hover::after { width: 100%; }
+    .nav-links a:hover::after,
+    .nav-links a.active::after { width: 100%; }
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
     .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: .3s; }
     .nav-actions { display: flex; align-items: center; gap: 8px; }
@@ -281,6 +283,27 @@
       .projects-grid { grid-template-columns: 1fr; }
       .testimonials-grid { grid-template-columns: 1fr; }
     }
+    .blob-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+    .blob {
+      position: absolute; width: 500px; height: 500px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(168,85,247,.1));
+      filter: url(#goo);
+      animation: blobMove 12s ease-in-out infinite;
+    }
+    .blob:nth-child(2) {
+      width: 400px; height: 400px; top: 20%; right: -10%;
+      background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(236,72,153,.12));
+      animation: blobMove2 15s ease-in-out infinite;
+    }
+    @keyframes blobMove {
+      0%, 100% { top: 5%; left: -10%; transform: scale(1); }
+      33% { top: 15%; left: 5%; transform: scale(1.2); }
+      66% { top: 25%; left: -5%; transform: scale(.9); }
+    }
+    @keyframes blobMove2 {
+      0%, 100% { top: 30%; right: -10%; transform: scale(1); }
+      50% { top: 10%; right: 5%; transform: scale(1.3); }
+    }
     .toast {
       position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
       background: var(--text); color: var(--bg); padding: 14px 28px;
@@ -294,6 +317,15 @@
 </head>
 <body>
 
+  <svg style="position:absolute;width:0;height:0;" aria-hidden="true">
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 28 -10" result="goo" />
+        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
   <nav>
     <div class="container">
       <div class="logo">Rifan<span>.</span></div>
@@ -318,7 +350,11 @@
   </nav>
 
   <!-- Hero -->
-  <section id="hero">
+  <section id="hero" style="position:relative;">
+    <div class="blob-wrap">
+      <div class="blob"></div>
+      <div class="blob"></div>
+    </div>
     <div class="container">
       <div class="hero-content">
         <h1>Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Pengembang Full-Stack</h1>
@@ -764,6 +800,20 @@
         });
       });
     }
+
+    // ===== SCROLL SPY =====
+    const sections = document.querySelectorAll('section[id]');
+    const navAnchors = document.querySelectorAll('.nav-links a');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navAnchors.forEach(a => a.classList.remove('active'));
+          const active = document.querySelector('.nav-links a[href="#' + entry.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { threshold: 0.3 });
+    sections.forEach(s => observer.observe(s));
 
     // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
