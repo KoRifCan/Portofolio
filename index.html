@@ -642,7 +642,7 @@
       const email = document.getElementById('loginEmail').value;
       if (!email) return showToast('Masukkan email dulu!');
       auth.sendPasswordResetEmail(email)
-        .then(() => showToast('Link reset password dikirim ke ' + email))
+        .then(() => showToast('Link reset terkirim ke ' + email + ' (cek spam jika tidak ada)'))
         .catch(e => showToast(e.message));
     }
 
