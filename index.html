@@ -1209,18 +1209,57 @@
         loadTestiList();
       } else if (tab === 'comments') {
         content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat komentar...</p>';
-        db.collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
-          if (snap.empty) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>'; return; }
-          content.innerHTML = snap.docs.map(doc => {
-            const d = doc.data();
+        let allComments = [];
+        let projects = {};
+        let selectedProject = null;
+        let comPage = 0;
+        const comPerPage = 5;
+        function renderComments() {
+          const projectIds = Object.keys(projects);
+          if (!projectIds.length) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>'; return; }
+          if (!selectedProject || !projects[selectedProject]) selectedProject = projectIds[0];
+          const items = projects[selectedProject] || [];
+          const totalPages = Math.ceil(items.length / comPerPage) || 1;
+          if (comPage >= totalPages) comPage = totalPages - 1;
+          const pageItems = items.slice(comPage * comPerPage, (comPage + 1) * comPerPage);
+          const projectTabs = projectIds.map(p =>
+            '<button data-switch="' + p + '" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (p === selectedProject ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (p === selectedProject ? 'font-weight:600;' : '') + '">' + p + ' (' + projects[p].length + ')</button>'
+          ).join('');
+          const listHtml = pageItems.map(d => {
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
             return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
               + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + d.userEmail + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div>'
               + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div></div>'
-              + '<button onclick="deleteComment(\'' + doc.id + '\')" style="flex-shrink:0;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
+              + '<button onclick="deleteComment(\'' + d._id + '\')" style="flex-shrink:0;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
               + '</div></div>';
           }).join('');
+          const pagHtml = totalPages > 1
+            ? '<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;">'
+              + '<button id="adminComPrev" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">&laquo; Sebelumnya</button>'
+              + '<span style="font-size:.82rem;color:var(--text-light);">' + (comPage + 1) + ' / ' + totalPages + '</span>'
+              + '<button id="adminComNext" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">Selanjutnya &raquo;</button>'
+              + '</div>'
+            : '';
+          content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">' + projectTabs + '</div>'
+            + listHtml + pagHtml;
+          content.querySelectorAll('[data-switch]').forEach(el => {
+            el.addEventListener('click', () => { selectedProject = el.dataset.switch; comPage = 0; renderComments(); });
+          });
+          const prevBtn = document.getElementById('adminComPrev');
+          const nextBtn = document.getElementById('adminComNext');
+          if (prevBtn) { if (comPage <= 0) prevBtn.disabled = true; prevBtn.addEventListener('click', () => { if (comPage > 0) { comPage--; renderComments(); } }); }
+          if (nextBtn) { if (comPage >= totalPages - 1) nextBtn.disabled = true; nextBtn.addEventListener('click', () => { if (comPage < totalPages - 1) { comPage++; renderComments(); } }); }
+        }
+        db.collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
+          projects = {};
+          snap.forEach(doc => {
+            const d = doc.data(); d._id = doc.id;
+            const p = d.projectId || 'unknown';
+            if (!projects[p]) projects[p] = [];
+            projects[p].push(d);
+          });
+          renderComments();
         }, () => { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat komentar.</p>'; });
       } else if (tab === 'users') {
         content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat pengguna...</p>';
