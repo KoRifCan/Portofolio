@@ -532,8 +532,8 @@
       <div id="loginFields">
         <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
         <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">
-        <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;">Masuk</button>
-        <p style="text-align:center;margin-top:12px;font-size:.85rem;color:var(--text-light);">Belum punya akun? <a href="#" onclick="showRegister()" style="color:#6366f1;font-weight:600;">Daftar</a></p>
+        <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;">Masuk</button>
+        <button onclick="handleRegister()" class="btn btn-outline" style="width:100%;justify-content:center;">Daftar Akun Baru</button>
       </div>
       <div id="loginSuccess" style="display:none;text-align:center;padding:20px 0;">
         <i class="fas fa-check-circle" style="font-size:3rem;color:#10b981;"></i>
@@ -595,19 +595,14 @@
       if (!email || !pass) return alert('Isi email dan password!');
       auth.signInWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-        .catch(err => {
-          if (err.code === 'auth/user-not-found') {
-            auth.createUserWithEmailAndPassword(email, pass)
-              .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-              .catch(e => alert(e.message));
-          } else { alert(err.message); }
-        });
+        .catch(() => alert('Email atau password salah. Belum punya akun? Klik "Daftar Akun Baru".'));
     }
 
-    function showRegister() {
+    function handleRegister() {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
       if (!email || !pass) return alert('Isi email dan password dulu!');
+      if (pass.length < 6) return alert('Password minimal 6 karakter.');
       auth.createUserWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
         .catch(e => alert(e.message));
@@ -761,8 +756,8 @@
       loginTitle: { id: 'Login', en: 'Login' },
       loginSub: { id: 'Masuk untuk memberi rating', en: 'Sign in to rate projects' },
       loginBtn: { id: 'Masuk', en: 'Sign In' },
-      loginRegister: { id: 'Belum punya akun?', en: 'No account?' },
-      loginRegisterLink: { id: 'Daftar', en: 'Register' },
+      loginRegister: { id: 'Daftar Akun Baru', en: 'Create New Account' },
+      ratingEmpty: { id: 'Belum ada rating', en: 'No ratings yet' },
       loginSuccess: { id: 'Berhasil masuk!', en: 'Logged in!' },
       ratingEmpty: { id: 'Belum ada rating', en: 'No ratings yet' },
       ratingAlready: { id: 'Kamu sudah memberi rating untuk', en: 'You already rated' },
@@ -814,8 +809,8 @@
       document.getElementById('loginSub').textContent = langData.loginSub[lang];
       const loginBtn = document.querySelector('#loginFields .btn-primary');
       if (loginBtn) loginBtn.textContent = langData.loginBtn[lang];
-      const regP = document.querySelector('#loginFields p');
-      if (regP) regP.innerHTML = langData.loginRegister[lang] + ' <a href="#" onclick="showRegister()" style="color:#6366f1;font-weight:600;">' + langData.loginRegisterLink[lang] + '</a>';
+      const regBtn = document.querySelector('#loginFields .btn-outline');
+      if (regBtn) regBtn.textContent = langData.loginRegister[lang];
       document.getElementById('loginSuccessText').textContent = langData.loginSuccess[lang];
     }
 
