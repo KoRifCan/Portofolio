@@ -241,8 +241,7 @@
       resize: vertical; min-height: 60px; margin-bottom: 8px;
     }
     .project-card .comment-area .btn-primary { font-size: .8rem; padding: 8px 16px; justify-content: center; }
-    .comment-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border-light); }
-    .comment-item:last-child { border-bottom: none; }
+    .comment-item { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 10px; }
     .comment-item .c-avatar {
       width: 32px; height: 32px; border-radius: 50%; background: #6366f1;
       display: grid; place-items: center; color: #fff; font-size: .75rem; font-weight: 700;
@@ -925,19 +924,36 @@
     let photoDataURL = null;
     function showProfileMenu() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; return; }
-      profileData = {};
       let adminBtn = '<button onclick="showPublicTestiForm();" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni</button>';
       if (currentUser) {
         db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
           if (doc.exists) {
             profileData = doc.data();
-            if (profileData.role === 'admin') {
+            const inner = document.getElementById('profileMenuInner');
+            if (inner) {
+              const nameEl = document.getElementById('profileMenuName');
+              if (nameEl) nameEl.textContent = profileData.name || currentUser?.email?.split('@')[0] || 'User';
+              const wrapper = inner.firstElementChild;
+              if (wrapper) {
+                const oldAvatar = wrapper.firstElementChild;
+                if (oldAvatar) {
+                  if (profileData.photoURL) {
+                    oldAvatar.outerHTML = '<img src="' + profileData.photoURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">';
+                  } else if (oldAvatar.tagName !== 'IMG') {
+                    oldAvatar.innerHTML = '<i class="fas fa-user"></i>';
+                  }
+                }
+              }
+              const phoneEl = inner.querySelector('p:last-of-type');
+              if (phoneEl) phoneEl.textContent = profileData.phone || '-';
               document.querySelector('#profileMenuInner .admin-btn-area')?.remove();
-              const area = document.getElementById('profileMenuInner');
-              if (area) {
-                const a = document.createElement('div'); a.className = 'admin-btn-area';
-                a.innerHTML = '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>';
-                area.insertBefore(a, area.querySelector('.logout-btn-area'));
+              if (profileData.role === 'admin') {
+                const area = document.getElementById('profileMenuInner');
+                if (area) {
+                  const a = document.createElement('div'); a.className = 'admin-btn-area';
+                  a.innerHTML = '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>';
+                  area.insertBefore(a, area.querySelector('.logout-btn-area'));
+                }
               }
             }
           }
@@ -980,11 +996,12 @@
             profileData.photoURL = dataURL;
             const inner = document.getElementById('profileMenuInner');
             if (inner) {
-              const oldImg = inner.querySelector('img');
-              if (oldImg) { oldImg.src = dataURL; }
-              else {
-                const container = inner.querySelector('div:first-child > div:first-child');
-                if (container) container.innerHTML = '<img src="' + dataURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">';
+              const wrapper = inner.firstElementChild;
+              if (wrapper) {
+                const oldAvatar = wrapper.firstElementChild;
+                if (oldAvatar) {
+                  oldAvatar.outerHTML = '<img src="' + dataURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">';
+                }
               }
             }
             showToast('Foto profil berhasil diubah!');
@@ -1114,7 +1131,7 @@
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + d.text + '"</blockquote>'
             + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
-            + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '</div>'
+            + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
             + '</div></div>';
@@ -1123,6 +1140,9 @@
         pag.innerHTML = '<button id="testiPrev" ' + (page <= 0 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i> Sebelumnya</button>'
           + '<span>' + (page + 1) + ' / ' + totalPages + '</span>'
           + '<button id="testiNext" ' + (page >= totalPages - 1 ? 'disabled' : '') + '>Selanjutnya <i class="fas fa-chevron-right"></i></button>';
+        grid.querySelectorAll('.sub-replies[data-type="testi"]').forEach(el => {
+          loadSubReplies(el.dataset.parent, 'testi', el);
+        });
       }
       pag.onclick = e => {
         if (e.target.id === 'testiPrev' && !e.target.disabled) { page--; render(); }
@@ -1297,7 +1317,7 @@
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
               + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div>'
-              + renderReplies(d.replies)
+              + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
               + '</div>'
               + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
               + '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
@@ -1320,6 +1340,9 @@
           const nextBtn = document.getElementById('adminComNext');
           if (prevBtn) { if (comPage <= 0) prevBtn.disabled = true; prevBtn.addEventListener('click', () => { if (comPage > 0) { comPage--; renderComments(); } }); }
           if (nextBtn) { if (comPage >= totalPages - 1) nextBtn.disabled = true; nextBtn.addEventListener('click', () => { if (comPage < totalPages - 1) { comPage++; renderComments(); } }); }
+          content.querySelectorAll('.sub-replies[data-type="comment"]').forEach(el => {
+            loadSubReplies(el.dataset.parent, 'comment', el);
+          });
         }
         db.collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
           projects = {};
@@ -1411,7 +1434,7 @@
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
             + '<div style="font-size:.75rem;color:var(--text-light);margin-top:6px;">' + (d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '') + '</div>'
-            + renderReplies(d.replies)
+            + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div>'
             + '</div>'
             + '<div style="display:flex;gap:4px;flex-shrink:0;flex-direction:column;">'
             + '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
@@ -1430,6 +1453,9 @@
           pagEl.querySelector('#adminTestiPrev')?.addEventListener('click', () => { if (page > 0) { page--; render(allTestimonials); } });
           pagEl.querySelector('#adminTestiNext')?.addEventListener('click', () => { if (page < totalPages - 1) { page++; render(allTestimonials); } });
         }
+        list.querySelectorAll('.sub-replies[data-type="testi"]').forEach(el => {
+          loadSubReplies(el.dataset.parent, 'testi', el);
+        });
       }
       document.getElementById('testiFilterAdmin')?.addEventListener('click', e => {
         const btn = e.target.closest('.testi-filter-btn');
@@ -1643,9 +1669,13 @@
           return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
             + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
             + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies)
+            + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
             + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#6366f1;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
             + '</div></div>';
         }).join('');
+        container.querySelectorAll('.sub-replies[data-type="comment"]').forEach(el => {
+          loadSubReplies(el.dataset.parent, 'comment', el);
+        });
       }, () => {});
     }
     function submitComment() {
@@ -1700,6 +1730,11 @@
         function confirmAndDelete() {
           showConfirm('Hapus komentar ini?').then(ok => {
             if (!ok) return;
+            ref.collection('replies').get().then(snap => {
+              const batch = db.batch();
+              snap.forEach(d => batch.delete(d.ref));
+              if (snap.size) batch.commit();
+            }).catch(() => {});
             ref.delete().then(() => showToast('Komentar dihapus!')).catch(e => showToast(e.message));
           });
         }
@@ -1732,9 +1767,7 @@
           };
           if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
           const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
-          ref.update({
-            replies: firebase.firestore.FieldValue.arrayUnion(replyData)
-          }).then(() => { showToast('Balasan terkirim!'); overlay.remove(); }).catch(e => showToast(e.message));
+          ref.collection('replies').add(replyData).then(() => { showToast('Balasan terkirim!'); overlay.remove(); }).catch(e => showToast(e.message));
         }).catch(() => showToast('Gagal mengambil data profil.'));
       });
       setTimeout(() => document.getElementById('replyText')?.focus(), 100);
@@ -1750,6 +1783,26 @@
           + '<div style="margin-top:2px;">' + r.text + '</div>'
           + '</div>';
       }).join('');
+    }
+
+    function loadSubReplies(parentId, type, containerEl) {
+      const col = type === 'comment'
+        ? db.collection('comments').doc(parentId).collection('replies')
+        : db.collection('testimonials').doc(parentId).collection('replies');
+      col.orderBy('createdAt').get().then(snap => {
+        if (snap.empty) return;
+        snap.forEach(doc => {
+          const r = doc.data();
+          const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+          const photo = r.userPhotoURL
+            ? '<img src="' + r.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">'
+            : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + (r.userName ? r.userName[0].toUpperCase() : '?') + '</div>';
+          containerEl.innerHTML += '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
+            + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (r.userName || r.userEmail || 'Admin') + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
+            + '<div style="margin-top:2px;">' + r.text + '</div>'
+            + '</div>';
+        });
+      }).catch(() => {});
     }
 
     function getAvatarHTML(name, photoURL, size) {
