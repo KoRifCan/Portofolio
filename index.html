@@ -66,22 +66,15 @@
     .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -.02em; }
     .logo span { color: #6366f1; }
     .nav-links { display: flex; gap: 32px; font-size: .9rem; font-weight: 500; }
-    .nav-links a { transition: color .2s, transform .2s; position: relative; animation: linkFloat 3s ease-in-out infinite; animation-delay: calc(var(--i) * 0.1s); }
-    .nav-links a:hover { color: #6366f1; animation-play-state: paused; }
-    .nav-links a:hover::after { width: 100%; }
-    .nav-links a:nth-child(1) { --i: 0; }
-    .nav-links a:nth-child(2) { --i: 1; }
-    .nav-links a:nth-child(3) { --i: 2; }
-    .nav-links a:nth-child(4) { --i: 3; }
-    .nav-links a:nth-child(5) { --i: 4; }
-    .nav-links a:nth-child(6) { --i: 5; }
-    .nav-links a:nth-child(7) { --i: 6; }
-    @keyframes linkFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+    .nav-links a { transition: color .2s; position: relative; }
+    .nav-links a:hover { color: #6366f1; }
     .nav-links a::after {
       content: ''; position: absolute; bottom: -4px; left: 0;
       width: 0; height: 2px; background: #6366f1;
       transition: width .25s;
     }
+    .nav-links a:hover { color: #6366f1; }
+    .nav-links a:hover::after { width: 100%; }
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
     .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: .3s; }
     .nav-actions { display: flex; align-items: center; gap: 8px; }
