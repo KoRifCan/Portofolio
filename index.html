@@ -805,19 +805,25 @@
     // ===== SCROLL SPY =====
     const sections = document.querySelectorAll('section[id]');
     const navAnchors = document.querySelectorAll('.nav-links a');
-    const spyObserver = new IntersectionObserver(entries => {
-      let maxVis = 0; let best = '';
-      entries.forEach(entry => {
-        const vis = entry.intersectionRect.height;
-        if (vis > maxVis) { maxVis = vis; best = entry.target.id; }
-      });
-      navAnchors.forEach(a => a.classList.remove('active'));
-      if (best) {
-        const el = document.querySelector('.nav-links a[href="#' + best + '"]');
-        if (el) el.classList.add('active');
+    const offsets = [];
+    function updateOffsets() {
+      offsets.length = 0;
+      sections.forEach(s => offsets.push({ id: s.id, top: s.offsetTop }));
+    }
+    function updateActiveNav() {
+      const scrollY = window.scrollY + 150;
+      let current = offsets[0]?.id || '';
+      for (const o of offsets) {
+        if (o.top <= scrollY) current = o.id;
       }
-    }, { threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] });
-    sections.forEach(s => spyObserver.observe(s));
+      navAnchors.forEach(a => a.classList.remove('active'));
+      const el = document.querySelector('.nav-links a[href="#' + current + '"]');
+      if (el) el.classList.add('active');
+    }
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    window.addEventListener('resize', updateOffsets);
+    updateOffsets();
+    updateActiveNav();
 
     // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
