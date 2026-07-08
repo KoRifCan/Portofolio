@@ -839,12 +839,16 @@
     });
     setInterval(() => {
       const u = firebase.auth().currentUser;
-      if (u && !u.emailVerified) u.reload().catch(() => {});
+      if (u && !u.emailVerified) u.reload().then(() => {
+        if (u.emailVerified) db.collection('userProfiles').doc(u.uid).update({ emailVerified: true }).catch(() => {});
+      }).catch(() => {});
     }, 30000);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         const u = firebase.auth().currentUser;
-        if (u && !u.emailVerified) u.reload().catch(() => {});
+        if (u && !u.emailVerified) u.reload().then(() => {
+          if (u.emailVerified) db.collection('userProfiles').doc(u.uid).update({ emailVerified: true }).catch(() => {});
+        }).catch(() => {});
       }
     });
 
@@ -928,7 +932,7 @@
         .then(cred => {
           cred.user.sendEmailVerification().catch(() => {});
           return db.collection('userProfiles').doc(cred.user.uid).set({
-            name, phone, email, role: 'user',
+            name, phone, email, role: 'user', emailVerified: false,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
@@ -1433,7 +1437,8 @@
             return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;opacity:' + (disabled ? '.5' : '1') + ';">'
               + getAvatarHTML(u.name, u.photoURL, 40)
               + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + esc(u.name || 'Tanpa Nama') + adminBadge(u.role === 'admin') + (disabled ? ' <span style="color:#ef4444;font-size:.7rem;">(dinonaktifkan)</span>' : '') + '</div>'
-              + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(u.email) + (u.phone ? ' &middot; ' + esc(u.phone) : '') + '</div></div>'
+              + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(u.email) + (u.phone ? ' &middot; ' + esc(u.phone) : '') + '</div>'
+              + '<div style="font-size:.75rem;"><span style="color:' + (u.emailVerified ? '#10b981' : '#f59e0b') + ';">' + (u.emailVerified ? '<i class="fas fa-check-circle"></i> Terverifikasi' : '<i class="fas fa-clock"></i> Belum verifikasi') + '</span></div></div>'
               + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'
               + '<div style="font-size:.75rem;color:var(--text-light);text-align:right;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;background:' + (u.role === 'admin' ? '#dbeafe' : 'var(--card-bg)') + ';color:' + (u.role === 'admin' ? '#3b82f6' : 'var(--text-light)') + ';">' + (u.role || 'user') + '</span><br>' + date + '</div>'
               + (u.role !== 'admin' ? '<button class="toggle-disable-btn" data-uid="' + u.id + '" data-current="' + disabled + '" style="font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid ' + (disabled ? 'var(--border)' : '#ef4444') + ';background:transparent;color:' + (disabled ? 'var(--text-light)' : '#ef4444') + ';cursor:pointer;">' + (disabled ? 'Aktifkan' : 'Nonaktifkan') + '</button>' : '')
@@ -2132,6 +2137,7 @@
         user.reload().then(() => {
           if (user.emailVerified) {
             stopVerifyPolling();
+            db.collection('userProfiles').doc(user.uid).update({ emailVerified: true }).catch(() => {});
             showToast('Email berhasil diverifikasi!');
             if (profileMenu) { profileMenu.remove(); profileMenu = null; showProfileMenu(); }
           }
