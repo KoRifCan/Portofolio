@@ -184,6 +184,7 @@
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 16px;
+      min-width: 0; overflow-wrap: break-word;
     }
     .card-title {
       font-size: .95rem; font-weight: 600; margin-bottom: 16px;
@@ -202,9 +203,10 @@
       border: 1px solid var(--border-light);
       border-radius: 14px;
       padding: 18px; text-align: center;
+      min-width: 0; overflow-wrap: break-word; word-break: break-word;
     }
     .stat-card .num { font-size: 1.6rem; font-weight: 700; }
-    .stat-card .label { font-size: .8rem; color: var(--text-light); margin-top: 4px; }
+    .stat-card .label { font-size: .8rem; color: var(--text-light); margin-top: 4px; overflow-wrap: break-word; word-break: break-word; }
 
     /* === FORM ELEMENTS === */
     .form-group { margin-bottom: 14px; }
@@ -314,7 +316,7 @@
     .filter-btn.active { background: var(--card-bg); color: var(--text); font-weight: 600; }
 
     /* === STAR PICKER === */
-    .star-picker { font-size: 1.6rem; color: #f59e0b; cursor: pointer; letter-spacing: 4px; }
+    .star-picker { font-size: 1.6rem; color: #f59e0b; cursor: pointer; }
 
     /* === REPLY === */
     .reply-item {
@@ -1085,7 +1087,7 @@
       const container = document.getElementById('ratingStarFilter');
       const counts = {};
       for (let s = 1; s <= 5; s++) counts[s] = allRatings.filter(r => (r.rating || 0) === s).length;
-      container.innerHTML = '<button class="filter-btn' + (ratingStarFilter === 0 ? ' active' : '') + '" data-rstar="0">Semua Rating</button>'
+      container.innerHTML = '<button class="filter-btn' + (ratingStarFilter === 0 ? ' active' : '') + '" data-rstar="0">Semua Rating (' + allRatings.length + ')</button>'
         + [5,4,3,2,1].map(s => '<button class="filter-btn' + (ratingStarFilter === s ? ' active' : '') + '" data-rstar="' + s + '">' + '★'.repeat(s) + ' (' + counts[s] + ')</button>').join('');
     }
 
@@ -1187,13 +1189,17 @@
       const btn = e.target.closest('.filter-btn');
       if (!btn) return;
       ratingStarFilter = parseInt(btn.dataset.rstar) || 0; ratingPage = 0;
-      renderRatingList(buildRatingProjectNames());
+      const pn = buildRatingProjectNames();
+      renderRatingStarFilter();
+      renderRatingList(pn);
     });
     document.getElementById('ratingProjectFilter')?.addEventListener('click', function(e) {
       const btn = e.target.closest('.filter-btn');
       if (!btn) return;
       ratingProjectFilter = btn.dataset.rproj || '__all__'; ratingPage = 0;
-      renderRatingList(buildRatingProjectNames());
+      const pn = buildRatingProjectNames();
+      renderRatingProjectFilter(pn);
+      renderRatingList(pn);
     });
 
     function deleteRating(id) {
