@@ -1196,7 +1196,10 @@
           + '<input id="testiName" placeholder="Nama" required>'
           + '<input id="testiRole" placeholder="Jabatan/Asal (opsional)">'
           + '<textarea id="testiText" placeholder="Isi testimoni" required></textarea>'
-          + '<select id="testiRating"><option value="">Pilih rating</option><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
+          + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:6px;">Rating</label>'
+          + '<div class="star-picker" id="testiRating" data-value="0" style="font-size:1.6rem;color:#f59e0b;cursor:pointer;margin-bottom:16px;letter-spacing:4px;">'
+          + '<i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>'
+          + '</div>'
           + '<button onclick="saveTestimonial();loadAdminTab(\'testimonials\');" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni</button>'
           + '</div>'
           + '<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="testiFilterAdmin">'
@@ -1207,9 +1210,9 @@
           + '<div id="testiList" style="margin-bottom:12px;"></div>'
           + '<div id="testiPaginationAdmin" style="display:flex;justify-content:center;align-items:center;gap:12px;"></div>';
         loadTestiList();
+        setTimeout(() => initStarPicker(document.getElementById('testiRating')), 50);
       } else if (tab === 'comments') {
         content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat komentar...</p>';
-        let allComments = [];
         let projects = {};
         let selectedProject = null;
         let comPage = 0;
@@ -1217,19 +1220,25 @@
         function renderComments() {
           const projectIds = Object.keys(projects);
           if (!projectIds.length) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>'; return; }
-          if (!selectedProject || !projects[selectedProject]) selectedProject = projectIds[0];
-          const items = projects[selectedProject] || [];
+          const isAll = !selectedProject || selectedProject === '__all__';
+          const items = isAll ? projectIds.flatMap(p => projects[p]) : (projects[selectedProject] || []);
           const totalPages = Math.ceil(items.length / comPerPage) || 1;
           if (comPage >= totalPages) comPage = totalPages - 1;
           const pageItems = items.slice(comPage * comPerPage, (comPage + 1) * comPerPage);
+          const projectNames = { shopwave: 'Portofolio Pribadi' };
+          function friendlyName(id) { return projectNames[id] || id; }
+          const totalAll = projectIds.reduce((s, p) => s + projects[p].length, 0);
+          const allBtn = '<button data-switch="__all__" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (isAll ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (isAll ? 'font-weight:600;' : '') + '">Semua (' + totalAll + ')</button>';
           const projectTabs = projectIds.map(p =>
-            '<button data-switch="' + p + '" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (p === selectedProject ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (p === selectedProject ? 'font-weight:600;' : '') + '">' + p + ' (' + projects[p].length + ')</button>'
+            '<button data-switch="' + p + '" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (!isAll && p === selectedProject ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (!isAll && p === selectedProject ? 'font-weight:600;' : '') + '">' + friendlyName(p) + ' (' + projects[p].length + ')</button>'
           ).join('');
           const listHtml = pageItems.map(d => {
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
             return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
               + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
+              + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
+              + '</div>'
               + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div></div>'
               + '<button onclick="deleteComment(\'' + d._id + '\')" style="flex-shrink:0;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
               + '</div></div>';
@@ -1241,7 +1250,7 @@
               + '<button id="adminComNext" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">Selanjutnya &raquo;</button>'
               + '</div>'
             : '';
-          content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">' + projectTabs + '</div>'
+          content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">' + allBtn + projectTabs + '</div>'
             + listHtml + pagHtml;
           content.querySelectorAll('[data-switch]').forEach(el => {
             el.addEventListener('click', () => { selectedProject = el.dataset.switch; comPage = 0; renderComments(); });
@@ -1280,11 +1289,27 @@
       }
     }
 
+    function initStarPicker(el) {
+      if (!el) return;
+      let selected = parseInt(el.dataset.value) || 0;
+      const stars = el.querySelectorAll('i');
+      function highlight(v) {
+        stars.forEach((s, i) => s.className = i < v ? 'fas fa-star' : 'far fa-star');
+      }
+      stars.forEach(s => {
+        s.addEventListener('mouseenter', () => highlight(parseInt(s.dataset.v)));
+        s.addEventListener('click', () => { selected = parseInt(s.dataset.v); el.dataset.value = selected; highlight(selected); });
+      });
+      el.addEventListener('mouseleave', () => highlight(selected));
+      highlight(selected);
+    }
+
     function saveTestimonial() {
       const name = document.getElementById('testiName')?.value.trim();
       const text = document.getElementById('testiText')?.value.trim();
       const role = document.getElementById('testiRole')?.value.trim();
-      const rating = parseInt(document.getElementById('testiRating')?.value);
+      const picker = document.getElementById('testiRating');
+      const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
       if (!rating || rating < 1 || rating > 5) return showToast('Pilih rating bintang!');
       db.collection('testimonials').add({
@@ -1407,17 +1432,22 @@
         + '<input id="pubTestiName" placeholder="Nama Anda" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + userName + '">'
         + '<input id="pubTestiRole" placeholder="Jabatan/Asal (opsional)" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">'
         + '<textarea id="pubTestiText" placeholder="Isi testimoni" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;resize:vertical;min-height:100px;"></textarea>'
-        + '<select id="pubTestiRating" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;"><option value="">Pilih rating</option><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
+        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:6px;">Rating</label>'
+        + '<div class="star-picker" id="pubTestiRating" data-value="0" style="font-size:1.6rem;color:#f59e0b;cursor:pointer;margin-bottom:16px;letter-spacing:4px;">'
+        + '<i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>'
+        + '</div>'
         + '<button onclick="submitPublicTesti(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Kirim Testimoni</button>'
         + '</div>';
       document.body.appendChild(overlay);
+      setTimeout(() => initStarPicker(document.getElementById('pubTestiRating')), 50);
     }
 
     function submitPublicTesti(btn) {
       const name = document.getElementById('pubTestiName').value.trim();
       const text = document.getElementById('pubTestiText').value.trim();
       const role = document.getElementById('pubTestiRole').value.trim();
-      const rating = parseInt(document.getElementById('pubTestiRating').value);
+      const picker = document.getElementById('pubTestiRating');
+      const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
       if (!rating || rating < 1 || rating > 5) return showToast('Pilih rating bintang!');
       btn.disabled = true;
