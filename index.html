@@ -795,8 +795,19 @@
 
     // ===== AUTH STATE =====
     let currentUser = null;
+    let currentUserIsAdmin = false;
     auth.onAuthStateChanged(user => {
       currentUser = user;
+      currentUserIsAdmin = false;
+      if (user) {
+        db.collection('userProfiles').doc(user.uid).get().then(doc => {
+          if (doc.exists && doc.data().role === 'admin') {
+            currentUserIsAdmin = true;
+          } else if (user.email === 'rifan.eko25@gmail.com') {
+            db.collection('userProfiles').doc(user.uid).set({ role: 'admin', email: user.email, name: 'Admin', createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).then(() => { currentUserIsAdmin = true; }).catch(() => {});
+          }
+        }).catch(() => {});
+      }
       const overlay = document.getElementById('loadingOverlay');
       if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 500); }
       const btn = document.getElementById('loginBtn');
@@ -913,25 +924,36 @@
     let profileData = {};
     function showProfileMenu() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; return; }
+      profileData = {};
+      let adminBtn = '<button onclick="showPublicTestiForm();" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni</button>';
       if (currentUser) {
         db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
-          if (doc.exists) profileData = doc.data();
+          if (doc.exists) {
+            profileData = doc.data();
+            if (profileData.role === 'admin') {
+              document.querySelector('#profileMenuInner .admin-btn-area')?.remove();
+              const area = document.getElementById('profileMenuInner');
+              if (area) {
+                const a = document.createElement('div'); a.className = 'admin-btn-area';
+                a.innerHTML = '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>';
+                area.insertBefore(a, area.querySelector('.logout-btn-area'));
+              }
+            }
+          }
         }).catch(() => {});
       }
       const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
       const phone = profileData.phone || '-';
       profileMenu = document.createElement('div');
       profileMenu.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);display:grid;place-items:center;';
-      profileMenu.innerHTML = '<div style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
+      profileMenu.innerHTML = '<div id="profileMenuInner" style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
         + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
-        + '<p style="font-weight:600;margin-bottom:2px;">' + name + '</p>'
+        + '<p style="font-weight:600;margin-bottom:2px;" id="profileMenuName">' + name + '</p>'
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">' + currentUser.email + '</p>'
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">' + phone + '</p>'
         + '<button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>'
-        + (currentUser.email === 'rifan.eko25@gmail.com'
-          ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>'
-          : '<button onclick="showPublicTestiForm(); this.closest(\'div\').parentElement.remove(); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni</button>')
-        + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
+        + '<div class="admin-btn-area">' + adminBtn + '</div>'
+        + '<div class="logout-btn-area"><button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button></div>'
         + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>';
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
@@ -1097,15 +1119,23 @@
     }
 
     function showAdminPanel() {
-      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') {
-        showToast('Hanya pemilik akun yang bisa membuka panel admin.');
-        return;
-      }
+      if (!currentUser) { openLogin(); return; }
+      if (document.getElementById('adminPanel')) { document.getElementById('adminPanel').remove(); return; }
       if (profileMenu) { profileMenu.remove(); profileMenu = null; }
-      let panel = document.getElementById('adminPanel');
-      if (panel) { panel.remove(); return; }
-      panel = document.createElement('div');
-      panel.id = 'adminPanel';
+      db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
+        if (!doc.exists || doc.data().role !== 'admin') {
+          if (currentUser.email === 'rifan.eko25@gmail.com') {
+            db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email, name: 'Admin' }, { merge: true }).then(() => { doOpenAdmin(); }).catch(() => showToast('Gagal verifikasi admin.'));
+          } else {
+            showToast('Hanya pemilik akun yang bisa membuka panel admin.');
+          }
+          return;
+        }
+        doOpenAdmin();
+      }).catch(() => { showToast('Gagal verifikasi admin.'); });
+      function doOpenAdmin() {
+        const panel = document.createElement('div');
+        panel.id = 'adminPanel';
       panel.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.6);overflow-y:auto;padding:16px;display:grid;place-items:start center;';
       panel.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:0;max-width:720px;width:100%;margin:auto;position:relative;overflow:hidden;">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border-light);background:var(--card-bg-alt);">'
@@ -1295,12 +1325,25 @@
     }
 
     function toggleTesti(id, visible) {
-      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return;
-      db.collection('testimonials').doc(id).update({ visible }).catch(e => showToast(e.message));
+      if (!currentUser) return showToast('Login dulu!');
+      db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
+        const role = doc.exists ? doc.data().role : null;
+        if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com') { showToast('Hanya admin yang bisa mengubah testimoni.'); return; }
+        if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com') {
+          db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
+        }
+        db.collection('testimonials').doc(id).update({ visible }).catch(e => showToast(e.message));
+      }).catch(() => showToast('Gagal verifikasi.'));
     }
 
     async function deleteTesti(id) {
-      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return;
+      if (!currentUser) return showToast('Login dulu!');
+      const doc = await db.collection('userProfiles').doc(currentUser.uid).get().catch(() => null);
+      const role = doc?.exists ? doc.data().role : null;
+      if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com') { showToast('Hanya admin yang bisa menghapus testimoni.'); return; }
+      if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com') {
+        db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
+      }
       if (!await showConfirm('Hapus testimoni ini?')) return;
       db.collection('testimonials').doc(id).delete().catch(e => showToast(e.message));
     }
@@ -1480,12 +1523,24 @@
       ref.get().then(doc => {
         if (!doc.exists) return showToast('Komentar tidak ditemukan.');
         const data = doc.data();
-        if (currentUser.uid !== data.userId && currentUser.email !== 'rifan.eko25@gmail.com')
-          return showToast('Kamu tidak punya izin menghapus komentar ini.');
-        showConfirm('Hapus komentar ini?').then(ok => {
-          if (!ok) return;
-          ref.delete().then(() => showToast('Komentar dihapus!')).catch(e => showToast(e.message));
-        });
+        if (currentUser.uid !== data.userId) {
+          db.collection('userProfiles').doc(currentUser.uid).get().then(profile => {
+            const role = profile.exists ? profile.data().role : null;
+            if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com')
+              return showToast('Kamu tidak punya izin menghapus komentar ini.');
+            if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com')
+              db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
+            confirmAndDelete();
+          }).catch(() => showToast('Gagal verifikasi.'));
+        } else {
+          confirmAndDelete();
+        }
+        function confirmAndDelete() {
+          showConfirm('Hapus komentar ini?').then(ok => {
+            if (!ok) return;
+            ref.delete().then(() => showToast('Komentar dihapus!')).catch(e => showToast(e.message));
+          });
+        }
       }).catch(e => showToast(e.message));
     }
 
