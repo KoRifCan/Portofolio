@@ -225,12 +225,16 @@
     }
     .project-card .thumb .slider-overlay {
       position: absolute; inset: 0; z-index: 1; clip-path: inset(0 50% 0 0);
+      transition: clip-path 0.08s ease-out;
     }
+    .project-card .thumb .slider-overlay.no-transition { transition: none; }
     .project-card .thumb .slider-overlay .slider-img { object-position: center; }
     .project-card .thumb .slider-handle {
       position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff;
       transform: translateX(-1.5px); z-index: 2; pointer-events: none;
+      transition: left 0.08s ease-out;
     }
+    .project-card .thumb .slider-handle.no-transition { transition: none; }
     .project-card .thumb .slider-handle .knob { z-index: 3; }
     .project-card .thumb .slider-handle .knob {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
@@ -2473,12 +2477,27 @@
       overlay.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
       handle.style.left = pct + '%';
     }
-    slider.addEventListener('mousedown', e => { isDragging = true; updateSlider(e.clientX); });
+    function dragStop() {
+      isDragging = false;
+      overlay.classList.remove('no-transition');
+      handle.classList.remove('no-transition');
+    }
+    slider.addEventListener('mousedown', e => {
+      isDragging = true;
+      overlay.classList.add('no-transition');
+      handle.classList.add('no-transition');
+      updateSlider(e.clientX);
+    });
     document.addEventListener('mousemove', e => { if (isDragging) updateSlider(e.clientX); });
-    document.addEventListener('mouseup', () => { isDragging = false; });
-    slider.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); });
+    document.addEventListener('mouseup', dragStop);
+    slider.addEventListener('touchstart', e => {
+      isDragging = true;
+      overlay.classList.add('no-transition');
+      handle.classList.add('no-transition');
+      updateSlider(e.touches[0].clientX);
+    });
     document.addEventListener('touchmove', e => { if (isDragging) updateSlider(e.touches[0].clientX); });
-    document.addEventListener('touchend', () => { isDragging = false; });
+    document.addEventListener('touchend', dragStop);
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
