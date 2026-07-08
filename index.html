@@ -1130,7 +1130,7 @@
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + d.text + '"</blockquote>'
-            + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
+            + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + adminBadge(d.isAdmin, d.userEmail) + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
@@ -1290,6 +1290,9 @@
           + '<button class="testi-filter-btn" data-filter="pending" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Menunggu Izin</button>'
           + '<button class="testi-filter-btn" data-filter="visible" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Terlihat</button>'
           + '</div>'
+          + '<div style="display:flex;gap:8px;margin-bottom:16px;">'
+          + '<button onclick="showConfirm(\'Hapus semua testimoni? Tindakan ini tidak bisa dibatalkan.\').then(ok => { if(ok) db.collection(\'testimonials\').get().then(s => { const b=db.batch(); s.forEach(d=>b.delete(d.ref)); b.commit().then(()=>{showToast(\'Semua testimoni dihapus!\');loadAdminTab(\'testimonials\');}).catch(e=>showToast(e.message)); }).catch(e=>showToast(e.message)); })" style="padding:6px 14px;border-radius:8px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i> Clear All Testimoni</button>'
+          + '</div>'
           + '<div id="testiList" style="margin-bottom:12px;"></div>'
           + '<div id="testiPaginationAdmin" style="display:flex;justify-content:center;align-items:center;gap:12px;"></div>';
         loadTestiList();
@@ -1319,7 +1322,7 @@
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
             return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
               + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + adminBadge(d.isAdmin, d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
               + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div>'
@@ -1338,7 +1341,8 @@
               + '</div>'
             : '';
           content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">' + allBtn + projectTabs + '</div>'
-            + listHtml + pagHtml;
+            + listHtml + pagHtml
+            + '<div style="margin-top:12px;text-align:center;"><button onclick="showConfirm(\'Hapus semua komentar? Tindakan ini tidak bisa dibatalkan.\').then(ok => { if(ok) db.collection(\'comments\').get().then(s => { const b=db.batch(); s.forEach(d=>b.delete(d.ref)); b.commit().then(()=>{showToast(\'Semua komentar dihapus!\');loadAdminTab(\'comments\');}).catch(e=>showToast(e.message)); }).catch(e=>showToast(e.message)); })" style="padding:6px 14px;border-radius:8px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i> Clear All Komentar</button></div>';
           content.querySelectorAll('[data-switch]').forEach(el => {
             el.addEventListener('click', () => { selectedProject = el.dataset.switch; comPage = 0; renderComments(); });
           });
@@ -1406,7 +1410,8 @@
         name, text, role, rating,
         visible: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        userId: currentUser.uid
+        userId: currentUser.uid,
+        isAdmin: true
       }).then(() => {
         showToast('Testimoni berhasil ditambahkan!');
       }).catch(e => showToast(e.message));
@@ -1435,7 +1440,7 @@
           return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:left;">'
             + '<div style="display:flex;justify-content:space-between;align-items:start;gap:12px;">'
             + '<div style="flex:1;min-width:0;">'
-            + '<div style="font-weight:600;font-size:.9rem;">' + d.name + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
+            + '<div style="font-weight:600;font-size:.9rem;">' + d.name + adminBadge(d.isAdmin, d.userEmail) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
@@ -1547,15 +1552,29 @@
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
       if (!rating || rating < 1 || rating > 5) return showToast('Pilih rating bintang!');
       btn.disabled = true;
-      db.collection('testimonials').add({
-        name, text, role, rating,
-        visible: false,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        userId: currentUser.uid
-      }).then(() => {
-        btn.closest('div').parentElement.remove();
-        showToast('Testimoni terkirim! Menunggu persetujuan.');
-      }).catch(e => { showToast(e.message); btn.disabled = false; });
+      db.collection('userProfiles').doc(currentUser.uid).get().then(p => {
+        const pdata = p.exists ? p.data() : {};
+        db.collection('testimonials').add({
+          name, text, role, rating,
+          visible: false,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          userId: currentUser.uid,
+          isAdmin: pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com'
+        }).then(() => {
+          btn.closest('div').parentElement.remove();
+          showToast('Testimoni terkirim! Menunggu persetujuan.');
+        }).catch(e => { showToast(e.message); btn.disabled = false; });
+      }).catch(() => {
+        db.collection('testimonials').add({
+          name, text, role, rating,
+          visible: false,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          userId: currentUser.uid
+        }).then(() => {
+          btn.closest('div').parentElement.remove();
+          showToast('Testimoni terkirim! Menunggu persetujuan.');
+        }).catch(e => { showToast(e.message); btn.disabled = false; });
+      });
     }
 
     // Load testimonials on page load
@@ -1676,7 +1695,7 @@
         const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
         const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
         const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
-        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
+        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + adminBadge(d.isAdmin, d.userEmail) + ' <span class="c-date">' + date + '</span>'
           + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
           + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies)
           + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
@@ -1721,6 +1740,7 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (pdata.photoURL) commentData.userPhotoURL = pdata.photoURL;
+        if (pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com') commentData.isAdmin = true;
         db.collection('comments').add(commentData).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
         .catch(e => showToast(e.message));
       }).catch(() => {
@@ -1792,6 +1812,7 @@
             userId: currentUser.uid
           };
           if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
+          if (pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com') replyData.isAdmin = true;
           const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
           ref.collection('replies').add(replyData).then(() => {
             showToast('Balasan terkirim!');
@@ -1838,7 +1859,7 @@
             ? '<img src="' + r.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">'
             : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + (r.userName ? r.userName[0].toUpperCase() : '?') + '</div>';
           containerEl.innerHTML += '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
-            + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (r.userName || r.userEmail || 'Admin') + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
+          + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (r.userName || r.userEmail || 'Admin') + adminBadge(r.isAdmin, r.userEmail) + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
             + '<div style="margin-top:2px;">' + r.text + '</div>'
             + '</div>';
         });
@@ -1850,6 +1871,9 @@
       if (photoURL) return '<img src="' + photoURL + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;">';
       const initials = name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?';
       return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:' + (size * 0.4) + 'px;flex-shrink:0;">' + initials + '</div>';
+    }
+    function adminBadge(isAdmin, email) {
+      return (isAdmin || email === 'rifan.eko25@gmail.com') ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
     }
 
     // ===== SCROLL SPY =====
