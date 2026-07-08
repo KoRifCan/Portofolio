@@ -623,6 +623,9 @@
       <div class="section-title">Kata Mereka</div>
       <div class="section-subtitle">Ucapan hangat dari kolega dan klien.</div>
       <div class="testimonials-grid" id="testimonialsGrid"></div>
+      <div id="testiPublicBtn" style="margin-top:24px;display:none;">
+        <button onclick="showPublicTestiForm()" class="btn btn-outline"><i class="fas fa-pen"></i> Tulis Testimoni</button>
+      </div>
     </div>
   </section>
 
@@ -857,7 +860,6 @@
     }
 
     function saveTestimonial() {
-      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return showToast('Akses ditolak.');
       const name = document.getElementById('testiName').value.trim();
       const text = document.getElementById('testiText').value.trim();
       const role = document.getElementById('testiRole').value.trim();
@@ -915,6 +917,45 @@
       if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return;
       if (!confirm('Hapus testimoni ini?')) return;
       db.collection('testimonials').doc(id).delete().catch(e => showToast(e.message));
+    }
+
+    // Show public testimonial button when logged in
+    auth.onAuthStateChanged(user => {
+      const btn = document.getElementById('testiPublicBtn');
+      if (btn) btn.style.display = user ? 'block' : 'none';
+    });
+
+    function showPublicTestiForm() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:grid;place-items:center;';
+      overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:420px;width:90%;position:relative;">'
+        + '<button onclick="this.closest(\'div\').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
+        + '<h3 style="margin-bottom:16px;">Tulis Testimoni</h3>'
+        + '<input id="pubTestiName" placeholder="Nama Anda" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">'
+        + '<input id="pubTestiRole" placeholder="Jabatan/Asal (opsional)" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">'
+        + '<textarea id="pubTestiText" placeholder="Isi testimoni" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;resize:vertical;min-height:100px;"></textarea>'
+        + '<select id="pubTestiRating" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;"><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
+        + '<button onclick="submitPublicTesti(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Kirim Testimoni</button>'
+        + '</div>';
+      document.body.appendChild(overlay);
+    }
+
+    function submitPublicTesti(btn) {
+      const name = document.getElementById('pubTestiName').value.trim();
+      const text = document.getElementById('pubTestiText').value.trim();
+      const role = document.getElementById('pubTestiRole').value.trim();
+      const rating = parseInt(document.getElementById('pubTestiRating').value);
+      if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
+      btn.disabled = true;
+      db.collection('testimonials').add({
+        name, text, role, rating,
+        visible: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        userId: currentUser.uid
+      }).then(() => {
+        btn.closest('div').parentElement.remove();
+        showToast('Testimoni terkirim! Menunggu persetujuan.');
+      }).catch(e => { showToast(e.message); btn.disabled = false; });
     }
 
     // Load testimonials on page load
