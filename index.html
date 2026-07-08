@@ -540,7 +540,13 @@
       <p id="loginSub" style="color:var(--text-light);margin-bottom:24px;font-size:.9rem;">Masuk untuk memberi rating</p>
       <div id="loginFields">
         <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
-        <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">
+        <div style="position:relative;">
+          <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;padding-right:44px;">
+          <span id="togglePass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-light);font-size:1.1rem;" onclick="togglePassword()"><i class="far fa-eye"></i></span>
+        </div>
+        <div style="text-align:right;margin-bottom:16px;">
+          <a href="#" onclick="forgotPassword()" style="font-size:.8rem;color:#6366f1;font-weight:500;">Lupa password?</a>
+        </div>
         <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;">Masuk</button>
         <button onclick="handleRegister()" class="btn btn-outline" style="width:100%;justify-content:center;">Daftar Akun Baru</button>
       </div>
@@ -622,6 +628,21 @@
       if (pass.length < 6) return showToast('Password minimal 6 karakter.');
       auth.createUserWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
+        .catch(e => showToast(e.message));
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('loginPass');
+      const icon = document.querySelector('#togglePass i');
+      if (input.type === 'password') { input.type = 'text'; icon.className = 'far fa-eye-slash'; }
+      else { input.type = 'password'; icon.className = 'far fa-eye'; }
+    }
+
+    function forgotPassword() {
+      const email = document.getElementById('loginEmail').value;
+      if (!email) return showToast('Masukkan email dulu!');
+      auth.sendPasswordResetEmail(email)
+        .then(() => showToast('Link reset password dikirim ke ' + email))
         .catch(e => showToast(e.message));
     }
     document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
