@@ -922,6 +922,7 @@
     let profileMenu = null;
 
     let profileData = {};
+    let photoDataURL = null;
     function showProfileMenu() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; return; }
       profileData = {};
@@ -944,10 +945,13 @@
       }
       const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
       const phone = profileData.phone || '-';
+      const photoAvatar = profileData.photoURL
+        ? '<img src="' + profileData.photoURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 16px;">'
+        : '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>';
       profileMenu = document.createElement('div');
       profileMenu.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);display:grid;place-items:center;';
       profileMenu.innerHTML = '<div id="profileMenuInner" style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
-        + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
+        + photoAvatar
         + '<p style="font-weight:600;margin-bottom:2px;" id="profileMenuName">' + name + '</p>'
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">' + currentUser.email + '</p>'
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">' + phone + '</p>'
@@ -967,6 +971,13 @@
       overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:420px;width:90%;position:relative;text-align:left;">'
         + '<button onclick="this.closest(\'div\').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '<h3 style="margin-bottom:16px;text-align:center;">Ubah Profil</h3>'
+        + '<div style="text-align:center;margin-bottom:16px;">'
+        + '<div id="photoPreview" style="width:72px;height:72px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 8px;font-size:1.8rem;color:#fff;overflow:hidden;object-fit:cover;' + (profileData.photoURL ? 'background:transparent;' : '') + '">'
+        + (profileData.photoURL ? '<img src="' + profileData.photoURL + '" style="width:100%;height:100%;object-fit:cover;">' : '<i class="fas fa-user"></i>')
+        + '</div>'
+        + '<label for="photoInput" style="cursor:pointer;font-size:.8rem;color:#6366f1;"><i class="fas fa-camera"></i> Ganti Foto</label>'
+        + '<input id="photoInput" type="file" accept="image/*" style="display:none;">'
+        + '</div>'
         + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Nama Lengkap</label>'
         + '<input id="editProfileName" placeholder="Nama Lengkap" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + (profileData.name || '') + '">'
         + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">No. HP</label>'
@@ -984,6 +995,17 @@
         + '<button onclick="saveEditProfile(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Simpan</button>'
         + '</div>';
       document.body.appendChild(overlay);
+      document.getElementById('photoInput')?.addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          const preview = document.getElementById('photoPreview');
+          if (preview) { preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">'; preview.style.background = 'transparent'; }
+          photoDataURL = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     function saveEditProfile(btn) {
@@ -1000,12 +1022,16 @@
       if (needReauth && !oldPass) return showToast('Masukkan kata sandi lama untuk mengubah email atau kata sandi.');
       btn.disabled = true;
       function doSave() {
-        const promises = [db.collection('userProfiles').doc(currentUser.uid).set({ name, phone }, { merge: true })];
+        const updateData = { name, phone };
+        if (photoDataURL) updateData.photoURL = photoDataURL;
+        const promises = [db.collection('userProfiles').doc(currentUser.uid).set(updateData, { merge: true })];
         if (newEmail && newEmail !== currentUser.email) promises.push(currentUser.updateEmail(newEmail));
         if (newPass) promises.push(currentUser.updatePassword(newPass));
         Promise.all(promises).then(() => {
           profileData.name = name;
           profileData.phone = phone;
+          if (photoDataURL) profileData.photoURL = photoDataURL;
+          photoDataURL = null;
           btn.closest('div').parentElement.remove();
           showToast('Profil berhasil diubah!');
         }).catch(e => { showToast(e.message); btn.disabled = false; });
@@ -1039,7 +1065,7 @@
       function fmtDate(ts) {
         if (!ts) return '';
         const d = ts.toDate();
-        return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+        return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       }
       function render() {
         let filtered = allTestimonials;
@@ -1281,7 +1307,7 @@
           if (snap.empty) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada pengguna.</p>'; return; }
           content.innerHTML = '<div style="display:grid;gap:8px;">' + snap.docs.map(doc => {
             const d = doc.data();
-            const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '-';
+            const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
             const initials = (d.name || d.email || '?')[0].toUpperCase();
             return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;">'
               + '<div style="width:40px;height:40px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;flex-shrink:0;">' + initials + '</div>'
@@ -1354,6 +1380,7 @@
             + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
+            + '<div style="font-size:.75rem;color:var(--text-light);margin-top:6px;">' + (d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '') + '</div>'
             + renderReplies(d.replies)
             + '</div>'
             + '<div style="display:flex;gap:4px;flex-shrink:0;flex-direction:column;">'
@@ -1580,12 +1607,14 @@
         snap.forEach(doc => { const d = doc.data(); d._id = doc.id; items.push(d); });
         items.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
         container.innerHTML = items.map(d => {
-          const initials = (d.userName || d.userEmail)[0].toUpperCase();
-          const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '';
+          const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
           const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
-          return '<div class="comment-item"><div class="c-avatar">' + initials + '</div><div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
+          const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
+          return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
             + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
-            + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies) + '</div></div>';
+            + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies)
+            + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#6366f1;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
+            + '</div></div>';
         }).join('');
       }, () => {});
     }
@@ -1595,15 +1624,18 @@
       if (!text) return showToast('Tulis komentar dulu!');
       if (!currentUser) return showToast('Login dulu!');
       db.collection('userProfiles').doc(currentUser.uid).get().then(profile => {
-        const userName = profile.exists && profile.data().name ? profile.data().name : currentUser.email;
-        db.collection('comments').add({
+        const pdata = profile.exists ? profile.data() : {};
+        const userName = pdata.name || currentUser.email;
+        const commentData = {
           projectId: 'shopwave',
           userId: currentUser.uid,
           userEmail: currentUser.email,
           userName,
           text,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
+        };
+        if (pdata.photoURL) commentData.userPhotoURL = pdata.photoURL;
+        db.collection('comments').add(commentData).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
         .catch(e => showToast(e.message));
       }).catch(() => {
         db.collection('comments').add({
@@ -1644,28 +1676,6 @@
       }).catch(e => showToast(e.message));
     }
 
-    function replyToComment(id, text) {
-      if (!currentUser) return showToast('Login dulu!');
-      db.collection('comments').doc(id).update({
-        replies: firebase.firestore.FieldValue.arrayUnion({
-          text: text,
-          createdAt: new Date().toISOString(),
-          adminEmail: currentUser.email
-        })
-      }).then(() => showToast('Balasan terkirim!')).catch(e => showToast(e.message));
-    }
-
-    function replyToTesti(id, text) {
-      if (!currentUser) return showToast('Login dulu!');
-      db.collection('testimonials').doc(id).update({
-        replies: firebase.firestore.FieldValue.arrayUnion({
-          text: text,
-          createdAt: new Date().toISOString(),
-          adminEmail: currentUser.email
-        })
-      }).then(() => showToast('Balasan terkirim!')).catch(e => showToast(e.message));
-    }
-
     function openReplyForm(id, type) {
       if (!currentUser) return showToast('Login dulu!');
       const overlay = document.createElement('div');
@@ -1681,9 +1691,21 @@
       document.getElementById('sendReplyBtn').addEventListener('click', () => {
         const text = document.getElementById('replyText').value.trim();
         if (!text) return showToast('Tulis balasan dulu!');
-        if (type === 'comment') replyToComment(id, text);
-        else replyToTesti(id, text);
-        overlay.remove();
+        db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
+          const pdata = prof.exists ? prof.data() : {};
+          const replyData = {
+            text,
+            createdAt: new Date().toISOString(),
+            userEmail: currentUser.email,
+            userName: pdata.name || currentUser.email,
+            userId: currentUser.uid
+          };
+          if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
+          const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
+          ref.update({
+            replies: firebase.firestore.FieldValue.arrayUnion(replyData)
+          }).then(() => { showToast('Balasan terkirim!'); overlay.remove(); }).catch(e => showToast(e.message));
+        }).catch(() => showToast('Gagal mengambil data profil.'));
       });
       setTimeout(() => document.getElementById('replyText')?.focus(), 100);
     }
@@ -1691,12 +1713,20 @@
     function renderReplies(replies) {
       if (!replies || !replies.length) return '';
       return replies.map(r => {
-        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '';
+        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        const photo = r.userPhotoURL ? '<img src="' + r.userPhotoURL + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;">' : '';
         return '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
-          + '<div style="font-weight:600;font-size:.78rem;color:#6366f1;">Admin <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
+          + '<div style="font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + (r.userName || r.userEmail || 'Admin') + ' <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
           + '<div style="margin-top:2px;">' + r.text + '</div>'
           + '</div>';
       }).join('');
+    }
+
+    function getAvatarHTML(name, photoURL, size) {
+      size = size || 40;
+      if (photoURL) return '<img src="' + photoURL + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;">';
+      const initials = name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?';
+      return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:' + (size * 0.4) + 'px;flex-shrink:0;">' + initials + '</div>';
     }
 
     // ===== SCROLL SPY =====
