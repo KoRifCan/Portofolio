@@ -218,7 +218,24 @@
     .project-card .thumb {
       height: 200px; background: linear-gradient(135deg, #6366f1, #a855f7);
       display: flex; align-items: center; justify-content: center;
-      font-size: 3rem; color: rgba(255,255,255,.3);
+      font-size: 3rem; color: rgba(255,255,255,.3); position: relative; overflow: hidden; cursor: ew-resize;
+    }
+    .project-card .thumb .slider-img {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none;
+    }
+    .project-card .thumb .slider-overlay {
+      position: absolute; inset: 0; width: 50%; overflow: hidden;
+    }
+    .project-card .thumb .slider-handle {
+      position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff;
+      transform: translateX(-1.5px); z-index: 2; pointer-events: none;
+    }
+    .project-card .thumb .slider-handle .knob {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 30px; height: 30px; border-radius: 50%; background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.3); z-index: 3;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: #333; font-weight: 700;
     }
     .project-card:nth-child(2) .thumb { background: linear-gradient(135deg, #f59e0b, #ef4444); }
     .project-card:nth-child(3) .thumb { background: linear-gradient(135deg, #10b981, #06b6d4); }
@@ -665,7 +682,13 @@
       <div class="section-subtitle">Beberapa karya yang baru saja saya buat.</div>
       <div class="projects-grid">
         <div class="project-card">
-          <div class="thumb" style="overflow:hidden;padding:0;"><img src="https://api.microlink.io/?url=https://korifcan.github.io/Portofolio/&screenshot=true&meta=false&embed=screenshot.url" alt="preview" style="width:100%;height:100%;object-fit:cover;"></div>
+          <div class="thumb" id="themeSlider">
+            <div class="slider-overlay" id="sliderOverlay">
+              <img class="slider-img" src="https://api.microlink.io/?url=https%3A%2F%2Fkorifcan.github.io%2FPortofolio%2F%3Ftheme%3Ddark&screenshot=true&meta=false&embed=screenshot.url" alt="dark" style="object-position:right;">
+            </div>
+            <img class="slider-img" src="https://api.microlink.io/?url=https://korifcan.github.io/Portofolio/&screenshot=true&meta=false&embed=screenshot.url" alt="light">
+            <div class="slider-handle" id="sliderHandle"><div class="knob">⟷</div></div>
+          </div>
           <div class="body">
             <div class="tags"><span>HTML/CSS</span><span>JavaScript</span><span>Firebase</span></div>
             <h3>Portofolio Pribadi</h3>
@@ -2302,7 +2325,9 @@
 
     // ===== THEME TOGGLE =====
     const themeToggle = document.getElementById('themeToggle');
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const urlParams = new URLSearchParams(window.location.search);
+    const themeParam = urlParams.get('theme');
+    const savedTheme = themeParam || localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     themeToggle.addEventListener('click', () => {
@@ -2432,6 +2457,26 @@
         showToast('Harap selesaikan captcha!');
       }
     });
+
+    // ===== THEME SLIDER =====
+    const slider = document.getElementById('themeSlider');
+    const overlay = document.getElementById('sliderOverlay');
+    const handle = document.getElementById('sliderHandle');
+    let isDragging = false;
+    function updateSlider(x) {
+      const rect = slider.getBoundingClientRect();
+      let pct = ((x - rect.left) / rect.width) * 100;
+      if (pct < 5) pct = 5;
+      if (pct > 95) pct = 95;
+      overlay.style.width = pct + '%';
+      handle.style.left = pct + '%';
+    }
+    slider.addEventListener('mousedown', e => { isDragging = true; updateSlider(e.clientX); });
+    document.addEventListener('mousemove', e => { if (isDragging) updateSlider(e.clientX); });
+    document.addEventListener('mouseup', () => { isDragging = false; });
+    slider.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); });
+    document.addEventListener('touchmove', e => { if (isDragging) updateSlider(e.touches[0].clientX); });
+    document.addEventListener('touchend', () => { isDragging = false; });
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
