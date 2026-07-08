@@ -490,11 +490,13 @@
           <div class="item"><i class="fas fa-map-marker-alt"></i> San Francisco, CA</div>
           <div class="item" style="margin-top:16px;"><i class="fab fa-github"></i> github.com/alexrivera</div>
         </div>
-        <form class="contact-form" onsubmit="event.preventDefault(); alert('Terima kasih! Pesan Anda akan segera saya balas.');">
-          <input type="text" placeholder="Nama Anda" required />
-          <input type="email" placeholder="Email Anda" required />
-          <input type="text" placeholder="Subjek" />
-          <textarea placeholder="Pesan Anda" required></textarea>
+        <form class="contact-form" action="https://api.web3forms.com/submit" method="POST">
+          <input type="hidden" name="access_key" value="0fbc88a6-f747-47b8-ba23-6509b89c64c2" />
+          <input type="text" name="name" placeholder="Nama Anda" required />
+          <input type="email" name="email" placeholder="Email Anda" required />
+          <input type="text" name="subject" placeholder="Subjek" />
+          <textarea name="message" placeholder="Pesan Anda" required></textarea>
+          <input type="checkbox" name="botcheck" style="display:none" />
           <button type="submit" class="btn btn-primary">Kirim Pesan <i class="fas fa-paper-plane"></i></button>
         </form>
       </div>
@@ -568,7 +570,6 @@
       formSubject: { id: 'Subjek', en: 'Subject' },
       formMsg: { id: 'Pesan Anda', en: 'Your Message' },
       formBtn: { id: 'Kirim Pesan', en: 'Send Message' },
-      formAlert: { id: 'Terima kasih! Pesan Anda akan segera saya balas.', en: 'Thanks for reaching out! I\'ll get back to you soon.' },
       footer: { id: 'Dibuat dengan', en: 'Built with' },
       langBtn: { id: 'ID', en: 'EN' }
     };
@@ -621,7 +622,6 @@
       document.querySelector('#contact input[placeholder="Subjek"]').placeholder = langData.formSubject[lang];
       document.querySelector('#contact textarea').placeholder = langData.formMsg[lang];
       document.querySelector('#contact .btn-primary').innerHTML = langData.formBtn[lang] + ' <i class="fas fa-paper-plane"></i>';
-      document.querySelector('#contact form').onsubmit = function(e) { e.preventDefault(); alert(langData.formAlert[lang]); };
     }
 
     applyLang(currentLang);
