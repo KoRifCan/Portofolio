@@ -806,15 +806,23 @@
     // ===== SCROLL SPY =====
     const sections = document.querySelectorAll('section[id]');
     const navAnchors = document.querySelectorAll('.nav-links a');
-    function updateActiveNav() {
-      let current = sections[0].id;
-      sections.forEach(s => {
-        if (s.getBoundingClientRect().top <= 120) current = s.id;
-      });
+    function setActive(id) {
       navAnchors.forEach(a => a.classList.remove('active'));
-      const el = document.querySelector('.nav-links a[href="#' + current + '"]');
+      const el = document.querySelector('.nav-links a[href="#' + id + '"]');
       if (el) el.classList.add('active');
     }
+    function updateActiveNav() {
+      requestAnimationFrame(() => {
+        let current = sections[0].id;
+        sections.forEach(s => {
+          if (s.getBoundingClientRect().top <= 120) current = s.id;
+        });
+        setActive(current);
+      });
+    }
+    navAnchors.forEach(a => a.addEventListener('click', () => {
+      requestAnimationFrame(() => updateActiveNav());
+    }));
     window.addEventListener('scroll', updateActiveNav, { passive: true });
     updateActiveNav();
 
