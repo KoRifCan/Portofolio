@@ -368,6 +368,7 @@
         <a href="#" data-section="dashboard" class="active"><i class="fas fa-chart-pie"></i> Dashboard</a>
         <a href="#" data-section="testimonials"><i class="fas fa-comment-dots"></i> Testimoni</a>
         <a href="#" data-section="comments"><i class="fas fa-comments"></i> Komentar</a>
+        <a href="#" data-section="ratings"><i class="fas fa-star"></i> Rating</a>
         <a href="#" data-section="users"><i class="fas fa-users"></i> Pengguna</a>
       </nav>
       <div class="sidebar-footer">
@@ -437,8 +438,31 @@
           <div id="adminComContainer"></div>
         </div>
 
+        <!-- RATINGS -->
+        <div class="section" id="sec-ratings">
+          <div class="card" id="ratingSummaryCard">
+            <div class="card-title">Ringkasan Rating</div>
+            <div id="ratingSummary"><p style="color:var(--text-light);font-size:.9rem;"><i class="fas fa-spinner fa-spin"></i> Memuat...</p></div>
+          </div>
+          <div class="toolbar">
+            <input id="ratingSearch" type="text" placeholder="Cari email atau proyek...">
+            <button id="sortRatingBtn" class="btn btn-outline btn-sm"><i class="fas fa-sort"></i> Terbaru</button>
+            <button onclick="clearAllRatings()" class="btn btn-outline btn-sm" style="border-color:var(--danger);color:var(--danger);"><i class="fas fa-trash"></i> Clear All</button>
+          </div>
+          <div id="ratingListContainer"><p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat rating...</p></div>
+          <div class="pagination" id="ratingPagination"></div>
+        </div>
+
         <!-- USERS -->
         <div class="section" id="sec-users">
+          <div class="filter-group" id="userFilterGroup">
+            <button class="filter-btn active" data-filter="all">Semua</button>
+            <button class="filter-btn" data-filter="admin">Admin</button>
+            <button class="filter-btn" data-filter="user">User</button>
+            <button class="filter-btn" data-filter="blocked">Terblokir</button>
+            <button class="filter-btn" data-filter="active">Terbuka</button>
+          </div>
+          <div style="font-size:.82rem;color:var(--text-light);margin-bottom:12px;" id="userTotalCount"></div>
           <div class="toolbar">
             <input id="userSearch" type="text" placeholder="Cari nama, email, atau nomor HP...">
             <button id="sortUserBtn" class="btn btn-outline btn-sm"><i class="fas fa-sort"></i> Terbaru</button>
@@ -537,7 +561,7 @@
       if (sec) sec.classList.add('active');
       const link = document.querySelector('#navLinks a[data-section="' + name + '"]');
       if (link) link.classList.add('active');
-      const titles = { dashboard:'Dashboard', testimonials:'Testimoni & Masukan', comments:'Komentar', users:'Pengguna' };
+      const titles = { dashboard:'Dashboard', testimonials:'Testimoni & Masukan', comments:'Komentar', ratings:'Rating', users:'Pengguna' };
       document.getElementById('pageTitle').textContent = titles[name] || name;
       // Close sidebar on mobile
       document.getElementById('sidebar').classList.remove('open');
@@ -552,6 +576,7 @@
         if (section === 'dashboard') loadDashboard();
         else if (section === 'testimonials') loadTestimonials();
         else if (section === 'comments') loadComments();
+        else if (section === 'ratings') loadRatings();
         else if (section === 'users') loadUsers();
       });
     });
@@ -1008,17 +1033,150 @@
       });
     }
 
+    // ===== RATINGS =====
+    let allRatings = [], ratingSearch = '', ratingSortAsc = false, ratingPage = 0;
+    const ratingPerPage = 10;
+
+    function loadRatings() {
+      allRatings = []; ratingSearch = ''; ratingSortAsc = false; ratingPage = 0;
+      const projectNames = { shopwave: 'Portofolio Pribadi' };
+      db.collection('ratings').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allRatings = [];
+        snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allRatings.push(d); });
+        renderRatingSummary(projectNames);
+        renderRatingList(projectNames);
+      }, () => {
+        document.getElementById('ratingListContainer').innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat rating.</p>';
+      });
+    }
+
+    function renderRatingSummary(projectNames) {
+      const container = document.getElementById('ratingSummary');
+      const projects = {};
+      allRatings.forEach(r => {
+        const p = r.project || 'unknown';
+        if (!projects[p]) projects[p] = { sum: 0, count: 0 };
+        projects[p].sum += r.rating;
+        projects[p].count++;
+      });
+      const total = allRatings.length;
+      if (!total) {
+        container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;">Belum ada rating.</p>';
+        return;
+      }
+      const list = Object.keys(projects).map(p => {
+        const avg = (projects[p].sum / projects[p].count).toFixed(1);
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:.85rem;">'
+          + '<span style="font-weight:500;">' + esc(projectNames[p] || p) + '</span>'
+          + '<span><span class="stars">' + starHTML(Math.round(projects[p].sum / projects[p].count)) + '</span> ' + avg + ' (' + projects[p].count + ')</span>'
+          + '</div>';
+      }).join('');
+      container.innerHTML = '<div style="font-size:.85rem;margin-bottom:8px;color:var(--text-light);">Total: ' + total + ' rating</div>' + list;
+    }
+
+    function renderRatingList(projectNames) {
+      const container = document.getElementById('ratingListContainer');
+      let filtered = allRatings;
+      if (ratingSearch) {
+        const q = ratingSearch.toLowerCase();
+        filtered = filtered.filter(r => (r.userEmail||'').toLowerCase().includes(q) || (r.project||'').toLowerCase().includes(q));
+      }
+      if (ratingSortAsc) filtered = [...filtered].reverse();
+      document.getElementById('sortRatingBtn').innerHTML = '<i class="fas fa-sort"></i> ' + (ratingSortAsc ? 'Terlama' : 'Terbaru');
+
+      const totalPages = Math.ceil(filtered.length / ratingPerPage) || 1;
+      if (ratingPage >= totalPages) ratingPage = totalPages - 1;
+      const items = filtered.slice(ratingPage * ratingPerPage, (ratingPage + 1) * ratingPerPage);
+
+      if (!items.length) {
+        container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Tidak ada rating.</p>';
+        document.getElementById('ratingPagination').innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = '<div class="item-list">' + items.map(r =>
+        '<div class="item-card">'
+          + '<div class="avatar" style="width:36px;height:36px;font-size:.8rem;background:#f59e0b;">' + (r.rating || '?') + '</div>'
+          + '<div class="body">'
+            + '<div class="name">' + esc(r.userEmail || 'Anonim')
+              + ' <span style="font-weight:400;font-size:.75rem;color:var(--text-light);">di ' + esc(projectNames[r.project] || r.project || 'unknown') + '</span>'
+            + '</div>'
+            + '<div style="margin-top:2px;">' + starHTML(r.rating) + '</div>'
+            + '<div class="date">' + dateStr(r.createdAt) + '</div>'
+          + '</div>'
+          + '<div class="actions">'
+            + '<button onclick="deleteRating(\'' + r._id + '\')" class="btn btn-outline btn-xs" style="color:var(--danger);">Hapus</button>'
+          + '</div>'
+        + '</div>'
+      ).join('') + '</div>';
+
+      const pagEl = document.getElementById('ratingPagination');
+      if (totalPages <= 1) { pagEl.innerHTML = ''; return; }
+      pagEl.innerHTML =
+        '<button class="btn btn-outline btn-sm" id="ratingPrev" ' + (ratingPage <= 0 ? 'disabled' : '') + '>&laquo; Sebelumnya</button>'
+        + '<span>' + (ratingPage + 1) + ' / ' + totalPages + '</span>'
+        + '<button class="btn btn-outline btn-sm" id="ratingNext" ' + (ratingPage >= totalPages - 1 ? 'disabled' : '') + '>Selanjutnya &raquo;</button>';
+      document.getElementById('ratingPrev')?.addEventListener('click', () => { if (ratingPage > 0) { ratingPage--; renderRatingList(projectNames); } });
+      document.getElementById('ratingNext')?.addEventListener('click', () => { if (ratingPage < totalPages - 1) { ratingPage++; renderRatingList(projectNames); } });
+    }
+
+    document.getElementById('ratingSearch')?.addEventListener('input', function() {
+      ratingSearch = this.value; ratingPage = 0;
+      const projectNames = { shopwave: 'Portofolio Pribadi' };
+      renderRatingList(projectNames);
+    });
+    document.getElementById('sortRatingBtn')?.addEventListener('click', function() {
+      ratingSortAsc = !ratingSortAsc; ratingPage = 0;
+      const projectNames = { shopwave: 'Portofolio Pribadi' };
+      renderRatingList(projectNames);
+    });
+
+    function deleteRating(id) {
+      showConfirm('Hapus rating ini?').then(ok => {
+        if (!ok) return;
+        db.collection('ratings').doc(id).delete().then(() => showToast('Rating dihapus!')).catch(e => showToast(e.message));
+      });
+    }
+    function clearAllRatings() {
+      showConfirm('Hapus semua rating?').then(ok => {
+        if (!ok) return;
+        db.collection('ratings').get().then(s => {
+          const batch = db.batch();
+          s.forEach(d => batch.delete(d.ref));
+          batch.commit().then(() => showToast('Semua rating dihapus!')).catch(e => showToast(e.message));
+        }).catch(e => showToast(e.message));
+      });
+    }
+
     // ===== USERS =====
-    let userSortAsc = false, userSearch = '', currentUsersSnap = null;
+    let userSortAsc = false, userSearch = '', currentUsersSnap = null, userFilter = 'all';
 
     function loadUsers() {
-      userSortAsc = false; userSearch = '';
+      userSortAsc = false; userSearch = ''; userFilter = 'all';
       db.collection('userProfiles').orderBy('createdAt', 'desc').onSnapshot(snap => {
         currentUsersSnap = snap;
+        updateUserFilterButtons();
         renderUsersList();
       }, () => {
         document.getElementById('usersListContainer').innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat pengguna.</p>';
       });
+    }
+
+    function updateUserFilterButtons() {
+      if (!currentUsersSnap) return;
+      const users = currentUsersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const total = users.length;
+      const adminCount = users.filter(u => u.role === 'admin').length;
+      const userCount = users.filter(u => u.role !== 'admin').length;
+      const blockedCount = users.filter(u => u.disabled === true).length;
+      const activeCount = users.filter(u => u.disabled !== true).length;
+      document.getElementById('userFilterGroup').innerHTML =
+        '<button class="filter-btn' + (userFilter === 'all' ? ' active' : '') + '" data-filter="all">Semua (' + total + ')</button>'
+        + '<button class="filter-btn' + (userFilter === 'admin' ? ' active' : '') + '" data-filter="admin">Admin (' + adminCount + ')</button>'
+        + '<button class="filter-btn' + (userFilter === 'user' ? ' active' : '') + '" data-filter="user">User (' + userCount + ')</button>'
+        + '<button class="filter-btn' + (userFilter === 'blocked' ? ' active' : '') + '" data-filter="blocked">Terblokir (' + blockedCount + ')</button>'
+        + '<button class="filter-btn' + (userFilter === 'active' ? ' active' : '') + '" data-filter="active">Terbuka (' + activeCount + ')</button>';
+      document.getElementById('userTotalCount').textContent = 'Total: ' + total + ' anggota';
     }
 
     function renderUsersList() {
@@ -1028,6 +1186,10 @@
         return;
       }
       let users = currentUsersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (userFilter === 'admin') users = users.filter(u => u.role === 'admin');
+      else if (userFilter === 'user') users = users.filter(u => u.role !== 'admin');
+      else if (userFilter === 'blocked') users = users.filter(u => u.disabled === true);
+      else if (userFilter === 'active') users = users.filter(u => u.disabled !== true);
       if (userSearch) {
         const q = userSearch.toLowerCase();
         users = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.phone||'').includes(q));
@@ -1065,6 +1227,13 @@
     });
     document.getElementById('sortUserBtn')?.addEventListener('click', function() {
       userSortAsc = !userSortAsc; renderUsersList();
+    });
+    document.getElementById('userFilterGroup')?.addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      userFilter = btn.dataset.filter;
+      updateUserFilterButtons();
+      renderUsersList();
     });
 
     // Event delegation for disable/delete buttons
