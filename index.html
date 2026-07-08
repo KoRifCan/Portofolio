@@ -1134,6 +1134,7 @@
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
+            + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="background:none;border:none;color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
             + '</div></div>';
         }).join('');
         const totalPages = Math.ceil(filtered.length / perPage);
@@ -1658,10 +1659,9 @@
       const container = document.getElementById('commentsContainer');
       if (!container) return;
       db.collection('comments').where('projectId', '==', 'shopwave').onSnapshot(snap => {
+        const toggleSpan = document.querySelector('.comment-toggle span');
+        if (toggleSpan) toggleSpan.textContent = 'Komentar (' + snap.size + ')';
         if (snap.empty) { container.innerHTML = '<p style="font-size:.82rem;color:var(--text-light);">Belum ada komentar.</p>'; return; }
-        const items = [];
-        snap.forEach(doc => { const d = doc.data(); d._id = doc.id; items.push(d); });
-        items.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
         container.innerHTML = items.map(d => {
           const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
           const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
@@ -1767,7 +1767,21 @@
           };
           if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
           const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
-          ref.collection('replies').add(replyData).then(() => { showToast('Balasan terkirim!'); overlay.remove(); }).catch(e => showToast(e.message));
+          ref.collection('replies').add(replyData).then(() => {
+            showToast('Balasan terkirim!');
+            overlay.remove();
+            const target = document.querySelector('.sub-replies[data-parent="' + id + '"][data-type="' + type + '"]');
+            if (target) {
+              const date = new Date().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+              const photo = replyData.userPhotoURL
+                ? '<img src="' + replyData.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">'
+                : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + ((replyData.userName || '?')[0].toUpperCase()) + '</div>';
+              target.innerHTML += '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
+                + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (replyData.userName || replyData.userEmail || 'Admin') + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
+                + '<div style="margin-top:2px;">' + replyData.text + '</div>'
+                + '</div>';
+            }
+          }).catch(e => showToast(e.message));
         }).catch(() => showToast('Gagal mengambil data profil.'));
       });
       setTimeout(() => document.getElementById('replyText')?.focus(), 100);
