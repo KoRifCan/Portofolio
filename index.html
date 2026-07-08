@@ -442,7 +442,50 @@
           <div class="stat-card"><div class="number">20+</div><div class="label">Software Dikuasai</div></div>
         </div>
       </div>
+      <div style="margin-top:32px;">
+        <div class="projects-grid">
+          <div class="project-card">
+            <div class="thumb" style="background:linear-gradient(135deg,#f43f5e,#6366f1);"><i class="fas fa-camera"></i></div>
+            <div class="body">
+              <div class="tags"><span>CapCut</span><span>Picsart</span><span>Alight Motion</span></div>
+              <h3>Galeri Visual</h3>
+              <p>Koleksi hasil editing foto dan video untuk konten media sosial, promosi, dan karya kreatif.</p>
+              <div class="links"><a href="https://www.instagram.com/rifaneko_19" target="_blank">Lihat Karya <i class="fas fa-external-link-alt"></i></a></div>
+              <div class="project-rating" data-project="galeri" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+                <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+                <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+              </div>
+            </div>
+          </div>
+          <div class="project-card">
+            <div class="thumb" style="background:linear-gradient(135deg,#10b981,#6366f1);"><i class="fas fa-palette"></i></div>
+            <div class="body">
+              <div class="tags"><span>Canva</span><span>CorelDRAW</span></div>
+              <h3>Karya Desain</h3>
+              <p>Beragam desain grafis untuk keperluan promosi, konten digital, dan media cetak.</p>
+              <div class="links"><a href="https://www.instagram.com/rifaneko_19" target="_blank">Lihat Portofolio <i class="fas fa-external-link-alt"></i></a></div>
+              <div class="project-rating" data-project="desain" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+                <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+                <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+              </div>
+            </div>
+          </div>
+          <div class="project-card">
+            <div class="thumb" style="background:linear-gradient(135deg,#f59e0b,#f43f5e);"><i class="fas fa-tools"></i></div>
+            <div class="body">
+              <div class="tags"><span>Hardware</span><span>Software</span><span>Android</span></div>
+              <h3>Panduan Servis</h3>
+              <p>Layanan perbaikan Android, flashing, troubleshooting Windows, dan instalasi software.</p>
+              <div class="links"><a href="https://youtube.com/@korifcan" target="_blank">Tutorial <i class="fas fa-external-link-alt"></i></a></div>
+              <div class="project-rating" data-project="servis" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+                <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+                <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
     </div>
   </section>
 
@@ -852,7 +895,7 @@
     document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
     // ===== RATING (REAL-TIME) =====
-    const projectNames = { shopwave: 'Portofolio Pribadi', insightai: 'InsightAI', ecotrack: 'EcoTrack', designport: 'DesignPort' };
+    const projectNames = { shopwave: 'Portofolio Pribadi', insightai: 'InsightAI', ecotrack: 'EcoTrack', designport: 'DesignPort', galeri: 'Galeri Visual', desain: 'Karya Desain', servis: 'Panduan Servis' };
 
     function renderStars(container, avg) {
       const full = Math.round(avg);
