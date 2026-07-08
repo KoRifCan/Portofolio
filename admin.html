@@ -377,6 +377,7 @@
         <a href="#" data-section="comments"><i class="fas fa-comments"></i> Komentar</a>
         <a href="#" data-section="ratings"><i class="fas fa-star"></i> Rating</a>
         <a href="#" data-section="users"><i class="fas fa-users"></i> Pengguna</a>
+        <a href="#" data-section="profile"><i class="fas fa-user-cog"></i> Profil</a>
       </nav>
       <div class="sidebar-footer">
         <a href="index.html"><i class="fas fa-arrow-left"></i> Kembali ke Portfolio</a>
@@ -414,6 +415,7 @@
             <div class="card-title">Tambah Testimoni Baru</div>
             <div class="form-group"><input id="testiName" placeholder="Nama" required></div>
             <div class="form-group"><input id="testiRole" placeholder="Jabatan/Asal (opsional)"></div>
+            <div class="form-group"><input id="testiPhotoURL" placeholder="URL Foto (opsional)"></div>
             <div class="form-group"><textarea id="testiText" placeholder="Isi testimoni" required></textarea></div>
             <div class="form-group">
               <label>Rating</label>
@@ -478,6 +480,23 @@
             <button id="sortUserBtn" class="btn btn-outline btn-sm"><i class="fas fa-sort"></i> Terbaru</button>
           </div>
           <div id="usersListContainer"><p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat pengguna...</p></div>
+        </div>
+
+        <!-- PROFILE -->
+        <div class="section" id="sec-profile">
+          <div class="card" style="max-width:500px;">
+            <div class="card-title">Profil Saya</div>
+            <div style="text-align:center;margin-bottom:16px;">
+              <div id="profilePreview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);display:grid;place-items:center;margin:0 auto 10px;font-size:2rem;color:#fff;overflow:hidden;"></div>
+              <div style="font-size:.8rem;color:var(--text-light);margin-bottom:8px;" id="profileEmail"></div>
+              <label class="btn btn-outline btn-sm" style="cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto
+                <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;">
+              </label>
+            </div>
+            <div class="form-group"><label>Nama</label><input id="editProfileName" placeholder="Nama lengkap"></div>
+            <div class="form-group"><label>Nomor HP</label><input id="editProfilePhone" placeholder="Nomor HP (opsional)"></div>
+            <button onclick="saveProfile()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Profil</button>
+          </div>
         </div>
       </div>
     </div>
@@ -571,7 +590,7 @@
       if (sec) sec.classList.add('active');
       const link = document.querySelector('#navLinks a[data-section="' + name + '"]');
       if (link) link.classList.add('active');
-      const titles = { dashboard:'Dashboard', testimonials:'Testimoni & Masukan', comments:'Komentar', ratings:'Rating', users:'Pengguna' };
+      const titles = { dashboard:'Dashboard', testimonials:'Testimoni & Masukan', comments:'Komentar', ratings:'Rating', users:'Pengguna', profile:'Profil Saya' };
       document.getElementById('pageTitle').textContent = titles[name] || name;
       // Close sidebar on mobile
       document.getElementById('sidebar').classList.remove('open');
@@ -588,6 +607,7 @@
         else if (section === 'comments') loadComments();
         else if (section === 'ratings') loadRatings();
         else if (section === 'users') loadUsers();
+        else if (section === 'profile') loadProfile();
       });
     });
 
@@ -864,42 +884,24 @@
       const name = document.getElementById('testiName')?.value.trim();
       const text = document.getElementById('testiText')?.value.trim();
       const role = document.getElementById('testiRole')?.value.trim();
+      const photoURL = document.getElementById('testiPhotoURL')?.value.trim();
       const picker = document.getElementById('testiRating');
       const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi.');
-      db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
-        const pdata = prof.exists ? prof.data() : {};
-        const testiData = {
-          name, text, role: role || '', rating,
-          visible: true, isAdmin: true,
-          userEmail: currentUser.email,
-          userId: currentUser.uid,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
-        if (pdata.name) testiData.adminName = pdata.name;
-        db.collection('testimonials').add(testiData).then(() => {
-          showToast('Testimoni berhasil ditambahkan!');
-          document.getElementById('testiName').value = '';
-          document.getElementById('testiText').value = '';
-          document.getElementById('testiRole').value = '';
-          picker.dataset.value = '0'; initStarPicker(picker);
-        }).catch(e => showToast('Gagal: ' + e.message));
-      }).catch(() => {
-        db.collection('testimonials').add({
-          name, text, role: role || '', rating,
-          visible: true, isAdmin: true,
-          userEmail: currentUser.email,
-          userId: currentUser.uid,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          showToast('Testimoni berhasil ditambahkan!');
-          document.getElementById('testiName').value = '';
-          document.getElementById('testiText').value = '';
-          document.getElementById('testiRole').value = '';
-          picker.dataset.value = '0'; initStarPicker(picker);
-        }).catch(e => showToast('Gagal: ' + e.message));
-      });
+      const testiData = {
+        name, text, role: role || '', rating,
+        visible: true, isAdmin: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (photoURL) testiData.userPhotoURL = photoURL;
+      db.collection('testimonials').add(testiData).then(() => {
+        showToast('Testimoni berhasil ditambahkan!');
+        document.getElementById('testiName').value = '';
+        document.getElementById('testiText').value = '';
+        document.getElementById('testiRole').value = '';
+        document.getElementById('testiPhotoURL').value = '';
+        picker.dataset.value = '0'; initStarPicker(picker);
+      }).catch(e => showToast('Gagal: ' + e.message));
     }
 
     function toggleTesti(id, visible) {
@@ -1343,6 +1345,49 @@
         });
       }
     });
+
+    // ===== PROFILE =====
+    let profileData = {};
+
+    function loadProfile() {
+      db.collection('userProfiles').doc(currentUser.uid).onSnapshot(doc => {
+        profileData = doc.exists ? doc.data() : {};
+        document.getElementById('editProfileName').value = profileData.name || '';
+        document.getElementById('editProfilePhone').value = profileData.phone || '';
+        document.getElementById('profileEmail').textContent = currentUser.email;
+        const preview = document.getElementById('profilePreview');
+        if (profileData.photoURL) {
+          preview.innerHTML = '<img src="' + profileData.photoURL + '" style="width:100%;height:100%;object-fit:cover;">';
+        } else {
+          const init = (profileData.name || currentUser.email || '?').charAt(0).toUpperCase();
+          preview.innerHTML = init;
+          preview.style.background = 'linear-gradient(135deg,#6366f1,#a855f7)';
+        }
+      });
+    }
+
+    document.getElementById('profilePhotoInput')?.addEventListener('change', function() {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onerror = () => showToast('Gagal membaca file.');
+      reader.onload = e => {
+        const dataURL = e.target.result;
+        db.collection('userProfiles').doc(currentUser.uid).set({ photoURL: dataURL }, { merge: true }).then(() => {
+          showToast('Foto profil diperbarui!');
+        }).catch(e => showToast(e.message));
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function saveProfile() {
+      const name = document.getElementById('editProfileName').value.trim();
+      const phone = document.getElementById('editProfilePhone').value.trim();
+      if (!name) return showToast('Nama wajib diisi.');
+      db.collection('userProfiles').doc(currentUser.uid).set({ name, phone }, { merge: true }).then(() => {
+        showToast('Profil tersimpan!');
+      }).catch(e => showToast('Gagal: ' + e.message));
+    }
 
     // ===== INIT =====
     function initAdmin() {
