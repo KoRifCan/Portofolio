@@ -795,7 +795,7 @@
         + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
         + '<p style="font-weight:600;margin-bottom:4px;">' + currentUser.email + '</p>'
         + '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:16px;">Sudah login</p>'
-        + '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>'
+        + (currentUser.email === 'rifan.eko25@gmail.com' ? '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>' : '')
         + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
         + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>';
@@ -830,6 +830,10 @@
     }
 
     function showTestimonialManager() {
+      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') {
+        showToast('Hanya pemilik akun yang bisa kelola testimoni.');
+        return;
+      }
       if (profileMenu) { profileMenu.remove(); profileMenu = null; }
       if (testiManager) { testiManager.remove(); testiManager = null; return; }
       testiManager = document.createElement('div');
@@ -853,6 +857,7 @@
     }
 
     function saveTestimonial() {
+      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return showToast('Akses ditolak.');
       const name = document.getElementById('testiName').value.trim();
       const text = document.getElementById('testiText').value.trim();
       const role = document.getElementById('testiRole').value.trim();
@@ -902,10 +907,12 @@
     }
 
     function toggleTesti(id, visible) {
+      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return;
       db.collection('testimonials').doc(id).update({ visible }).catch(e => showToast(e.message));
     }
 
     function deleteTesti(id) {
+      if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return;
       if (!confirm('Hapus testimoni ini?')) return;
       db.collection('testimonials').doc(id).delete().catch(e => showToast(e.message));
     }
