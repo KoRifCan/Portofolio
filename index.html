@@ -993,7 +993,7 @@
           <span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>
         </div>
         <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
-        <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin)}</p>
+        <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${roleBadge(profileData.role)}</p>
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">${currentUser.email}</p>
         ${currentUser.emailVerified ? '<p style="color:#10b981;font-size:.75rem;margin-bottom:4px;"><i class="fas fa-check-circle"></i> Email terverifikasi</p>' : '<p style="color:#f59e0b;font-size:.75rem;margin-bottom:4px;"><i class="fas fa-exclamation-triangle"></i> Email belum diverifikasi</p><button onclick="sendVerification()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;font-size:.8rem;border-color:#f59e0b;color:#f59e0b;"><i class="fas fa-envelope"></i> Kirim Verifikasi</button>'}
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">${phone}</p>
@@ -1154,7 +1154,7 @@
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + esc(d.text) + '"</blockquote>'
-            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + adminBadge(d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div><div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div></div></div>'
+            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div><div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div></div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
@@ -1431,7 +1431,7 @@
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
             return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
               + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div><div style="font-size:.75rem;color:var(--text-light);">' + esc(d.userEmail) + '</div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + esc(d.userName || d.userEmail) + roleBadge(d.userRole, d.isAdmin) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div><div style="font-size:.75rem;color:var(--text-light);">' + esc(d.userEmail) + '</div>'
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
               + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
@@ -1503,7 +1503,7 @@
             const disabled = u.disabled === true;
             return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;opacity:' + (disabled ? '.5' : '1') + ';">'
               + getAvatarHTML(u.name, u.photoURL, 40)
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + esc(u.name || 'Tanpa Nama') + adminBadge(u.role === 'admin') + (disabled ? ' <span style="color:#ef4444;font-size:.7rem;">(dinonaktifkan)</span>' : '') + '</div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + esc(u.name || 'Tanpa Nama') + roleBadge(u.role) + (disabled ? ' <span style="color:#ef4444;font-size:.7rem;">(dinonaktifkan)</span>' : '') + '</div>'
               + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(u.email) + (u.phone ? ' &middot; ' + esc(u.phone) : '') + '</div>'
               + '<div style="font-size:.75rem;"><span style="color:' + (u.emailVerified ? '#10b981' : '#f59e0b') + ';">' + (u.emailVerified ? '<i class="fas fa-check-circle"></i> Terverifikasi' : '<i class="fas fa-clock"></i> Belum verifikasi') + '</span></div></div>'
               + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'
@@ -1624,7 +1624,7 @@
             + '<div style="display:flex;align-items:start;gap:12px;">'
             + getAvatarHTML(d.name, d.userPhotoURL, 40)
             + '<div style="flex:1;min-width:0;">'
-            + '<div style="font-weight:600;font-size:.9rem;">' + esc(d.name) + adminBadge(d.isAdmin) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
+            + '<div style="font-weight:600;font-size:.9rem;">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.role || '') + '</div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.email || d.userEmail || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + esc(d.text) + '"</div>'
@@ -1758,7 +1758,7 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
           userEmail: currentUser.email,
-          isAdmin: pdata.role === 'admin'
+          userRole: pdata.role || 'user'
         };
         if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
         db.collection('testimonials').add(testiData).then(() => {
@@ -1771,7 +1771,8 @@
           visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
-          userEmail: currentUser.email
+          userEmail: currentUser.email,
+          userRole: 'user'
         }).then(() => {
           btn.closest('div').parentElement.remove();
           showToast('Testimoni & masukan terkirim!');
@@ -1897,7 +1898,7 @@
         const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
         const canDelete = currentUser && (currentUser.uid === d.userId || currentUserRole === 'admin');
         const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
-        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-size:.7rem;color:var(--text-light);">' + maskEmail(d.userEmail) + '</span> <span class="c-date">' + date + '</span>'
+        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + esc(d.userName || d.userEmail) + roleBadge(d.userRole, d.isAdmin) + ' <span style="font-size:.7rem;color:var(--text-light);">' + maskEmail(d.userEmail) + '</span> <span class="c-date">' + date + '</span>'
           + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
           + '</div><div class="c-text">' + esc(d.text) + '</div>' + renderReplies(d.replies, d._id, 'comment')
           + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
@@ -1940,10 +1941,10 @@
           userEmail: currentUser.email,
           userName,
           text,
+          userRole: pdata.role || 'user',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (pdata.photoURL) commentData.userPhotoURL = pdata.photoURL;
-        if (pdata.role === 'admin') commentData.isAdmin = true;
         db.collection('comments').add(commentData).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
         .catch(e => showToast(e.message));
       }).catch(() => {
@@ -1953,6 +1954,7 @@
           userEmail: currentUser.email,
           userName: currentUser.email,
           text,
+          userRole: 'user',
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
         .catch(e => showToast(e.message));
@@ -2005,15 +2007,15 @@
         if (!text) return showToast('Tulis balasan dulu!');
         db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
           const pdata = prof.exists ? prof.data() : {};
-          const replyData = {
+          const           replyData = {
             text,
             createdAt: new Date().toISOString(),
             userEmail: currentUser.email,
             userName: pdata.name || currentUser.email,
-            userId: currentUser.uid
+            userId: currentUser.uid,
+            userRole: pdata.role || 'user'
           };
           if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
-          if (pdata.role === 'admin') replyData.isAdmin = true;
           const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
           ref.collection('replies').add(replyData).then(docRef => {
             showToast('Balasan terkirim!');
@@ -2023,7 +2025,7 @@
               const date = fmtDate();
               const photo = avatarSm(replyData.userPhotoURL, replyData.userName);
               const name = replyData.userName || replyData.userEmail || 'Admin';
-              const badge = adminBadge(replyData.isAdmin);
+              const badge = roleBadge(replyData.userRole, replyData.isAdmin);
               const del = `<button onclick="deleteSubReply('${id}','${type}','${docRef.id}')" class="reply-delete"><i class="fas fa-trash"></i></button>`;
               target.innerHTML += replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), replyData.text);
             }
@@ -2040,7 +2042,7 @@
           const canDelete = currentUser && (currentUser.uid === r.userId || currentUserRole === 'admin');
         const photo = avatarSm(r.userPhotoURL, r.userName);
         const name = r.userName || r.userEmail || 'Admin';
-        const badge = adminBadge(r.isAdmin);
+        const badge = roleBadge(r.userRole, r.isAdmin);
         const del = canDelete
           ? `<button onclick="deleteReply('${parentId}','${type}',${idx})" class="reply-delete"><i class="fas fa-trash"></i></button>`
           : '';
@@ -2091,7 +2093,7 @@
           const canDelete = currentUser && (currentUser.uid === r.userId || currentUserRole === 'admin');
           const photo = avatarSm(r.userPhotoURL, r.userName);
           const name = r.userName || r.userEmail || 'Admin';
-          const badge = adminBadge(r.isAdmin);
+          const badge = roleBadge(r.userRole, r.isAdmin);
           const del = canDelete
             ? `<button onclick="deleteSubReply('${parentId}','${type}','${doc.id}')" class="reply-delete"><i class="fas fa-trash"></i></button>`
             : '';
@@ -2118,6 +2120,12 @@
     }
     function adminBadge(isAdmin) {
       return isAdmin ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
+    }
+    function roleBadge(userRole, isAdmin) {
+      if (userRole === 'admin') return '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>';
+      if (userRole === 'verified') return '<i class="fas fa-check-circle" style="color:#10b981;font-size:.75rem;margin-left:3px;"></i>';
+      if (isAdmin) return '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>';
+      return '';
     }
     function formatDate(iso) {
       if (!iso) return '';
