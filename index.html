@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Portofolio Rifan Eko Candra Maulana – Multimedia & Teknologi. Editing, desain grafis, fotografi, videografi, hardware, dan jaringan." />
+  <meta property="og:title" content="Rifan Eko Candra Maulana · Portofolio" />
+  <meta property="og:description" content="Multimedia & Teknologi – Editing, desain grafis, fotografi, videografi, hardware, dan jaringan." />
+  <meta property="og:url" content="https://korifcan.netlify.app" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://korifcan.netlify.app/IMG_Profil.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👤</text></svg>" />
   <title>Rifan Eko Candra Maulana · Portofolio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -315,6 +323,14 @@
       max-width: 90%; text-align: center;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: .1s; }
+    .reveal-delay-2 { transition-delay: .2s; }
+    .reveal-delay-3 { transition-delay: .3s; }
+    .reveal-delay-4 { transition-delay: .4s; }
+    .reveal-delay-5 { transition-delay: .5s; }
   </style>
 </head>
 <body>
@@ -352,24 +368,25 @@
   </nav>
 
   <!-- Hero -->
-  <section id="hero" style="position:relative;">
+  <section id="hero" style="position:relative;" class="reveal">
     <div class="blob-wrap">
       <div class="blob"></div>
       <div class="blob"></div>
     </div>
     <div class="container">
       <div class="hero-content">
-        <h1>Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Pengembang Full-Stack</h1>
-        <p>Saya membangun pengalaman digital yang indah, mudah diakses, dan berperforma tinggi. Berkomitmen pada kode bersih, desain yang matang, dan produk yang memberi dampak.</p>
+        <h1>Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Multimedia &amp; Teknologi</h1>
+        <p>Berpengalaman di bidang editing, desain grafis, fotografi, videografi, serta perbaikan hardware dan jaringan. Terbiasa dengan berbagai software kreatif dan teknis, berdedikasi tinggi terhadap hasil kerja yang berkualitas.</p>
         <div class="hero-buttons">
           <a href="#projects" class="btn btn-primary">Lihat Karya Saya <i class="fas fa-arrow-right"></i></a>
           <a href="#contact" class="btn btn-outline">Hubungi Saya</a>
         </div>
         <div class="hero-socials">
-          <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
-          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-          <a href="#" aria-label="Dribbble"><i class="fab fa-dribbble"></i></a>
+          <a href="https://github.com/KoRifCan" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          <a href="https://www.linkedin.com/in/rifan-eko-candra-maulana" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="https://www.instagram.com/rifaneko_19" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://www.tiktok.com/@korifcan" target="_blank" rel="noopener" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          <a href="https://youtube.com/@korifcan" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
         </div>
       </div>
       <div class="hero-image">
@@ -381,24 +398,24 @@
   </section>
 
   <!-- About -->
-  <section id="about">
+  <section id="about" class="reveal">
     <div class="container">
       <div class="section-title">Tentang Saya</div>
       <div class="section-subtitle">Sekilas tentang siapa saya dan apa yang saya lakukan.</div>
       <div class="about-grid">
         <div class="about-text">
-          <p>Saya seorang pengembang full-stack yang berbasis di San Francisco dengan pengalaman 5+ tahun membangun aplikasi web. Saya suka mengubah masalah kompleks menjadi solusi yang sederhana dan indah.</p>
-          <p>Perjalanan saya dimulai dari rasa penasaran tentang cara kerja website, yang membawa saya belajar Ilmu Komputer di Stanford. Sejak itu, saya bekerja dengan startup dan agensi, membantu mereka meluncurkan produk yang dicintai pengguna.</p>
-          <p>Saat tidak sedang coding, saya biasanya mendaki gunung, membaca fiksi ilmiah, atau bereksperimen dengan resep baru.</p>
+          <p>Saya seorang kreator multimedia dan teknisi yang berbasis di Madiun, Jawa Timur. Berpengalaman di bidang editing foto/video, desain grafis, fotografi, videografi, serta perbaikan hardware dan jaringan.</p>
+          <p>Perjalanan karier saya dimulai dari dunia servis HP dan penjualan, lalu berkembang ke berbagai bidang seperti layanan kereta api, collection, quality control, hingga dokumentasi dan administrasi pertanahan. Setiap pengalaman mengajarkan saya adaptasi, etika kerja, dan komunikasi yang baik.</p>
+          <p>Saya percaya bahwa belajar tidak pernah berhenti — saya selalu ingin mengembangkan diri, baik di bidang kreatif maupun teknis.</p>
         </div>
         <div>
           <div style="width:100%;max-width:280px;aspect-ratio:1;border-radius:50%;overflow:hidden;margin:0 auto 24px;border:4px solid #6366f1;">
             <img src="IMG_Profil.png" alt="Rifan" style="width:100%;height:100%;object-fit:cover;" />
           </div>
           <div class="about-stats">
-          <div class="stat-card"><div class="number">5+</div><div class="label">Tahun Pengalaman</div></div>
-          <div class="stat-card"><div class="number">50+</div><div class="label">Proyek Selesai</div></div>
-          <div class="stat-card"><div class="number">30+</div><div class="label">Klien Puas</div></div>
+          <div class="stat-card"><div class="number">6+</div><div class="label">Tahun Pengalaman</div></div>
+          <div class="stat-card"><div class="number">7+</div><div class="label">Posisi Kerja</div></div>
+          <div class="stat-card"><div class="number">20+</div><div class="label">Software Dikuasai</div></div>
         </div>
       </div>
       </div>
@@ -406,68 +423,100 @@
   </section>
 
   <!-- Skills -->
-  <section id="skills">
+  <section id="skills" class="reveal">
     <div class="container text-center">
       <div class="section-title">Keahlian &amp; Alat</div>
       <div class="section-subtitle">Teknologi yang saya gunakan sehari-hari.</div>
       <div class="skills-grid">
-        <div class="skill-item"><i class="fab fa-html5"></i><div class="name">HTML</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-css3-alt"></i><div class="name">CSS</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-js"></i><div class="name">JavaScript</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-react"></i><div class="name">React</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-node-js"></i><div class="name">Node.js</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-python"></i><div class="name">Python</div><div class="level">Menengah</div></div>
-        <div class="skill-item"><i class="fab fa-vuejs"></i><div class="name">Vue</div><div class="level">Menengah</div></div>
-        <div class="skill-item"><i class="fas fa-database"></i><div class="name">SQL</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-docker"></i><div class="name">Docker</div><div class="level">Menengah</div></div>
-        <div class="skill-item"><i class="fab fa-git-alt"></i><div class="name">Git</div><div class="level">Mahir</div></div>
-        <div class="skill-item"><i class="fab fa-figma"></i><div class="name">Figma</div><div class="level">Menengah</div></div>
-        <div class="skill-item"><i class="fas fa-cloud"></i><div class="name">AWS</div><div class="level">Menengah</div></div>
+        <div class="skill-item"><i class="fas fa-users"></i><div class="name">Kerja Sama Tim</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-handshake"></i><div class="name">Etika Kerja</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-sync-alt"></i><div class="name">Adaptasi</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-comments"></i><div class="name">Komunikasi</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-pen-fancy"></i><div class="name">Editing Photos &amp; Videos</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-palette"></i><div class="name">Graphic Design</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-camera"></i><div class="name">Photography</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-video"></i><div class="name">Videography</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-network-wired"></i><div class="name">Network &amp; Cable LAN</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-windows"></i><div class="name">Windows Trouble</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-mobile-alt"></i><div class="name">Flash System Android</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-download"></i><div class="name">Install/Update Windows</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-file-word"></i><div class="name">Microsoft Office</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-paint-brush"></i><div class="name">Canva</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-vector-square"></i><div class="name">CorelDRAW</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-film"></i><div class="name">CapCut</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-magic"></i><div class="name">Alight Motion</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-image"></i><div class="name">Picsart</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-tools"></i><div class="name">Mi Flash Tool</div><div class="level">—</div></div>
+        <div class="skill-item"><i class="fas fa-unlock-alt"></i><div class="name">Mi Unlock Tool</div><div class="level">—</div></div>
       </div>
     </div>
   </section>
 
   <!-- Experience -->
-  <section id="experience">
+  <section id="experience" class="reveal">
     <div class="container">
       <div class="section-title">Pengalaman</div>
       <div class="section-subtitle">Perjalanan profesional saya sejauh ini.</div>
       <div class="timeline">
         <div class="timeline-item">
-          <div class="date">2022 – Sekarang</div>
-          <h3>Senior Full-Stack Developer</h3>
-          <div class="company">TechFlow Inc. · San Francisco, CA</div>
-          <p>Memimpin arsitektur frontend untuk platform SaaS dengan 50K+ pengguna. Membangun sistem desain, meningkatkan skor Lighthouse sebesar 40%, dan membimbing 3 junior.</p>
+          <div class="date">Sep 2024 – Jan 2026</div>
+          <h3>Quality Control</h3>
+          <div class="company">PT Bonecom Tricom · Cikarang</div>
+          <p>Melakukan inspeksi kualitas produk, memastikan kesesuaian standar, dan melaporkan hasil pemeriksaan.</p>
         </div>
         <div class="timeline-item">
-          <div class="date">2020 – 2022</div>
-          <h3>Full-Stack Developer</h3>
-          <div class="company">Bright Studio · New York, NY</div>
-          <p>Membangun 15+ website klien dan aplikasi web menggunakan React, Node.js, dan platform CMS headless. Menyelesaikan proyek tepat waktu dan sesuai anggaran.</p>
+          <div class="date">Des 2022 – Jan 2023</div>
+          <h3>Train Attendant (Prama)</h3>
+          <div class="company">PT Reska Multi Usaha (BO 7 Madiun)</div>
+          <p>Memberi informasi kepada penumpang kereta api, melayani penumpang, dan menjaga restorasi di kereta makan pada event NATARU.</p>
         </div>
         <div class="timeline-item">
-          <div class="date">2019 – 2020</div>
-          <h3>Junior Developer</h3>
-          <div class="company">WebCraft Agency · Remote</div>
-          <p>Mengembangkan landing page responsif, template email, dan tema WordPress. Berkolaborasi dengan desainer dan senior developer dalam sprint agile.</p>
+          <div class="date">Sep 2021 – Jun 2022</div>
+          <h3>Collection Officer</h3>
+          <div class="company">PT Swakarya Insan Mandiri · Yogyakarta</div>
+          <p>Menginformasikan, mengingatkan, serta menagih kewajiban nasabah melalui media telepon.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="date">2020</div>
+          <h3>Staff Administrasi</h3>
+          <div class="company">Kantor Pertanahan Kota Madiun · Madiun</div>
+          <p>Melakukan pemindaian dan pengarsipan dokumen pertanahan untuk mendukung administrasi di Kantor Pertanahan Kota Madiun.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="date">2018</div>
+          <h3>Teknisi Handphone</h3>
+          <div class="company">Samsung Service Center (Jogjatronik Mall) · Yogyakarta</div>
+          <p>Mengganti layar LCD, perbaikan layar HP, test waterproof, flash system android, perakitan dan pembongkaran handphone, FRP Bypass, menginput data customer.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="date">2018</div>
+          <h3>Teknisi Handphone</h3>
+          <div class="company">Klinik Android Klaten · Klaten</div>
+          <p>Mengganti layar LCD, perakitan dan pembongkaran handphone, memasang timah di MMC, flash system android, memasang MMC, multimeter, menggunakan solder.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="date">2018</div>
+          <h3>Sales Handphone</h3>
+          <div class="company">Brawijaya Cell · Madiun</div>
+          <p>Menawarkan produk handphone dan melakukan penjualan setiap hari agar mencapai target setiap bulan.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Projects -->
-  <section id="projects">
+  <section id="projects" class="reveal">
     <div class="container text-center">
       <div class="section-title">Proyek Unggulan</div>
       <div class="section-subtitle">Beberapa karya yang baru saja saya buat.</div>
       <div class="projects-grid">
         <div class="project-card">
-          <div class="thumb"><i class="fas fa-store"></i></div>
+          <div class="thumb"><i class="fas fa-globe"></i></div>
           <div class="body">
-            <div class="tags"><span>React</span><span>Node.js</span><span>Stripe</span></div>
-            <h3>ShopWave</h3>
-            <p>Platform e-commerce lengkap dengan inventaris real-time, pemrosesan pembayaran, dan dashboard admin.</p>
-            <div class="links"><a href="#">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="#">Kode Sumber</a></div>
+            <div class="tags"><span>HTML/CSS</span><span>JavaScript</span><span>Firebase</span></div>
+            <h3>Portofolio Pribadi</h3>
+            <p>Website portofolio interaktif dengan login, rating real-time, dark/light mode, multi bahasa, dan efek gooey blob.</p>
+            <div class="links"><a href="https://korifcan.netlify.app" target="_blank">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="https://github.com/KoRifCan/Portofolio" target="_blank">Kode Sumber</a></div>
             <div class="project-rating" data-project="shopwave" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
               <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
               <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
@@ -518,7 +567,7 @@
   </section>
 
   <!-- Testimonials -->
-  <section id="testimonials">
+  <section id="testimonials" class="reveal">
     <div class="container text-center">
       <div class="section-title">Kata Mereka</div>
       <div class="section-subtitle">Ucapan hangat dari kolega dan klien.</div>
@@ -552,18 +601,18 @@
   </section>
 
   <!-- Contact -->
-  <section id="contact">
+  <section id="contact" class="reveal">
     <div class="container">
       <div class="section-title">Hubungi Saya</div>
       <div class="section-subtitle">Ada proyek yang ingin didiskusikan? Mari bicara.</div>
       <div class="contact-grid">
         <div class="contact-info">
-          <h3>Mari bangun sesuatu yang hebat bersama.</h3>
-          <p>Saya selalu terbuka untuk peluang baru, kolaborasi, atau sekadar obrolan ringan. Hubungi saya dan saya akan membalas dalam 24 jam.</p>
-          <div class="item"><i class="fas fa-envelope"></i> alex@rivera.dev</div>
-          <div class="item"><i class="fas fa-phone"></i> +1 (415) 555-0192</div>
-          <div class="item"><i class="fas fa-map-marker-alt"></i> San Francisco, CA</div>
-          <div class="item" style="margin-top:16px;"><i class="fab fa-github"></i> github.com/alexrivera</div>
+          <h3>Mari bekerja sama.</h3>
+          <p>Saya selalu terbuka untuk peluang baru, kolaborasi, atau sekadar obrolan. Hubungi saya melalui email atau media sosial di bawah ini.</p>
+          <div class="item"><i class="fas fa-envelope"></i> rifan.eko25@gmail.com</div>
+          <div class="item"><i class="fas fa-map-marker-alt"></i> Madiun, Jawa Timur, Indonesia</div>
+          <div class="item" style="margin-top:16px;"><i class="fab fa-github"></i> github.com/KoRifCan</div>
+          <div class="item"><i class="fab fa-linkedin-in"></i> linkedin.com/in/rifan-eko-candra-maulana</div>
         </div>
         <form class="contact-form" action="https://api.web3forms.com/submit" method="POST">
           <input type="hidden" name="access_key" value="0fbc88a6-f747-47b8-ba23-6509b89c64c2" />
@@ -603,6 +652,13 @@
     </div>
   </div>
 
+  <div id="loadingOverlay" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:grid;place-items:center;transition:opacity .5s;">
+    <div style="text-align:center;">
+      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+      <div style="color:var(--text-light);font-size:.9rem;">Memuat...</div>
+    </div>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   <div id="toast" class="toast"></div>
   <footer>
     <div class="container">
@@ -636,6 +692,8 @@
     let currentUser = null;
     auth.onAuthStateChanged(user => {
       currentUser = user;
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 500); }
       const btn = document.getElementById('loginBtn');
       if (user) {
         btn.innerHTML = '<i class="fas fa-user-check"></i>';
@@ -719,7 +777,7 @@
     document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
 
     // ===== RATING (REAL-TIME) =====
-    const projectNames = { shopwave: 'ShopWave', insightai: 'InsightAI', ecotrack: 'EcoTrack', designport: 'DesignPort' };
+    const projectNames = { shopwave: 'Portofolio Pribadi', insightai: 'InsightAI', ecotrack: 'EcoTrack', designport: 'DesignPort' };
 
     function renderStars(container, avg) {
       const full = Math.round(avg);
@@ -818,6 +876,17 @@
     window.addEventListener('scroll', updateSpy, { passive: true });
     updateSpy();
 
+    // ===== REVEAL ON SCROLL =====
+    const revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: .08 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
     // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
     const navLinks = document.getElementById('navLinks');
@@ -844,23 +913,23 @@
         en: ['Home', 'About', 'Skills', 'Experience', 'Projects', 'Testimonials', 'Contact']
       },
       heroTitle: {
-        id: 'Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Pengembang Full-Stack',
-        en: 'Hi, I\'m <span>Rifan Eko Candra Maulana</span><br />Full-Stack Developer'
+        id: 'Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Multimedia &amp; Teknologi',
+        en: 'Hi, I\'m <span>Rifan Eko Candra Maulana</span><br />Multimedia &amp; Technology'
       },
       heroDesc: {
-        id: 'Saya membangun pengalaman digital yang indah, mudah diakses, dan berperforma tinggi. Berkomitmen pada kode bersih, desain yang matang, dan produk yang memberi dampak.',
-        en: 'I build beautiful, accessible, and performant digital experiences. Passionate about clean code, thoughtful design, and products that make a difference.'
+        id: 'Berpengalaman di bidang editing, desain grafis, fotografi, videografi, serta perbaikan hardware dan jaringan. Terbiasa dengan berbagai software kreatif dan teknis, berdedikasi tinggi terhadap hasil kerja yang berkualitas.',
+        en: 'Experienced in editing, graphic design, photography, videography, as well as hardware and network repairs. Proficient in various creative and technical software, dedicated to high-quality work.'
       },
       heroBtn1: { id: 'Lihat Karya Saya', en: 'View My Work' },
       heroBtn2: { id: 'Hubungi Saya', en: 'Get in Touch' },
       aboutTitle: { id: 'Tentang Saya', en: 'About Me' },
       aboutSub: { id: 'Sekilas tentang siapa saya dan apa yang saya lakukan.', en: 'A quick overview of who I am and what I do.' },
-      aboutP1: { id: 'Saya seorang pengembang full-stack yang berbasis di San Francisco dengan pengalaman 5+ tahun membangun aplikasi web. Saya suka mengubah masalah kompleks menjadi solusi yang sederhana dan indah.', en: 'I\'m a full-stack developer based in San Francisco with 5+ years of experience building web applications. I love turning complex problems into simple, beautiful solutions.' },
-      aboutP2: { id: 'Perjalanan saya dimulai dari rasa penasaran tentang cara kerja website, yang membawa saya belajar Ilmu Komputer di Stanford. Sejak itu, saya bekerja dengan startup dan agensi, membantu mereka meluncurkan produk yang dicintai pengguna.', en: 'My journey started with a curiosity about how websites work, which led me to study Computer Science at Stanford. Since then, I\'ve worked with startups and agencies, helping them ship products that users love.' },
-      aboutP3: { id: 'Saat tidak sedang coding, saya biasanya mendaki gunung, membaca fiksi ilmiah, atau bereksperimen dengan resep baru.', en: 'When I\'m not coding, you\'ll find me hiking, reading sci-fi, or experimenting with new recipes.' },
+      aboutP1: { id: 'Saya seorang kreator multimedia dan teknisi yang berbasis di Madiun, Jawa Timur. Berpengalaman di bidang editing foto/video, desain grafis, fotografi, videografi, serta perbaikan hardware dan jaringan.', en: 'I\'m a multimedia creator and technician based in Madiun, East Java. Experienced in photo/video editing, graphic design, photography, videography, as well as hardware and network repairs.' },
+      aboutP2: { id: 'Perjalanan karier saya dimulai dari dunia servis HP dan penjualan, lalu berkembang ke berbagai bidang seperti layanan kereta api, collection, quality control, hingga dokumentasi dan administrasi pertanahan. Setiap pengalaman mengajarkan saya adaptasi, etika kerja, dan komunikasi yang baik.', en: 'My career journey started in phone repair and sales, then expanded into various fields such as train attendant service, debt collection, quality control, and land administration. Each experience taught me adaptability, work ethic, and good communication.' },
+      aboutP3: { id: 'Saya percaya bahwa belajar tidak pernah berhenti — saya selalu ingin mengembangkan diri, baik di bidang kreatif maupun teknis.', en: 'I believe learning never stops — I\'m always looking to grow, both in creative and technical fields.' },
       stat1: { id: 'Tahun Pengalaman', en: 'Years Experience' },
-      stat2: { id: 'Proyek Selesai', en: 'Projects Done' },
-      stat3: { id: 'Klien Puas', en: 'Happy Clients' },
+      stat2: { id: 'Posisi Kerja', en: 'Job Positions' },
+      stat3: { id: 'Software Dikuasai', en: 'Software Mastered' },
       skillsTitle: { id: 'Keahlian & Alat', en: 'Skills & Tools' },
       skillsSub: { id: 'Teknologi yang saya gunakan sehari-hari.', en: 'Technologies I work with on a daily basis.' },
       expTitle: { id: 'Pengalaman', en: 'Experience' },
@@ -871,8 +940,8 @@
       testSub: { id: 'Ucapan hangat dari kolega dan klien.', en: 'Kind words from colleagues and clients.' },
       contactTitle: { id: 'Hubungi Saya', en: 'Get in Touch' },
       contactSub: { id: 'Ada proyek yang ingin didiskusikan? Mari bicara.', en: 'Have a project in mind? Let\'s talk.' },
-      contactH3: { id: 'Mari bangun sesuatu yang hebat bersama.', en: 'Let\'s build something great together.' },
-      contactP: { id: 'Saya selalu terbuka untuk peluang baru, kolaborasi, atau sekadar obrolan ringan. Hubungi saya dan saya akan membalas dalam 24 jam.', en: 'I\'m always open to new opportunities, collaborations, or just a friendly chat. Reach out and I\'ll get back to you within 24 hours.' },
+      contactH3: { id: 'Mari bekerja sama.', en: 'Let\'s work together.' },
+      contactP: { id: 'Saya selalu terbuka untuk peluang baru, kolaborasi, atau sekadar obrolan. Hubungi saya melalui email atau media sosial di bawah ini.', en: 'I\'m always open to new opportunities, collaborations, or just a chat. Reach out via email or social media below.' },
       formName: { id: 'Nama Anda', en: 'Your Name' },
       formEmail: { id: 'Email Anda', en: 'Your Email' },
       formSubject: { id: 'Subjek', en: 'Subject' },
