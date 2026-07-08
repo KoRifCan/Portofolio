@@ -268,6 +268,22 @@
     }
     .testimonial-card .author .name { font-weight: 600; font-size: .9rem; }
     .testimonial-card .author .role { font-size: .8rem; color: var(--text-light); }
+    .testimonial-card .admin-actions { margin-top: 12px; display: flex; gap: 8px; justify-content: center; }
+    .testimonial-card .admin-actions button {
+      font-size: .75rem; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card-bg); color: var(--text-muted); cursor: pointer; transition: all .2s;
+    }
+    .testimonial-card .admin-actions button:hover { border-color: #6366f1; color: #6366f1; }
+    .testimonial-card .admin-actions .btn-del:hover { border-color: #ef4444; color: #ef4444; }
+    .testimonial-card .admin-actions .btn-hide:hover { border-color: #f59e0b; color: #f59e0b; }
+    .testimonial-form { background: var(--card-bg-alt); border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-light); text-align: left; }
+    .testimonial-form h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
+    .testimonial-form input, .testimonial-form textarea, .testimonial-form select {
+      width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-family: inherit; font-size: .9rem; margin-bottom: 12px;
+    }
+    .testimonial-form textarea { resize: vertical; min-height: 80px; }
+    .testimonial-form .btn-primary { width: 100%; justify-content: center; }
 
     /* Contact */
     #contact { background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; }
@@ -606,32 +622,7 @@
     <div class="container text-center">
       <div class="section-title">Kata Mereka</div>
       <div class="section-subtitle">Ucapan hangat dari kolega dan klien.</div>
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <blockquote>"Rifan adalah salah satu developer paling berbakat yang pernah saya ajak bekerja. Perhatiannya terhadap detail dan kemampuannya memecahkan masalah kompleks tidak ada tandingnya."</blockquote>
-          <div class="author">
-            <div class="avatar">SM</div>
-            <div><div class="name">Sarah Mitchell</div><div class="role">CTO, TechFlow</div></div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <blockquote>"Bekerja dengan Rifan sangat menyenangkan. Dia menyelesaikan platform kami tepat waktu, berkomunikasi dengan jelas, dan hasil akhirnya melampaui ekspektasi."</blockquote>
-          <div class="author">
-            <div class="avatar">JD</div>
-            <div><div class="name">James Davidson</div><div class="role">Founder, Bright Studio</div></div>
-          </div>
-        </div>
-        <div class="testimonial-card">
-          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <blockquote>"Rifan memiliki kombinasi langka antara keterampilan teknis dan kepekaan desain. Dia tidak sekadar menulis kode, dia menciptakan pengalaman."</blockquote>
-          <div class="author">
-            <div class="avatar">EL</div>
-            <div><div class="name">Emily Liu</div><div class="role">Product Designer, Freelance</div></div>
-          </div>
-        </div>
-      </div>
+      <div class="testimonials-grid" id="testimonialsGrid"></div>
     </div>
   </section>
 
@@ -803,14 +794,124 @@
       profileMenu.innerHTML = '<div style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
         + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
         + '<p style="font-weight:600;margin-bottom:4px;">' + currentUser.email + '</p>'
-        + '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:24px;">Sudah login</p>'
-        + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\');" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
+        + '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:16px;">Sudah login</p>'
+        + '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>'
+        + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
         + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>';
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
     }
+
     document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+    // ===== TESTIMONIALS CRUD =====
+    let testiManager = null;
+
+    function loadTestimonials() {
+      db.collection('testimonials').where('visible', '==', true).onSnapshot(snap => {
+        const grid = document.getElementById('testimonialsGrid');
+        if (!grid) return;
+        if (snap.empty) { grid.innerHTML = '<p style="color:var(--text-light);font-style:italic;">Belum ada testimoni.</p>'; return; }
+        let html = '';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const initials = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+          let stars = '';
+          for (let i = 1; i <= 5; i++) stars += i <= d.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+          html += '<div class="testimonial-card">'
+            + '<div class="stars">' + stars + '</div>'
+            + '<blockquote>"' + d.text + '"</blockquote>'
+            + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
+            + '</div>';
+        });
+        grid.innerHTML = html;
+      });
+    }
+
+    function showTestimonialManager() {
+      if (profileMenu) { profileMenu.remove(); profileMenu = null; }
+      if (testiManager) { testiManager.remove(); testiManager = null; return; }
+      testiManager = document.createElement('div');
+      testiManager.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);overflow-y:auto;padding:24px;display:grid;place-items:start center;';
+      testiManager.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:560px;width:100%;margin:auto;position:relative;">'
+        + '<button onclick="this.closest(\'div\').parentElement.remove(); testiManager=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
+        + '<h2 style="margin-bottom:20px;">Kelola Testimoni</h2>'
+        + '<div class="testimonial-form">'
+        + '<h3>Tambah Testimoni Baru</h3>'
+        + '<input id="testiName" placeholder="Nama" required>'
+        + '<input id="testiRole" placeholder="Jabatan/Asal (opsional)">'
+        + '<textarea id="testiText" placeholder="Isi testimoni" required></textarea>'
+        + '<select id="testiRating"><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
+        + '<button onclick="saveTestimonial()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni</button>'
+        + '</div>'
+        + '<h3 style="margin-bottom:12px;">Testimoni Tersimpan</h3>'
+        + '<div id="testiList"></div>'
+        + '</div>';
+      document.body.appendChild(testiManager);
+      loadTestiList();
+    }
+
+    function saveTestimonial() {
+      const name = document.getElementById('testiName').value.trim();
+      const text = document.getElementById('testiText').value.trim();
+      const role = document.getElementById('testiRole').value.trim();
+      const rating = parseInt(document.getElementById('testiRating').value);
+      if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
+      db.collection('testimonials').add({
+        name, text, role, rating,
+        visible: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        userId: currentUser.uid
+      }).then(() => {
+        document.getElementById('testiName').value = '';
+        document.getElementById('testiText').value = '';
+        document.getElementById('testiRole').value = '';
+        document.getElementById('testiRating').value = '5';
+        showToast('Testimoni berhasil ditambahkan!');
+      }).catch(e => showToast(e.message));
+    }
+
+    function loadTestiList() {
+      const list = document.getElementById('testiList');
+      if (!list) return;
+      db.collection('testimonials').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        if (snap.empty) { list.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;">Belum ada testimoni.</p>'; return; }
+        let html = '';
+        snap.forEach(doc => {
+          const d = doc.data();
+          const id = doc.id;
+          const initials = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+          html += '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:left;">'
+            + '<div style="display:flex;justify-content:space-between;align-items:start;gap:12px;">'
+            + '<div style="flex:1;min-width:0;">'
+            + '<div style="font-weight:600;font-size:.9rem;">' + d.name + '</div>'
+            + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
+            + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
+            + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
+            + '</div>'
+            + '<div style="display:flex;gap:6px;flex-shrink:0;">'
+            + '<button onclick="toggleTesti(\'' + id + '\',' + !d.visible + ')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:' + (d.visible ? '#f59e0b' : '#10b981') + ';cursor:pointer;font-size:.8rem;">' + (d.visible ? 'Sembunyi' : 'Tampil') + '</button>'
+            + '<button onclick="deleteTesti(\'' + id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;">Hapus</button>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
+        });
+        list.innerHTML = html;
+      });
+    }
+
+    function toggleTesti(id, visible) {
+      db.collection('testimonials').doc(id).update({ visible }).catch(e => showToast(e.message));
+    }
+
+    function deleteTesti(id) {
+      if (!confirm('Hapus testimoni ini?')) return;
+      db.collection('testimonials').doc(id).delete().catch(e => showToast(e.message));
+    }
+
+    // Load testimonials on page load
+    loadTestimonials();
 
     // ===== RATING (REAL-TIME) =====
     const projectNames = { shopwave: 'Portofolio Pribadi' };
