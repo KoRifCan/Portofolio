@@ -126,6 +126,7 @@
       margin-left: var(--sidebar-w);
       min-height: 100vh;
       display: flex; flex-direction: column;
+      overflow-y: auto;
     }
     .topbar {
       height: var(--header-h);
@@ -419,6 +420,7 @@
             <button onclick="saveTestimonial()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
           </div>
           <div class="filter-group" id="testiFilterAdmin"></div>
+          <div class="filter-group" id="testiStarFilter"></div>
           <div class="toolbar">
             <input id="adminTestiSearch" type="text" placeholder="Cari nama, email, atau teks...">
             <button id="sortTestiBtn" class="btn btn-outline btn-sm"><i class="fas fa-sort"></i> Terbaru</button>
@@ -743,7 +745,7 @@
     }
 
     // ===== TESTIMONIALS =====
-    let testiAll = [], testiFilter = 'all', testiPage = 0, testiSearch = '', testiSortAsc = false;
+    let testiAll = [], testiFilter = 'all', testiPage = 0, testiSearch = '', testiSortAsc = false, testiStarFilter = 0;
     const testiPerPage = 5;
 
     function loadTestimonials() {
@@ -768,6 +770,12 @@
         + '<button class="filter-btn' + (testiFilter === 'pending' ? ' active' : '') + '" data-filter="pending">Menunggu Izin (' + pendingCount + ')</button>'
         + '<button class="filter-btn' + (testiFilter === 'visible' ? ' active' : '') + '" data-filter="visible">Terlihat (' + visibleCount + ')</button>';
 
+      const starFilterEl = document.getElementById('testiStarFilter');
+      const starCounts = {};
+      for (let s = 1; s <= 5; s++) starCounts[s] = testiAll.filter(t => (t.rating || 0) === s).length;
+      starFilterEl.innerHTML = '<button class="filter-btn' + (testiStarFilter === 0 ? ' active' : '') + '" data-star="0">Semua Rating</button>'
+        + [5,4,3,2,1].map(s => '<button class="filter-btn' + (testiStarFilter === s ? ' active' : '') + '" data-star="' + s + '">' + '★'.repeat(s) + ' (' + starCounts[s] + ')</button>').join('');
+
       let filtered = testiAll;
       if (testiSearch) {
         const q = testiSearch.toLowerCase();
@@ -775,6 +783,7 @@
       }
       if (testiSortAsc) filtered = [...filtered].reverse();
       document.getElementById('sortTestiBtn').innerHTML = '<i class="fas fa-sort"></i> ' + (testiSortAsc ? 'Terlama' : 'Terbaru');
+      if (testiStarFilter > 0) filtered = filtered.filter(t => (t.rating || 0) === testiStarFilter);
       if (testiFilter === 'pending') filtered = filtered.filter(t => !t.visible);
       else if (testiFilter === 'visible') filtered = filtered.filter(t => t.visible);
 
@@ -829,6 +838,11 @@
       const btn = e.target.closest('.filter-btn');
       if (!btn) return;
       testiFilter = btn.dataset.filter; testiPage = 0; renderTestiList();
+    });
+    document.getElementById('testiStarFilter')?.addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      testiStarFilter = parseInt(btn.dataset.star) || 0; testiPage = 0; renderTestiList();
     });
     document.getElementById('adminTestiSearch')?.addEventListener('input', function() {
       testiSearch = this.value; testiPage = 0; renderTestiList();
