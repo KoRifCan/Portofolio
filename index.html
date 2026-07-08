@@ -839,15 +839,15 @@
     });
     setInterval(() => {
       const u = firebase.auth().currentUser;
-      if (u && !u.emailVerified) u.reload().then(() => {
-        if (u.emailVerified) db.collection('userProfiles').doc(u.uid).update({ emailVerified: true }).catch(() => {});
+      if (u) u.reload().then(() => {
+        db.collection('userProfiles').doc(u.uid).update({ emailVerified: u.emailVerified }).catch(() => {});
       }).catch(() => {});
     }, 30000);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         const u = firebase.auth().currentUser;
-        if (u && !u.emailVerified) u.reload().then(() => {
-          if (u.emailVerified) db.collection('userProfiles').doc(u.uid).update({ emailVerified: true }).catch(() => {});
+        if (u) u.reload().then(() => {
+          db.collection('userProfiles').doc(u.uid).update({ emailVerified: u.emailVerified }).catch(() => {});
         }).catch(() => {});
       }
     });
@@ -972,6 +972,7 @@
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
       currentUser.reload().then(() => {
+      db.collection('userProfiles').doc(currentUser.uid).update({ emailVerified: currentUser.emailVerified }).catch(() => {});
       db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
         profileData = doc.exists ? doc.data() : {};
         const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
