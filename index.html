@@ -224,12 +224,13 @@
       position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none;
     }
     .project-card .thumb .slider-overlay {
-      position: absolute; inset: 0; width: 50%; overflow: hidden;
+      position: absolute; inset: 0; width: 50%; overflow: hidden; z-index: 1;
     }
     .project-card .thumb .slider-handle {
       position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff;
       transform: translateX(-1.5px); z-index: 2; pointer-events: none;
     }
+    .project-card .thumb .slider-handle .knob { z-index: 3; }
     .project-card .thumb .slider-handle .knob {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
       width: 30px; height: 30px; border-radius: 50%; background: #fff;
@@ -684,9 +685,9 @@
         <div class="project-card">
           <div class="thumb" id="themeSlider">
             <div class="slider-overlay" id="sliderOverlay">
-              <img class="slider-img" id="darkImg" alt="dark" style="object-position:right;">
+              <img class="slider-img" src="screenshot-dark.png" alt="dark" style="object-position:right;">
             </div>
-            <img class="slider-img" id="lightImg" alt="light">
+            <img class="slider-img" src="screenshot-light.png" alt="light">
             <div class="slider-handle" id="sliderHandle"><div class="knob">⟷</div></div>
           </div>
           <div class="body">
@@ -2462,8 +2463,6 @@
     const slider = document.getElementById('themeSlider');
     const overlay = document.getElementById('sliderOverlay');
     const handle = document.getElementById('sliderHandle');
-    const lightImg = document.getElementById('lightImg');
-    const darkImg = document.getElementById('darkImg');
     let isDragging = false;
     function updateSlider(x) {
       const rect = slider.getBoundingClientRect();
@@ -2479,27 +2478,7 @@
     slider.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); });
     document.addEventListener('touchmove', e => { if (isDragging) updateSlider(e.touches[0].clientX); });
     document.addEventListener('touchend', () => { isDragging = false; });
-
-    async function captureSlider() {
-      if (typeof html2canvas === 'undefined') return;
-      const orig = document.documentElement.getAttribute('data-theme') || 'light';
-      await new Promise(r => setTimeout(r, 300));
-
-      document.documentElement.setAttribute('data-theme', 'light');
-      await new Promise(r => setTimeout(r, 150));
-      const c1 = await html2canvas(document.documentElement, { scale: 0.4, useCORS: true, allowTaint: false });
-      lightImg.src = c1.toDataURL('image/jpeg', 0.6);
-
-      document.documentElement.setAttribute('data-theme', 'dark');
-      await new Promise(r => setTimeout(r, 150));
-      const c2 = await html2canvas(document.documentElement, { scale: 0.4, useCORS: true, allowTaint: false });
-      darkImg.src = c2.toDataURL('image/jpeg', 0.6);
-
-      document.documentElement.setAttribute('data-theme', orig);
-    }
-    setTimeout(captureSlider, 1500);
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
 </html>
