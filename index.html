@@ -714,7 +714,7 @@
         </div>
         <form class="contact-form" action="https://api.web3forms.com/submit" method="POST">
           <input type="hidden" name="access_key" value="0fbc88a6-f747-47b8-ba23-6509b89c64c2" />
-          <input type="hidden" name="redirect" value="https://korifcan.github.io/Portofolio/?thankyou" />
+          <input type="hidden" name="redirect" value="https://korifcan.github.io/Portofolio/thank-you/" />
           <input type="text" name="name" placeholder="Nama Anda" required />
           <input type="email" name="email" placeholder="Email Anda" required />
           <input type="text" name="subject" placeholder="Subjek" />
@@ -2152,11 +2152,6 @@
         showToast('Harap selesaikan captcha!');
       }
     });
-
-    if (new URLSearchParams(window.location.search).get('thankyou')) {
-      history.replaceState(null, '', window.location.pathname);
-      showToast('Pesan terkirim! Terima kasih 😊');
-    }
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
