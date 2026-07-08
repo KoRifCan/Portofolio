@@ -417,7 +417,6 @@
             <div class="card-title">Tambah Testimoni Baru</div>
             <div class="form-group"><input id="testiName" placeholder="Nama" required></div>
             <div class="form-group"><input id="testiRole" placeholder="Jabatan/Asal (opsional)"></div>
-            <div class="form-group"><input id="testiPhotoURL" placeholder="URL Foto (opsional)"></div>
             <div class="form-group"><textarea id="testiText" placeholder="Isi testimoni" required></textarea></div>
             <div class="form-group">
               <label>Rating</label>
@@ -902,7 +901,6 @@
       const name = document.getElementById('testiName')?.value.trim();
       const text = document.getElementById('testiText')?.value.trim();
       const role = document.getElementById('testiRole')?.value.trim();
-      const photoURL = document.getElementById('testiPhotoURL')?.value.trim();
       const picker = document.getElementById('testiRating');
       const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi.');
@@ -917,14 +915,12 @@
           userEmail: currentUser.email,
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
-        if (photoURL) testiData.userPhotoURL = photoURL;
-        else if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
+        if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
         db.collection('testimonials').add(testiData).then(() => {
           showToast('Testimoni berhasil ditambahkan!');
           document.getElementById('testiName').value = '';
           document.getElementById('testiText').value = '';
           document.getElementById('testiRole').value = '';
-          document.getElementById('testiPhotoURL').value = '';
           picker.dataset.value = '0'; initStarPicker(picker);
         }).catch(e => showToast('Gagal: ' + e.message));
       }).catch(() => {
@@ -937,7 +933,6 @@
           document.getElementById('testiName').value = '';
           document.getElementById('testiText').value = '';
           document.getElementById('testiRole').value = '';
-          document.getElementById('testiPhotoURL').value = '';
           picker.dataset.value = '0'; initStarPicker(picker);
         }).catch(e => showToast('Gagal: ' + e.message));
       });
@@ -1386,50 +1381,57 @@
     });
 
     // ===== VERIFIKASI =====
-    let verifyFilter = 'all', verifySearch = '';
+    let verifyFilter = 'all', verifySearch = '', allVerifyDocs = [];
 
     function loadVerifikasi() {
       const container = document.getElementById('verifyListContainer');
       container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat...</p>';
-      db.collection('userProfiles').orderBy('createdAt', 'desc').get().then(snap => {
-        const allDocs = snap.docs;
-        let users = allDocs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (verifyFilter === 'verified') users = users.filter(u => u.emailVerified === true);
-        else if (verifyFilter === 'unverified') users = users.filter(u => u.emailVerified !== true);
-        if (verifySearch) {
-          const q = verifySearch.toLowerCase();
-          users = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
-        }
-        const allCount = allDocs.length;
-        document.getElementById('verifyFilterGroup').innerHTML =
-          '<button class="filter-btn' + (verifyFilter === 'all' ? ' active' : '') + '" data-vfilter="all">Semua (' + allCount + ')</button>'
-          + '<button class="filter-btn' + (verifyFilter === 'verified' ? ' active' : '') + '" data-vfilter="verified">Terverifikasi (' + allDocs.filter(d => d.data().emailVerified === true).length + ')</button>'
-          + '<button class="filter-btn' + (verifyFilter === 'unverified' ? ' active' : '') + '" data-vfilter="unverified">Belum Verifikasi (' + allDocs.filter(d => d.data().emailVerified !== true).length + ')</button>';
-        container.innerHTML = '<div class="item-list">' + users.map(u =>
-          '<div class="item-card">'
-            + getAvatarHTML(u.name, u.photoURL, 40)
-            + '<div class="body">'
-              + '<div class="name">' + esc(u.name || 'Tanpa Nama') + roleBadge(u.role) + '</div>'
-              + '<div class="meta">' + esc(u.email) + '</div>'
-              + '<div class="meta">' + verifiedBadge(u.emailVerified) + '</div>'
-            + '</div>'
-            + '<div class="actions" style="align-items:flex-end;">'
-              + (u.emailVerified === true
-                ? '<button onclick="hapusVerifikasi(\'' + u.id + '\')" class="btn btn-outline btn-xs" style="color:#f59e0b;">Hapus Verifikasi</button>'
-                : '<button onclick="verifEmail(\'' + u.id + '\')" class="btn btn-outline btn-xs" style="color:#10b981;">Verifikasi</button>')
-            + '</div>'
-          + '</div>'
-        ).join('') + '</div>';
+      allVerifyDocs = [];
+      db.collection('userProfiles').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allVerifyDocs = snap.docs;
+        renderVerifikasi();
       });
+    }
+
+    function renderVerifikasi() {
+      const container = document.getElementById('verifyListContainer');
+      const allDocs = allVerifyDocs;
+      let users = allDocs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (verifyFilter === 'verified') users = users.filter(u => u.emailVerified === true);
+      else if (verifyFilter === 'unverified') users = users.filter(u => u.emailVerified !== true);
+      if (verifySearch) {
+        const q = verifySearch.toLowerCase();
+        users = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+      }
+      const allCount = allDocs.length;
+      document.getElementById('verifyFilterGroup').innerHTML =
+        '<button class="filter-btn' + (verifyFilter === 'all' ? ' active' : '') + '" data-vfilter="all">Semua (' + allCount + ')</button>'
+        + '<button class="filter-btn' + (verifyFilter === 'verified' ? ' active' : '') + '" data-vfilter="verified">Terverifikasi (' + allDocs.filter(d => d.data().emailVerified === true).length + ')</button>'
+        + '<button class="filter-btn' + (verifyFilter === 'unverified' ? ' active' : '') + '" data-vfilter="unverified">Belum Verifikasi (' + allDocs.filter(d => d.data().emailVerified !== true).length + ')</button>';
+      container.innerHTML = '<div class="item-list">' + users.map(u =>
+        '<div class="item-card">'
+          + getAvatarHTML(u.name, u.photoURL, 40)
+          + '<div class="body">'
+            + '<div class="name">' + esc(u.name || 'Tanpa Nama') + roleBadge(u.role) + '</div>'
+            + '<div class="meta">' + esc(u.email) + '</div>'
+            + '<div class="meta">' + verifiedBadge(u.emailVerified) + '</div>'
+          + '</div>'
+          + '<div class="actions" style="align-items:flex-end;">'
+            + (u.emailVerified === true
+              ? '<button onclick="hapusVerifikasi(\'' + u.id + '\')" class="btn btn-outline btn-xs" style="color:#f59e0b;">Hapus Verifikasi</button>'
+              : '<button onclick="verifEmail(\'' + u.id + '\')" class="btn btn-outline btn-xs" style="color:#10b981;">Verifikasi</button>')
+          + '</div>'
+        + '</div>'
+      ).join('') + '</div>';
     }
 
     document.getElementById('verifyFilterGroup')?.addEventListener('click', e => {
       const btn = e.target.closest('.filter-btn');
       if (!btn) return;
-      verifyFilter = btn.dataset.vfilter; loadVerifikasi();
+      verifyFilter = btn.dataset.vfilter; renderVerifikasi();
     });
     document.getElementById('verifySearch')?.addEventListener('input', function() {
-      verifySearch = this.value; loadVerifikasi();
+      verifySearch = this.value; renderVerifikasi();
     });
 
     function verifEmail(uid) {
@@ -1447,66 +1449,72 @@
     }
 
     // ===== ROLE =====
-    let roleFilter = 'all', roleSearch = '';
+    let roleFilter = 'all', roleSearch = '', allRoleDocs = [];
 
     function loadRole() {
       const container = document.getElementById('roleListContainer');
       container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat...</p>';
-      db.collection('userProfiles').orderBy('createdAt', 'desc').get().then(snap => {
-        const allDocs = snap.docs;
-        let users = allDocs.map(doc => ({ id: doc.id, ...doc.data() }));
-        if (roleFilter === 'admin') users = users.filter(u => u.role === 'admin');
-        else if (roleFilter === 'verified') users = users.filter(u => u.role === 'verified');
-        else if (roleFilter === 'user') users = users.filter(u => !u.role || u.role === 'user');
-        if (roleSearch) {
-          const q = roleSearch.toLowerCase();
-          users = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
-        }
-        const allCount = allDocs.length;
-        document.getElementById('roleFilterGroup').innerHTML =
-          '<button class="filter-btn' + (roleFilter === 'all' ? ' active' : '') + '" data-rfilter="all">Semua (' + allCount + ')</button>'
-          + '<button class="filter-btn' + (roleFilter === 'admin' ? ' active' : '') + '" data-rfilter="admin">Admin (' + allDocs.filter(d => d.data().role === 'admin').length + ')</button>'
-          + '<button class="filter-btn' + (roleFilter === 'verified' ? ' active' : '') + '" data-rfilter="verified">Terverifikasi (' + allDocs.filter(d => d.data().role === 'verified').length + ')</button>'
-          + '<button class="filter-btn' + (roleFilter === 'user' ? ' active' : '') + '" data-rfilter="user">User (' + allDocs.filter(d => !d.data().role || d.data().role === 'user').length + ')</button>';
+      allRoleDocs = [];
+      db.collection('userProfiles').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allRoleDocs = snap.docs;
+        renderRole();
+      });
+    }
 
-        container.innerHTML = '<div class="item-list">' + users.map(u =>
-          '<div class="item-card">'
-            + getAvatarHTML(u.name, u.photoURL, 40)
-            + '<div class="body">'
-              + '<div class="name">' + esc(u.name || 'Tanpa Nama') + roleBadge(u.role) + '</div>'
-              + '<div class="meta">' + esc(u.email) + '</div>'
-            + '</div>'
-            + '<div class="actions" style="align-items:flex-end;">'
-              + '<select class="role-select" data-uid="' + u.id + '" data-email="' + escAttr(u.email) + '" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.8rem;">'
-                + '<option value="user"' + ((!u.role || u.role === 'user') ? ' selected' : '') + '>User</option>'
-                + '<option value="verified"' + (u.role === 'verified' ? ' selected' : '') + '>Terverifikasi</option>'
-                + '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Admin</option>'
-              + '</select>'
-            + '</div>'
+    function renderRole() {
+      const container = document.getElementById('roleListContainer');
+      const allDocs = allRoleDocs;
+      let users = allDocs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (roleFilter === 'admin') users = users.filter(u => u.role === 'admin');
+      else if (roleFilter === 'verified') users = users.filter(u => u.role === 'verified');
+      else if (roleFilter === 'user') users = users.filter(u => !u.role || u.role === 'user');
+      if (roleSearch) {
+        const q = roleSearch.toLowerCase();
+        users = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+      }
+      const allCount = allDocs.length;
+      document.getElementById('roleFilterGroup').innerHTML =
+        '<button class="filter-btn' + (roleFilter === 'all' ? ' active' : '') + '" data-rfilter="all">Semua (' + allCount + ')</button>'
+        + '<button class="filter-btn' + (roleFilter === 'admin' ? ' active' : '') + '" data-rfilter="admin">Admin (' + allDocs.filter(d => d.data().role === 'admin').length + ')</button>'
+        + '<button class="filter-btn' + (roleFilter === 'verified' ? ' active' : '') + '" data-rfilter="verified">Terverifikasi (' + allDocs.filter(d => d.data().role === 'verified').length + ')</button>'
+        + '<button class="filter-btn' + (roleFilter === 'user' ? ' active' : '') + '" data-rfilter="user">User (' + allDocs.filter(d => !d.data().role || d.data().role === 'user').length + ')</button>';
+
+      container.innerHTML = '<div class="item-list">' + users.map(u =>
+        '<div class="item-card">'
+          + getAvatarHTML(u.name, u.photoURL, 40)
+          + '<div class="body">'
+            + '<div class="name">' + esc(u.name || 'Tanpa Nama') + roleBadge(u.role) + '</div>'
+            + '<div class="meta">' + esc(u.email) + '</div>'
           + '</div>'
-        ).join('') + '</div>';
+          + '<div class="actions" style="align-items:flex-end;">'
+            + '<select class="role-select" data-uid="' + u.id + '" data-email="' + escAttr(u.email) + '" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.8rem;">'
+              + '<option value="user"' + ((!u.role || u.role === 'user') ? ' selected' : '') + '>User</option>'
+              + '<option value="verified"' + (u.role === 'verified' ? ' selected' : '') + '>Terverifikasi</option>'
+              + '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>Admin</option>'
+            + '</select>'
+          + '</div>'
+        + '</div>'
+      ).join('') + '</div>';
 
-        container.querySelectorAll('.role-select').forEach(sel => {
-          sel.addEventListener('change', function() {
-            const uid = this.dataset.uid;
-            const newRole = this.value;
-            showConfirm('Ubah role pengguna ' + esc(this.dataset.email) + ' menjadi ' + newRole + '?').then(ok => {
-              if (!ok) { loadRole(); return; }
-              db.collection('userProfiles').doc(uid).update({ role: newRole }).then(() => {
-                showToast('Role berhasil diubah!');
-                db.collection('testimonials').where('userId', '==', uid).get().then(s => {
-                  const batch = db.batch();
-                  s.forEach(d => batch.update(d.ref, { userRole: newRole }));
-                  if (s.size) batch.commit();
-                });
-                db.collection('comments').where('userId', '==', uid).get().then(s => {
-                  const batch = db.batch();
-                  s.forEach(d => batch.update(d.ref, { userRole: newRole }));
-                  if (s.size) batch.commit();
-                });
-                loadRole();
-              }).catch(e => showToast('Gagal: ' + e.message));
-            });
+      container.querySelectorAll('.role-select').forEach(sel => {
+        sel.addEventListener('change', function() {
+          const uid = this.dataset.uid;
+          const newRole = this.value;
+          showConfirm('Ubah role pengguna ' + esc(this.dataset.email) + ' menjadi ' + newRole + '?').then(ok => {
+            if (!ok) { renderRole(); return; }
+            db.collection('userProfiles').doc(uid).update({ role: newRole }).then(() => {
+              showToast('Role berhasil diubah!');
+              db.collection('testimonials').where('userId', '==', uid).get().then(s => {
+                const batch = db.batch();
+                s.forEach(d => batch.update(d.ref, { userRole: newRole }));
+                if (s.size) batch.commit();
+              });
+              db.collection('comments').where('userId', '==', uid).get().then(s => {
+                const batch = db.batch();
+                s.forEach(d => batch.update(d.ref, { userRole: newRole }));
+                if (s.size) batch.commit();
+              });
+            }).catch(e => showToast('Gagal: ' + e.message));
           });
         });
       });
@@ -1515,10 +1523,10 @@
     document.getElementById('roleFilterGroup')?.addEventListener('click', e => {
       const btn = e.target.closest('.filter-btn');
       if (!btn) return;
-      roleFilter = btn.dataset.rfilter; loadRole();
+      roleFilter = btn.dataset.rfilter; renderRole();
     });
     document.getElementById('roleSearch')?.addEventListener('input', function() {
-      roleSearch = this.value; loadRole();
+      roleSearch = this.value; renderRole();
     });
 
     // ===== INIT =====
