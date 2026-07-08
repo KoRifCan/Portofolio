@@ -837,6 +837,16 @@
       }
       loadAllRatings();
     });
+    setInterval(() => {
+      const u = firebase.auth().currentUser;
+      if (u && !u.emailVerified) u.reload().catch(() => {});
+    }, 30000);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        const u = firebase.auth().currentUser;
+        if (u && !u.emailVerified) u.reload().catch(() => {});
+      }
+    });
 
     // ===== LOGIN MODAL =====
     let isRegisterMode = false;
@@ -2107,7 +2117,29 @@
     function sendVerification() {
       const user = firebase.auth().currentUser;
       if (!user) return;
-      user.sendEmailVerification().then(() => showToast('Email verifikasi dikirim! Cek kotak masuk (termasuk spam).')).catch(() => showToast('Gagal mengirim. Coba lagi nanti.'));
+      user.sendEmailVerification().then(() => {
+        showToast('Email verifikasi dikirim! Cek kotak masuk (termasuk spam).');
+        startVerifyPolling();
+      }).catch(() => showToast('Gagal mengirim. Coba lagi nanti.'));
+    }
+
+    let verifyPollTimer = null;
+    function startVerifyPolling() {
+      if (verifyPollTimer) return;
+      verifyPollTimer = setInterval(() => {
+        const user = firebase.auth().currentUser;
+        if (!user) { stopVerifyPolling(); return; }
+        user.reload().then(() => {
+          if (user.emailVerified) {
+            stopVerifyPolling();
+            showToast('Email berhasil diverifikasi!');
+            if (profileMenu) { profileMenu.remove(); profileMenu = null; showProfileMenu(); }
+          }
+        }).catch(() => {});
+      }, 3000);
+    }
+    function stopVerifyPolling() {
+      if (verifyPollTimer) { clearInterval(verifyPollTimer); verifyPollTimer = null; }
     }
 
     function deleteMyAccount() {
