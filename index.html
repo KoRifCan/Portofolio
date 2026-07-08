@@ -1841,7 +1841,7 @@
           if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
           if (pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com') replyData.isAdmin = true;
           const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
-          ref.collection('replies').add(replyData).then(() => {
+          ref.collection('replies').add(replyData).then(docRef => {
             showToast('Balasan terkirim!');
             overlay.remove();
             const target = document.querySelector('.sub-replies[data-parent="' + id + '"][data-type="' + type + '"]');
@@ -1851,7 +1851,9 @@
                 ? '<img src="' + replyData.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">'
                 : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + ((replyData.userName || '?')[0].toUpperCase()) + '</div>';
               target.innerHTML += '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
-                + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (replyData.userName || replyData.userEmail || 'Admin') + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
+                + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (replyData.userName || replyData.userEmail || 'Admin') + adminBadge(replyData.isAdmin, replyData.userEmail) + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span>'
+                + '<button onclick="deleteSubReply(\'' + id + '\',\'' + type + '\',\'' + docRef.id + '\')" style="margin-left:auto;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.75rem;"><i class="fas fa-trash"></i></button>'
+                + '</div>'
                 + '<div style="margin-top:2px;">' + replyData.text + '</div>'
                 + '</div>';
             }
