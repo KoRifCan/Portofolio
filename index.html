@@ -848,8 +848,8 @@
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
         .catch(e => {
           if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
-          else if (e.code === 'auth/user-not-found') showToast('Email belum terdaftar. Klik "Daftar Akun Baru" untuk mendaftar.');
-          else showToast('Email atau password salah.');
+          else if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') showToast('Email belum terdaftar. Klik "Daftar Akun Baru" untuk mendaftar.');
+          else showToast('Email atau password salah. Klik "Daftar Akun Baru" jika belum punya akun.');
         });
     }
 
@@ -894,14 +894,24 @@
     // ===== PROFILE MENU =====
     let profileMenu = null;
 
+    let profileData = {};
     function showProfileMenu() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; return; }
+      if (currentUser) {
+        db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
+          if (doc.exists) profileData = doc.data();
+        }).catch(() => {});
+      }
+      const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
+      const phone = profileData.phone || '-';
       profileMenu = document.createElement('div');
       profileMenu.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);display:grid;place-items:center;';
       profileMenu.innerHTML = '<div style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
         + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
-        + '<p style="font-weight:600;margin-bottom:4px;">' + currentUser.email + '</p>'
-        + '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:16px;">Sudah login</p>'
+        + '<p style="font-weight:600;margin-bottom:2px;">' + name + '</p>'
+        + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">' + currentUser.email + '</p>'
+        + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">' + phone + '</p>'
+        + '<button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>'
         + (currentUser.email === 'rifan.eko25@gmail.com'
           ? '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>'
           : '<button onclick="showPublicTestiForm(); this.closest(\'div\').parentElement.remove(); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni</button>')
@@ -910,6 +920,33 @@
         + '</div>';
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
+    }
+
+    function showEditProfile() {
+      if (profileMenu) { profileMenu.remove(); profileMenu = null; }
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:grid;place-items:center;';
+      overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:380px;width:90%;position:relative;">'
+        + '<button onclick="this.closest(\'div\').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
+        + '<h3 style="margin-bottom:16px;">Ubah Profil</h3>'
+        + '<input id="editProfileName" placeholder="Nama Lengkap" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + (profileData.name || '') + '">'
+        + '<input id="editProfilePhone" placeholder="No. HP" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;" value="' + (profileData.phone || '') + '">'
+        + '<button onclick="saveEditProfile(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Simpan</button>'
+        + '</div>';
+      document.body.appendChild(overlay);
+    }
+
+    function saveEditProfile(btn) {
+      const name = document.getElementById('editProfileName').value.trim();
+      const phone = document.getElementById('editProfilePhone').value.trim();
+      if (!name) return showToast('Nama wajib diisi!');
+      btn.disabled = true;
+      db.collection('userProfiles').doc(currentUser.uid).update({ name, phone }).then(() => {
+        profileData.name = name;
+        profileData.phone = phone;
+        btn.closest('div').parentElement.remove();
+        showToast('Profil berhasil diubah!');
+      }).catch(e => { showToast(e.message); btn.disabled = false; });
     }
 
     document.getElementById('loginPass').addEventListener('keydown', e => {
@@ -973,15 +1010,28 @@
         page = 0;
         render();
       };
+      function updateTestiCount(count) {
+        const countEl = document.getElementById('testiCount');
+        if (countEl) countEl.textContent = count >= 0 ? '— ' + count + ' testimoni' : '';
+      }
       db.collection('testimonials').where('visible', '==', true).onSnapshot(snap => {
         allTestimonials = [];
         snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allTestimonials.push(d); });
         allTestimonials.reverse();
-        const countEl = document.getElementById('testiCount');
-        if (countEl) countEl.textContent = '— ' + allTestimonials.length + ' testimoni';
+        updateTestiCount(allTestimonials.length);
         page = 0;
         render();
-      }, () => { const countEl = document.getElementById('testiCount'); if (countEl) countEl.textContent = ''; });
+      }, () => {
+        updateTestiCount(-1);
+        if (grid) grid.innerHTML = '<p style="color:var(--text-light);font-style:italic;">Tidak dapat memuat testimoni.</p>';
+      });
+      // fallback count via get()
+      try {
+        db.collection('testimonials').where('visible', '==', true).get().then(snap => {
+          if (!document.getElementById('testiCount')?.textContent)
+            updateTestiCount(snap.size);
+        });
+      } catch (e) {}
     }
 
     function toggleLike(id) {
@@ -1226,12 +1276,15 @@
       db.collection('comments').where('projectId', '==', 'shopwave').onSnapshot(snap => {
         if (snap.empty) { container.innerHTML = '<p style="font-size:.82rem;color:var(--text-light);">Belum ada komentar.</p>'; return; }
         const items = [];
-        snap.forEach(doc => items.push(doc.data()));
+        snap.forEach(doc => { const d = doc.data(); d._id = doc.id; items.push(d); });
         items.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
         container.innerHTML = items.map(d => {
           const initials = d.userEmail[0].toUpperCase();
           const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '';
-          return '<div class="comment-item"><div class="c-avatar">' + initials + '</div><div class="c-body"><div class="c-name">' + d.userEmail + ' <span class="c-date">' + date + '</span></div><div class="c-text">' + d.text + '</div></div></div>';
+          const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
+          return '<div class="comment-item"><div class="c-avatar">' + initials + '</div><div class="c-body"><div class="c-name">' + d.userEmail + ' <span class="c-date">' + date + '</span>'
+            + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
+            + '</div><div class="c-text">' + d.text + '</div></div></div>';
         }).join('');
       }, () => {});
     }
@@ -1248,6 +1301,18 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
       .catch(e => showToast(e.message));
+    }
+    function deleteComment(id) {
+      if (!currentUser) return showToast('Login dulu!');
+      const ref = db.collection('comments').doc(id);
+      ref.get().then(doc => {
+        if (!doc.exists) return showToast('Komentar tidak ditemukan.');
+        const data = doc.data();
+        if (currentUser.uid !== data.userId && currentUser.email !== 'rifan.eko25@gmail.com')
+          return showToast('Kamu tidak punya izin menghapus komentar ini.');
+        if (!confirm('Hapus komentar ini?')) return;
+        ref.delete().then(() => showToast('Komentar dihapus!')).catch(e => showToast(e.message));
+      }).catch(e => showToast(e.message));
     }
 
     // ===== SCROLL SPY =====
