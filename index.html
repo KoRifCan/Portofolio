@@ -413,6 +413,20 @@
     .reveal-delay-3 { transition-delay: .3s; }
     .reveal-delay-4 { transition-delay: .4s; }
     .reveal-delay-5 { transition-delay: .5s; }
+
+    .reply-card { margin-top:8px; padding:10px 12px; background:var(--bg); border-radius:10px; border-left:3px solid #6366f1; font-size:.82rem; }
+    .reply-header { display:flex; align-items:center; gap:6px; font-weight:600; font-size:.78rem; color:#6366f1; }
+    .reply-date { font-weight:400; color:var(--text-light); font-size:.7rem; }
+    .reply-delete { margin-left:auto; background:none; border:none; color:#ef4444; cursor:pointer; font-size:.75rem; }
+    .reply-text { margin-top:2px; }
+    .avatar-sm { width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+    .avatar-lg { width:64px; height:64px; border-radius:50%; object-fit:cover; }
+    .avatar-lg-placeholder { width:64px; height:64px; border-radius:50%; background:#6366f1; display:grid; place-items:center; font-size:1.8rem; color:#fff; }
+    .sm-placeholder { width:22px; height:22px; border-radius:50%; background:#6366f1; display:grid; place-items:center; color:#fff; font-weight:600; font-size:.55rem; flex-shrink:0; }
+    .menu-overlay { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.3); display:grid; place-items:center; }
+    .menu-card { position:relative; background:var(--card-bg); border-radius:20px; padding:32px; text-align:center; max-width:340px; width:90%; }
+    .modal-overlay { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.3); display:grid; place-items:center; }
+    .modal-card { position:relative; background:var(--card-bg); border-radius:20px; padding:32px; max-width:420px; width:90%; }
   </style>
 </head>
 <body>
@@ -925,10 +939,9 @@
     function showProfileMenu() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; return; }
       if (!currentUser) return;
-      let adminBtn = '<button onclick="showPublicTestiForm();" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni & Masukan</button>';
       profileMenu = document.createElement('div');
-      profileMenu.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.3);display:grid;place-items:center;';
-      profileMenu.innerHTML = '<div id="profileMenuInner" style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;"><p style="color:var(--text-light);">Memuat...</p></div>';
+      profileMenu.className = 'menu-overlay';
+      profileMenu.innerHTML = `<div id="profileMenuInner" class="menu-card"><p style="color:var(--text-light);">Memuat...</p></div>`;
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
       db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
@@ -936,25 +949,22 @@
         const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
         const phone = profileData.phone || '-';
         const isAdmin = profileData.role === 'admin';
-        const photoAvatar = profileData.photoURL
-          ? '<img src="' + profileData.photoURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">'
-          : '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>';
+        const photoAvatar = avatarLg(profileData.photoURL);
         const inner = document.getElementById('profileMenuInner');
         if (!inner) return;
-        inner.innerHTML = '<div style="position:relative;display:inline-block;">'
-          + photoAvatar
-          + '<span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>'
-          + '</div>'
-          + '<input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">'
-          + '<p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">' + name + adminBadge(isAdmin, currentUser.email) + '</p>'
-          + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">' + currentUser.email + '</p>'
-          + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">' + phone + '</p>'
-          + '<button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>'
-          + (isAdmin ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>' : '')
-          + '<div class="admin-btn-area">' + adminBtn + '</div>'
-          + '<div class="logout-btn-area"><button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button></div>'
-          + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
-          + '</div>';
+        inner.innerHTML = `<div style="position:relative;display:inline-block;">
+          ${photoAvatar}
+          <span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>
+        </div>
+        <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
+        <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin, currentUser.email)}</p>
+        <p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">${currentUser.email}</p>
+        <p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">${phone}</p>
+        <button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>
+        ${isAdmin ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>' : ''}
+        <div class="admin-btn-area"><button onclick="showPublicTestiForm();" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni & Masukan</button></div>
+        <div class="logout-btn-area"><button onclick="auth.signOut(); this.closest('div').parentElement.remove(); showToast('Berhasil logout!'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button></div>
+        <button onclick="this.closest('div').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>`;
         const menuInput = document.getElementById('menuPhotoInput');
         const cameraIcon = document.getElementById('cameraIcon');
         if (cameraIcon) cameraIcon.addEventListener('click', () => menuInput?.click());
@@ -983,36 +993,38 @@
           reader.readAsDataURL(file);
         });
       }).catch(() => {});
-    }function showEditProfile() {
+    }
+
+    function showEditProfile() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; }
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);overflow-y:auto;padding:24px;display:grid;place-items:start center;';
-      overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:420px;width:90%;position:relative;text-align:left;">'
-        + '<button onclick="this.closest(\'div\').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
-        + '<h3 style="margin-bottom:16px;text-align:center;">Ubah Profil</h3>'
-        + '<div style="text-align:center;margin-bottom:16px;">'
-        + '<div id="photoPreview" style="width:72px;height:72px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 8px;font-size:1.8rem;color:#fff;overflow:hidden;object-fit:cover;' + (profileData.photoURL ? 'background:transparent;' : '') + '">'
-        + (profileData.photoURL ? '<img src="' + profileData.photoURL + '" style="width:100%;height:100%;object-fit:cover;">' : '<i class="fas fa-user"></i>')
-        + '</div>'
-        + '<label for="photoInput" style="cursor:pointer;font-size:.8rem;color:#6366f1;"><i class="fas fa-camera"></i> Ganti Foto</label>'
-        + '<input id="photoInput" type="file" accept="image/*" style="display:none;">'
-        + '</div>'
-        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Nama Lengkap</label>'
-        + '<input id="editProfileName" placeholder="Nama Lengkap" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + (profileData.name || '') + '">'
-        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">No. HP</label>'
-        + '<input id="editProfilePhone" placeholder="No. HP" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + (profileData.phone || '') + '">'
-        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Email Baru <span style="font-size:.7rem;">(opsional)</span></label>'
-        + '<input id="editProfileEmail" placeholder="Email baru" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + currentUser.email + '">'
-        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Kata Sandi Baru <span style="font-size:.7rem;">(opsional, min 6 karakter)</span></label>'
-        + '<input id="editProfileNewPass" type="password" placeholder="Kata sandi baru" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">'
-        + '<input id="editProfileConfirmPass" type="password" placeholder="Konfirmasi kata sandi baru" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">'
-        + '<div style="background:var(--card-bg-alt);border-radius:10px;padding:12px;margin-bottom:12px;font-size:.82rem;color:var(--text-light);">'
-        + '<i class="fas fa-lock" style="margin-right:6px;"></i> Masukkan kata sandi lama jika ingin mengubah email atau kata sandi.'
-        + '</div>'
-        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Kata Sandi Lama</label>'
-        + '<input id="editProfileOldPass" type="password" placeholder="Kata sandi lama" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">'
-        + '<button onclick="saveEditProfile(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Simpan</button>'
-        + '</div>';
+      overlay.innerHTML = `<div class="modal-card" style="text-align:left;">
+        <button onclick="this.closest('div').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>
+        <h3 style="margin-bottom:16px;text-align:center;">Ubah Profil</h3>
+        <div style="text-align:center;margin-bottom:16px;">
+          <div id="photoPreview" style="width:72px;height:72px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 8px;font-size:1.8rem;color:#fff;overflow:hidden;object-fit:cover;${profileData.photoURL ? 'background:transparent;' : ''}">
+            ${profileData.photoURL ? `<img src="${profileData.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user"></i>'}
+          </div>
+          <label for="photoInput" style="cursor:pointer;font-size:.8rem;color:#6366f1;"><i class="fas fa-camera"></i> Ganti Foto</label>
+          <input id="photoInput" type="file" accept="image/*" style="display:none;">
+        </div>
+        <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Nama Lengkap</label>
+        <input id="editProfileName" placeholder="Nama Lengkap" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="${profileData.name || ''}">
+        <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">No. HP</label>
+        <input id="editProfilePhone" placeholder="No. HP" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="${profileData.phone || ''}">
+        <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Email Baru <span style="font-size:.7rem;">(opsional)</span></label>
+        <input id="editProfileEmail" placeholder="Email baru" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="${currentUser.email}">
+        <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Kata Sandi Baru <span style="font-size:.7rem;">(opsional, min 6 karakter)</span></label>
+        <input id="editProfileNewPass" type="password" placeholder="Kata sandi baru" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
+        <input id="editProfileConfirmPass" type="password" placeholder="Konfirmasi kata sandi baru" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">
+        <div style="background:var(--card-bg-alt);border-radius:10px;padding:12px;margin-bottom:12px;font-size:.82rem;color:var(--text-light);">
+          <i class="fas fa-lock" style="margin-right:6px;"></i> Masukkan kata sandi lama jika ingin mengubah email atau kata sandi.
+        </div>
+        <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Kata Sandi Lama</label>
+        <input id="editProfileOldPass" type="password" placeholder="Kata sandi lama" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">
+        <button onclick="saveEditProfile(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Simpan</button>
+      </div>`;
       document.body.appendChild(overlay);
       document.getElementById('photoInput')?.addEventListener('change', function() {
         const file = this.files[0];
@@ -1524,18 +1536,18 @@
           if (inp) inp.value = doc.data().name;
         }
       }).catch(() => {});
-      overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:420px;width:90%;position:relative;">'
-        + '<button onclick="this.closest(\'div\').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
-        + '<h3 style="margin-bottom:16px;">Tulis Testimoni & Masukan</h3>'
-        + '<input id="pubTestiName" placeholder="Nama Anda" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="' + userName + '">'
-        + '<input id="pubTestiRole" placeholder="Jabatan/Asal (opsional)" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">'
-        + '<textarea id="pubTestiText" placeholder="Isi testimoni" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;resize:vertical;min-height:100px;"></textarea>'
-        + '<label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:6px;">Rating</label>'
-        + '<div class="star-picker" id="pubTestiRating" data-value="0" style="font-size:1.6rem;color:#f59e0b;cursor:pointer;margin-bottom:16px;letter-spacing:4px;">'
-        + '<i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>'
-        + '</div>'
-        + '<button onclick="submitPublicTesti(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Kirim Testimoni</button>'
-        + '</div>';
+      overlay.innerHTML = `<div class="modal-card">
+        <button onclick="this.closest('div').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>
+        <h3 style="margin-bottom:16px;">Tulis Testimoni & Masukan</h3>
+        <input id="pubTestiName" placeholder="Nama Anda" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;" value="${userName}">
+        <input id="pubTestiRole" placeholder="Jabatan/Asal (opsional)" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
+        <textarea id="pubTestiText" placeholder="Isi testimoni" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;resize:vertical;min-height:100px;"></textarea>
+        <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:6px;">Rating</label>
+        <div class="star-picker" id="pubTestiRating" data-value="0" style="font-size:1.6rem;color:#f59e0b;cursor:pointer;margin-bottom:16px;letter-spacing:4px;">
+          <i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>
+        </div>
+        <button onclick="submitPublicTesti(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Kirim Testimoni</button>
+      </div>`;
       document.body.appendChild(overlay);
       setTimeout(() => initStarPicker(document.getElementById('pubTestiRating')), 50);
     }
@@ -1790,13 +1802,13 @@
       if (!currentUser) return showToast('Login dulu!');
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);display:grid;place-items:center;';
-      overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:16px;padding:24px;max-width:400px;width:90%;">'
-        + '<h4 style="margin-bottom:12px;">Tulis Balasan</h4>'
-        + '<textarea id="replyText" placeholder="Tulis balasan..." style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;min-height:80px;margin-bottom:12px;"></textarea>'
-        + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
-        + '<button onclick="this.closest(\'div\').parentElement.parentElement.remove();" class="btn btn-outline" style="padding:8px 16px;justify-content:center;">Batal</button>'
-        + '<button id="sendReplyBtn" class="btn btn-primary" style="padding:8px 16px;justify-content:center;">Kirim</button>'
-        + '</div></div>';
+      overlay.innerHTML = `<div style="background:var(--card-bg);border-radius:16px;padding:24px;max-width:400px;width:90%;">
+        <h4 style="margin-bottom:12px;">Tulis Balasan</h4>
+        <textarea id="replyText" placeholder="Tulis balasan..." style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;min-height:80px;margin-bottom:12px;"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onclick="this.closest('div').parentElement.parentElement.remove();" class="btn btn-outline" style="padding:8px 16px;justify-content:center;">Batal</button>
+          <button id="sendReplyBtn" class="btn btn-primary" style="padding:8px 16px;justify-content:center;">Kirim</button>
+        </div></div>`;
       document.body.appendChild(overlay);
       document.getElementById('sendReplyBtn').addEventListener('click', () => {
         const text = document.getElementById('replyText').value.trim();
@@ -1816,18 +1828,14 @@
           ref.collection('replies').add(replyData).then(docRef => {
             showToast('Balasan terkirim!');
             overlay.remove();
-            const target = document.querySelector('.sub-replies[data-parent="' + id + '"][data-type="' + type + '"]');
+            const target = document.querySelector(`.sub-replies[data-parent="${id}"][data-type="${type}"]`);
             if (target) {
-              const date = new Date().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
-              const photo = replyData.userPhotoURL
-                ? '<img src="' + replyData.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">'
-                : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + ((replyData.userName || '?')[0].toUpperCase()) + '</div>';
-              target.innerHTML += '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
-                + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (replyData.userName || replyData.userEmail || 'Admin') + adminBadge(replyData.isAdmin, replyData.userEmail) + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span>'
-                + '<button onclick="deleteSubReply(\'' + id + '\',\'' + type + '\',\'' + docRef.id + '\')" style="margin-left:auto;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.75rem;"><i class="fas fa-trash"></i></button>'
-                + '</div>'
-                + '<div style="margin-top:2px;">' + replyData.text + '</div>'
-                + '</div>';
+              const date = fmtDate();
+              const photo = avatarSm(replyData.userPhotoURL, replyData.userName);
+              const name = replyData.userName || replyData.userEmail || 'Admin';
+              const badge = adminBadge(replyData.isAdmin, replyData.userEmail);
+              const del = `<button onclick="deleteSubReply('${id}','${type}','${docRef.id}')" class="reply-delete"><i class="fas fa-trash"></i></button>`;
+              target.innerHTML += replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), replyData.text);
             }
           }).catch(e => showToast(e.message));
         }).catch(() => showToast('Gagal mengambil data profil.'));
@@ -1838,15 +1846,15 @@
     function renderReplies(replies, parentId, type) {
       if (!replies || !replies.length) return '';
       return replies.map((r, idx) => {
-        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        const date = formatDate(r.createdAt);
         const canDelete = currentUser && (currentUser.uid === r.userId || currentUser.email === 'rifan.eko25@gmail.com');
-        const photo = r.userPhotoURL ? '<img src="' + r.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">' : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + (r.userName ? r.userName[0].toUpperCase() : '?') + '</div>';
-        return '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
-          + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (r.userName || r.userEmail || 'Admin') + adminBadge(r.isAdmin, r.userEmail) + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span>'
-          + (canDelete ? '<button onclick="deleteReply(\'' + parentId + '\',\'' + type + '\',' + idx + ')" style="margin-left:auto;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.75rem;"><i class="fas fa-trash"></i></button>' : '')
-          + '</div>'
-          + '<div style="margin-top:2px;">' + r.text + '</div>'
-          + '</div>';
+        const photo = avatarSm(r.userPhotoURL, r.userName);
+        const name = r.userName || r.userEmail || 'Admin';
+        const badge = adminBadge(r.isAdmin, r.userEmail);
+        const del = canDelete
+          ? `<button onclick="deleteReply('${parentId}','${type}',${idx})" class="reply-delete"><i class="fas fa-trash"></i></button>`
+          : '';
+        return replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), r.text);
       }).join('');
     }
 
@@ -1889,29 +1897,50 @@
         if (snap.empty) return;
         snap.forEach(doc => {
           const r = doc.data();
-          const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+          const date = formatDate(r.createdAt);
           const canDelete = currentUser && (currentUser.uid === r.userId || currentUser.email === 'rifan.eko25@gmail.com');
-          const photo = r.userPhotoURL
-            ? '<img src="' + r.userPhotoURL + '" style="width:22px;height:22px;border-radius:50%;object-fit:cover;">'
-            : '<div style="width:22px;height:22px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.55rem;flex-shrink:0;">' + (r.userName ? r.userName[0].toUpperCase() : '?') + '</div>';
-          containerEl.innerHTML += '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
-          + '<div style="display:flex;align-items:center;gap:6px;font-weight:600;font-size:.78rem;color:#6366f1;">' + photo + '<span>' + (r.userName || r.userEmail || 'Admin') + adminBadge(r.isAdmin, r.userEmail) + '</span> <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span>'
-          + (canDelete ? '<button onclick="deleteSubReply(\'' + parentId + '\',\'' + type + '\',\'' + doc.id + '\')" style="margin-left:auto;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.75rem;"><i class="fas fa-trash"></i></button>' : '')
-          + '</div>'
-            + '<div style="margin-top:2px;">' + r.text + '</div>'
-            + '</div>';
+          const photo = avatarSm(r.userPhotoURL, r.userName);
+          const name = r.userName || r.userEmail || 'Admin';
+          const badge = adminBadge(r.isAdmin, r.userEmail);
+          const del = canDelete
+            ? `<button onclick="deleteSubReply('${parentId}','${type}','${doc.id}')" class="reply-delete"><i class="fas fa-trash"></i></button>`
+            : '';
+          containerEl.innerHTML += replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), r.text);
         });
       }).catch(() => {});
     }
 
+    function avatarSm(url, name) {
+      return url
+        ? `<img src="${url}" class="avatar-sm">`
+        : `<div class="sm-placeholder">${(name || '?')[0].toUpperCase()}</div>`;
+    }
+    function avatarLg(url) {
+      return url
+        ? `<img src="${url}" class="avatar-lg">`
+        : `<div class="avatar-lg-placeholder"><i class="fas fa-user"></i></div>`;
+    }
     function getAvatarHTML(name, photoURL, size) {
       size = size || 40;
-      if (photoURL) return '<img src="' + photoURL + '" style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;object-fit:cover;">';
+      if (photoURL) return `<img src="${photoURL}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
       const initials = name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?';
-      return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:' + (size * 0.4) + 'px;flex-shrink:0;">' + initials + '</div>';
+      return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:${size * 0.4}px;flex-shrink:0;">${initials}</div>`;
     }
     function adminBadge(isAdmin, email) {
       return (isAdmin || email === 'rifan.eko25@gmail.com') ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
+    }
+    function formatDate(iso) {
+      if (!iso) return '';
+      return new Date(iso).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    function fmtDate() {
+      return new Date().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+    function replyCardHTML(header, text) {
+      return `<div class="reply-card"><div class="reply-header">${header}</div><div class="reply-text">${text}</div></div>`;
+    }
+    function replyHeaderHTML(photo, name, badge, date, deleteBtn) {
+      return `${photo}<span>${name}${badge}</span> <span class="reply-date">${date}</span>${deleteBtn}`;
     }
     function maskEmail(email) {
       if (!email) return '';
