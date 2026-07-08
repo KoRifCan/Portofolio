@@ -1168,8 +1168,13 @@
           + '<select id="testiRating"><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
           + '<button onclick="saveTestimonial();loadAdminTab(\'testimonials\');" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni</button>'
           + '</div>'
-          + '<h3 style="margin-bottom:12px;font-size:.95rem;">Semua Testimoni</h3>'
-          + '<div id="testiList"></div>';
+          + '<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="testiFilterAdmin">'
+          + '<button class="testi-filter-btn active" data-filter="all" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">Semua</button>'
+          + '<button class="testi-filter-btn" data-filter="pending" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Menunggu Izin</button>'
+          + '<button class="testi-filter-btn" data-filter="visible" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Terlihat</button>'
+          + '</div>'
+          + '<div id="testiList" style="margin-bottom:12px;"></div>'
+          + '<div id="testiPaginationAdmin" style="display:flex;justify-content:center;align-items:center;gap:12px;"></div>';
         loadTestiList();
       } else if (tab === 'comments') {
         content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat komentar...</p>';
@@ -1224,29 +1229,68 @@
     function loadTestiList() {
       const list = document.getElementById('testiList');
       if (!list) return;
-      db.collection('testimonials').orderBy('createdAt', 'desc').onSnapshot(snap => {
-        if (snap.empty) { list.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;">Belum ada testimoni.</p>'; return; }
-        let html = '';
-        snap.forEach(doc => {
-          const d = doc.data();
-          const id = doc.id;
+      let filter = 'all';
+      let page = 0;
+      const perPage = 5;
+      function render(allTestimonials) {
+        let filtered = allTestimonials;
+        if (filter === 'pending') filtered = filtered.filter(t => !t.visible);
+        else if (filter === 'visible') filtered = filtered.filter(t => t.visible);
+        const totalPages = Math.ceil(filtered.length / perPage) || 1;
+        if (page >= totalPages) page = totalPages - 1;
+        const items = filtered.slice(page * perPage, (page + 1) * perPage);
+        if (!items.length) {
+          list.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;">Tidak ada testimoni.</p>';
+          document.getElementById('testiPaginationAdmin').innerHTML = '';
+          return;
+        }
+        list.innerHTML = items.map(d => {
           const initials = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-          html += '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:left;">'
+          return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:left;">'
             + '<div style="display:flex;justify-content:space-between;align-items:start;gap:12px;">'
             + '<div style="flex:1;min-width:0;">'
-            + '<div style="font-weight:600;font-size:.9rem;">' + d.name + '</div>'
+            + '<div style="font-weight:600;font-size:.9rem;">' + d.name + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
             + '</div>'
             + '<div style="display:flex;gap:6px;flex-shrink:0;">'
-            + '<button onclick="toggleTesti(\'' + id + '\',' + !d.visible + ')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:' + (d.visible ? '#f59e0b' : '#10b981') + ';cursor:pointer;font-size:.8rem;">' + (d.visible ? 'Sembunyi' : 'Tampil') + '</button>'
-            + '<button onclick="deleteTesti(\'' + id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;">Hapus</button>'
+            + '<button onclick="toggleTesti(\'' + d._id + '\',' + !d.visible + ')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:' + (d.visible ? '#f59e0b' : '#10b981') + ';cursor:pointer;font-size:.8rem;">' + (d.visible ? 'Sembunyi' : 'Tampil') + '</button>'
+            + '<button onclick="deleteTesti(\'' + d._id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;">Hapus</button>'
             + '</div>'
             + '</div>'
             + '</div>';
-        });
-        list.innerHTML = html;
+        }).join('');
+        const pagEl = document.getElementById('testiPaginationAdmin');
+        if (pagEl) {
+          if (totalPages <= 1) { pagEl.innerHTML = ''; return; }
+          pagEl.innerHTML = '<button id="adminTestiPrev" ' + (page <= 0 ? 'disabled' : '') + ' style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">&laquo; Sebelumnya</button>'
+            + '<span style="font-size:.82rem;color:var(--text-light);">' + (page + 1) + ' / ' + totalPages + '</span>'
+            + '<button id="adminTestiNext" ' + (page >= totalPages - 1 ? 'disabled' : '') + ' style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">Selanjutnya &raquo;</button>';
+          pagEl.querySelector('#adminTestiPrev')?.addEventListener('click', () => { if (page > 0) { page--; render(allTestimonials); } });
+          pagEl.querySelector('#adminTestiNext')?.addEventListener('click', () => { if (page < totalPages - 1) { page++; render(allTestimonials); } });
+        }
+      }
+      document.getElementById('testiFilterAdmin')?.addEventListener('click', e => {
+        const btn = e.target.closest('.testi-filter-btn');
+        if (!btn) return;
+        document.querySelectorAll('#testiFilterAdmin .testi-filter-btn').forEach(b => { b.style.background = 'var(--card-bg)'; b.style.color = 'var(--text-light)'; });
+        btn.style.background = 'var(--card-bg)'; btn.style.color = 'var(--text)'; btn.style.fontWeight = '600';
+        filter = btn.dataset.filter;
+        page = 0;
+        render(allTestimonials);
+      });
+      let allTestimonials = [];
+      db.collection('testimonials').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        allTestimonials = [];
+        snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allTestimonials.push(d); });
+        page = 0;
+        render(allTestimonials);
+      });
+      // reset filter button styles on init
+      document.querySelectorAll('#testiFilterAdmin .testi-filter-btn').forEach(b => {
+        if (b.dataset.filter === 'all') { b.style.background = 'var(--card-bg)'; b.style.color = 'var(--text)'; b.style.fontWeight = '600'; }
+        else { b.style.background = 'var(--card-bg)'; b.style.color = 'var(--text-light)'; }
       });
     }
 
