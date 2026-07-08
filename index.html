@@ -806,23 +806,14 @@
     // ===== SCROLL SPY =====
     const sections = document.querySelectorAll('section[id]');
     const navAnchors = document.querySelectorAll('.nav-links a');
-    function getActiveId() {
-      const offset = window.innerHeight * 0.25;
-      const scrollY = window.scrollY + offset;
-      let best = ''; let bestTop = -1;
-      sections.forEach(s => {
-        const t = s.offsetTop;
-        if (t <= scrollY && t > bestTop) { bestTop = t; best = s.id; }
-      });
-      return best;
-    }
     function updateActiveNav() {
-      const current = getActiveId();
+      let current = sections[0].id;
+      sections.forEach(s => {
+        if (s.getBoundingClientRect().top <= 120) current = s.id;
+      });
       navAnchors.forEach(a => a.classList.remove('active'));
-      if (current) {
-        const el = document.querySelector('.nav-links a[href="#' + current + '"]');
-        if (el) el.classList.add('active');
-      }
+      const el = document.querySelector('.nav-links a[href="#' + current + '"]');
+      if (el) el.classList.add('active');
     }
     window.addEventListener('scroll', updateActiveNav, { passive: true });
     updateActiveNav();
