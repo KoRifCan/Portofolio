@@ -1877,27 +1877,34 @@
     }
 
     function deleteReply(parentId, type, idx) {
-      if (!currentUser) return showToast('Login dulu!');
-      const ref = type === 'comment' ? db.collection('comments').doc(parentId) : db.collection('testimonials').doc(parentId);
-      ref.get().then(doc => {
-        if (!doc.exists) return showToast('Tidak ditemukan.');
-        const replies = doc.data().replies || [];
-        const reply = replies[idx];
-        if (!reply) return showToast('Balasan tidak ditemukan.');
-        if (currentUser.uid !== reply.userId && currentUser.email !== 'rifan.eko25@gmail.com') return showToast('Tidak punya izin.');
-        ref.update({ replies: firebase.firestore.FieldValue.arrayRemove(reply) }).then(() => showToast('Balasan dihapus!')).catch(e => showToast(e.message));
-      }).catch(e => showToast(e.message));
+      const user = firebase.auth().currentUser;
+      if (!user) return showToast('Login dulu!');
+      showConfirm('Hapus balasan ini?').then(ok => {
+        if (!ok) return;
+        const ref = type === 'comment' ? db.collection('comments').doc(parentId) : db.collection('testimonials').doc(parentId);
+        ref.get().then(doc => {
+          if (!doc.exists) return showToast('Tidak ditemukan.');
+          const replies = doc.data().replies || [];
+          const reply = replies[idx];
+          if (!reply) return showToast('Balasan tidak ditemukan.');
+          if (user.uid !== reply.userId && user.email !== 'rifan.eko25@gmail.com') return showToast('Tidak punya izin.');
+          ref.update({ replies: firebase.firestore.FieldValue.arrayRemove(reply) }).then(() => showToast('Balasan dihapus!')).catch(e => showToast(e.message));
+        }).catch(e => showToast(e.message));
+      });
     }
 
     function deleteSubReply(parentId, type, replyId) {
-      if (!currentUser) return showToast('Login dulu!');
-      const ref = type === 'comment' ? db.collection('comments').doc(parentId).collection('replies').doc(replyId) : db.collection('testimonials').doc(parentId).collection('replies').doc(replyId);
-      ref.get().then(doc => {
-        if (!doc.exists) return showToast('Balasan tidak ditemukan.');
-        const r = doc.data();
-        if (currentUser.uid !== r.userId && currentUser.email !== 'rifan.eko25@gmail.com') return showToast('Tidak punya izin.');
-        ref.delete().then(() => showToast('Balasan dihapus!')).catch(e => showToast(e.message));
-      }).catch(e => showToast(e.message));
+      const user = firebase.auth().currentUser;
+      if (!user) return showToast('Login dulu!');
+      showConfirm('Hapus balasan ini?').then(ok => {
+        if (!ok) return;
+        const ref = type === 'comment' ? db.collection('comments').doc(parentId).collection('replies').doc(replyId) : db.collection('testimonials').doc(parentId).collection('replies').doc(replyId);
+        ref.delete().then(() => {
+          showToast('Balasan dihapus!');
+          const el = document.querySelector(`.sub-replies[data-parent="${parentId}"][data-type="${type}"]`);
+          if (el) { el.innerHTML = ''; loadSubReplies(parentId, type, el); }
+        }).catch(e => showToast(e.message));
+      });
     }
 
     function loadSubReplies(parentId, type, containerEl) {
