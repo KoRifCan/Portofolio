@@ -416,6 +416,7 @@
             <div class="card-title">Tambah Testimoni Baru</div>
             <div class="form-group"><input id="testiName" placeholder="Nama" required></div>
             <div class="form-group"><input id="testiRole" placeholder="Jabatan/Asal (opsional)"></div>
+            <div class="form-group"><input id="testiPhotoURL" placeholder="URL Foto (1x pakai)"></div>
             <div class="form-group"><textarea id="testiText" placeholder="Isi testimoni" required></textarea></div>
             <div class="form-group">
               <label>Rating</label>
@@ -423,6 +424,14 @@
                 <i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i>
                 <i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i>
                 <i class="far fa-star" data-v="5"></i>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Tampilan Centang</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+                <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;cursor:pointer;"><input type="radio" name="testiBadge" value="admin" checked> <span class="badge badge-admin" style="font-size:.72rem;">Admin</span></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;cursor:pointer;"><input type="radio" name="testiBadge" value="verified"> <span style="color:#10b981;font-size:.85rem;"><i class="fas fa-check-circle"></i> Terverifikasi</span></label>
+                <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;cursor:pointer;"><input type="radio" name="testiBadge" value="none"> Tidak pakai</label>
               </div>
             </div>
             <button onclick="saveTestimonial()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
@@ -659,6 +668,11 @@
     function adminBadge(isAdmin) {
       return isAdmin ? ' <span class="badge badge-admin">Admin</span>' : '';
     }
+    function badgeHTML(type) {
+      if (type === 'admin') return ' <span class="badge badge-admin">Admin</span>';
+      if (type === 'verified') return ' <span style="color:#10b981;font-size:.8rem;"><i class="fas fa-check-circle"></i></span>';
+      return '';
+    }
     function verifiedBadge(verified) {
       return verified
         ? ' <span class="badge-verified"><i class="fas fa-check-circle"></i> Terverifikasi</span>'
@@ -830,10 +844,10 @@
         '<div class="item-card">'
           + getAvatarHTML(d.name, d.userPhotoURL, 40)
           + '<div class="body">'
-            + '<div class="name">' + esc(d.name) + (d.isAdmin ? ' <span class="badge-admin-verified"><i class="fas fa-check-circle"></i></span>' : '')
+            + '<div class="name">' + esc(d.name) + badgeHTML(d.badge)
               + ' <span class="badge ' + (d.visible ? 'badge-active' : 'badge-pending') + '">' + (d.visible ? 'Aktif' : 'Pending') + '</span>'
             + '</div>'
-            + (!d.isAdmin && d.role ? '<div class="meta">' + esc(d.role) + '</div>' : '')
+            + (!d.badge && d.role ? '<div class="meta">' + esc(d.role) + '</div>' : '')
             + '<div class="meta">' + esc(d.email || d.userEmail || '') + '</div>'
             + '<div class="text">"' + esc(d.text) + '"</div>'
             + '<div style="margin-top:4px;">' + starHTML(d.rating) + '</div>'
@@ -884,36 +898,27 @@
       const name = document.getElementById('testiName')?.value.trim();
       const text = document.getElementById('testiText')?.value.trim();
       const role = document.getElementById('testiRole')?.value.trim();
+      const photoURL = document.getElementById('testiPhotoURL')?.value.trim();
+      const badgeEl = document.querySelector('input[name="testiBadge"]:checked');
+      const badge = badgeEl ? badgeEl.value : 'admin';
       const picker = document.getElementById('testiRating');
       const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi.');
-      db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
-        const testiData = {
-          name, text, role: role || '', rating,
-          visible: true, isAdmin: true,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        if (prof.exists && prof.data().photoURL) testiData.userPhotoURL = prof.data().photoURL;
-        db.collection('testimonials').add(testiData).then(() => {
-          showToast('Testimoni berhasil ditambahkan!');
-          document.getElementById('testiName').value = '';
-          document.getElementById('testiText').value = '';
-          document.getElementById('testiRole').value = '';
-          picker.dataset.value = '0'; initStarPicker(picker);
-        }).catch(e => showToast('Gagal: ' + e.message));
-      }).catch(() => {
-        db.collection('testimonials').add({
-          name, text, role: role || '', rating,
-          visible: true, isAdmin: true,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          showToast('Testimoni berhasil ditambahkan!');
-          document.getElementById('testiName').value = '';
-          document.getElementById('testiText').value = '';
-          document.getElementById('testiRole').value = '';
-          picker.dataset.value = '0'; initStarPicker(picker);
-        }).catch(e => showToast('Gagal: ' + e.message));
-      });
+      const testiData = {
+        name, text, role: role || '', rating,
+        visible: true, badge,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (photoURL) testiData.userPhotoURL = photoURL;
+      db.collection('testimonials').add(testiData).then(() => {
+        showToast('Testimoni berhasil ditambahkan!');
+        document.getElementById('testiName').value = '';
+        document.getElementById('testiText').value = '';
+        document.getElementById('testiRole').value = '';
+        document.getElementById('testiPhotoURL').value = '';
+        document.querySelector('input[name="testiBadge"][value="admin"]').checked = true;
+        picker.dataset.value = '0'; initStarPicker(picker);
+      }).catch(e => showToast('Gagal: ' + e.message));
     }
 
     function toggleTesti(id, visible) {
