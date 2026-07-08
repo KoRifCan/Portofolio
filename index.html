@@ -957,7 +957,7 @@
         <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
         <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin)}</p>
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">${currentUser.email}</p>
-        ${currentUser.emailVerified ? '' : '<p style="color:#f59e0b;font-size:.75rem;margin-bottom:2px;"><i class="fas fa-exclamation-triangle"></i> Email belum diverifikasi</p>'}
+        ${currentUser.emailVerified ? '' : '<p style="color:#f59e0b;font-size:.75rem;margin-bottom:4px;"><i class="fas fa-exclamation-triangle"></i> Email belum diverifikasi</p><button onclick="sendVerification()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;font-size:.8rem;border-color:#f59e0b;color:#f59e0b;"><i class="fas fa-envelope"></i> Kirim Verifikasi</button>'}
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">${phone}</p>
         <button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>
         ${isAdmin ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>' : ''}
@@ -1978,10 +1978,15 @@
       if (!user) { showToast('Login dulu!'); return false; }
       if (!user.emailVerified) {
         showToast('Verifikasi email dulu! Cek kotak masuk (termasuk spam).');
-        user.sendEmailVerification().catch(() => {});
+        sendVerification();
         return false;
       }
       return true;
+    }
+    function sendVerification() {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      user.sendEmailVerification().then(() => showToast('Email verifikasi dikirim! Cek kotak masuk (termasuk spam).')).catch(() => showToast('Gagal mengirim. Coba lagi nanti.'));
     }
     const spySections = document.querySelectorAll('section[id]');
     const spyLinks = document.querySelectorAll('.nav-links a');
