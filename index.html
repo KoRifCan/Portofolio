@@ -228,8 +228,11 @@
     }
     .project-card .thumb .slider-overlay .slider-img { object-position: center; }
     .project-card .thumb .slider-handle {
-      position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff;
-      transform: translateX(-1.5px); z-index: 2; pointer-events: none;
+      position: absolute; top: 0; bottom: 0; left: 50%; width: 4px;
+      transform: translateX(-2px); z-index: 2; pointer-events: none;
+      background: rgba(255,255,255,.3);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 0 8px rgba(255,255,255,.2);
     }
     .project-card .thumb .slider-shade {
       position: absolute; inset: 0; z-index: 1; pointer-events: none;
