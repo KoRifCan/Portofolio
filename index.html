@@ -1125,12 +1125,13 @@
           const initials = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
           let stars = '';
           for (let i = 1; i <= 5; i++) stars += i <= d.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
-          const liked = currentUser && d.likes && d.likes.includes(currentUser.uid);
-          const likeCount = d.likes ? d.likes.length : 0;
+          const likes = d.likes || [];
+          const liked = currentUser && likes.includes(currentUser.uid);
+          const likeCount = likes.length;
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + d.text + '"</blockquote>'
-            + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + adminBadge(d.isAdmin, d.userEmail) + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
+            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + d.name + adminBadge(d.isAdmin, d.userEmail) + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
@@ -1405,13 +1406,15 @@
       const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
       if (!rating || rating < 1 || rating > 5) return showToast('Pilih rating bintang!');
-      db.collection('testimonials').add({
+      const testiData = {
         name, text, role, rating,
         visible: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         userId: currentUser.uid,
         isAdmin: true
-      }).then(() => {
+      };
+      if (profileData.photoURL) testiData.userPhotoURL = profileData.photoURL;
+      db.collection('testimonials').add(testiData).then(() => {
         showToast('Testimoni berhasil ditambahkan!');
       }).catch(e => showToast(e.message));
     }
@@ -1444,9 +1447,9 @@
           return;
         }
         list.innerHTML = items.map(d => {
-          const initials = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
           return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:12px;text-align:left;">'
-            + '<div style="display:flex;justify-content:space-between;align-items:start;gap:12px;">'
+            + '<div style="display:flex;align-items:start;gap:12px;">'
+            + getAvatarHTML(d.name, d.userPhotoURL, 40)
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-weight:600;font-size:.9rem;">' + d.name + adminBadge(d.isAdmin, d.userEmail) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
@@ -1562,13 +1565,15 @@
       btn.disabled = true;
       db.collection('userProfiles').doc(currentUser.uid).get().then(p => {
         const pdata = p.exists ? p.data() : {};
-        db.collection('testimonials').add({
+        const testiData = {
           name, text, role, rating,
           visible: false,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
           isAdmin: pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com'
-        }).then(() => {
+        };
+        if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
+        db.collection('testimonials').add(testiData).then(() => {
           btn.closest('div').parentElement.remove();
           showToast('Testimoni terkirim! Menunggu persetujuan.');
         }).catch(e => { showToast(e.message); btn.disabled = false; });
