@@ -221,11 +221,12 @@
       font-size: 3rem; color: rgba(255,255,255,.3); position: relative; overflow: hidden; cursor: ew-resize;
     }
     .project-card .thumb .slider-img {
-      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none;
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; user-select: none; pointer-events: none;
     }
     .project-card .thumb .slider-overlay {
-      position: absolute; inset: 0; width: 50%; overflow: hidden; z-index: 1;
+      position: absolute; inset: 0; z-index: 1; clip-path: inset(0 50% 0 0);
     }
+    .project-card .thumb .slider-overlay .slider-img { object-position: center; }
     .project-card .thumb .slider-handle {
       position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff;
       transform: translateX(-1.5px); z-index: 2; pointer-events: none;
@@ -685,7 +686,7 @@
         <div class="project-card">
           <div class="thumb" id="themeSlider">
             <div class="slider-overlay" id="sliderOverlay">
-              <img class="slider-img" src="screenshot-dark.png" alt="dark" style="object-position:right;">
+              <img class="slider-img" src="screenshot-dark.png" alt="dark">
             </div>
             <img class="slider-img" src="screenshot-light.png" alt="light">
             <div class="slider-handle" id="sliderHandle"><div class="knob">⟷</div></div>
@@ -2469,7 +2470,7 @@
       let pct = ((x - rect.left) / rect.width) * 100;
       if (pct < 5) pct = 5;
       if (pct > 95) pct = 95;
-      overlay.style.width = pct + '%';
+      overlay.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
       handle.style.left = pct + '%';
     }
     slider.addEventListener('mousedown', e => { isDragging = true; updateSlider(e.clientX); });
