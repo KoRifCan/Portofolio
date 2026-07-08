@@ -848,6 +848,7 @@
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
         .catch(e => {
           if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
+          else if (e.code === 'auth/user-not-found') showToast('Email belum terdaftar. Klik "Daftar Akun Baru" untuk mendaftar.');
           else showToast('Email atau password salah.');
         });
     }
