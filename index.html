@@ -804,16 +804,20 @@
     // ===== SCROLL SPY =====
     const sections = document.querySelectorAll('section[id]');
     const navAnchors = document.querySelectorAll('.nav-links a');
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          navAnchors.forEach(a => a.classList.remove('active'));
-          const active = document.querySelector('.nav-links a[href="#' + entry.target.id + '"]');
-          if (active) active.classList.add('active');
-        }
+    function updateActiveNav() {
+      let current = '';
+      sections.forEach(s => {
+        const top = s.getBoundingClientRect().top;
+        if (top <= 200) current = s.id;
       });
-    }, { threshold: 0.3 });
-    sections.forEach(s => observer.observe(s));
+      navAnchors.forEach(a => a.classList.remove('active'));
+      if (current) {
+        const active = document.querySelector('.nav-links a[href="#' + current + '"]');
+        if (active) active.classList.add('active');
+      }
+    }
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
 
     // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
