@@ -623,9 +623,6 @@
       <div class="section-title">Kata Mereka</div>
       <div class="section-subtitle">Ucapan hangat dari kolega dan klien.</div>
       <div class="testimonials-grid" id="testimonialsGrid"></div>
-      <div id="testiPublicBtn" style="margin-top:24px;">
-        <button onclick="showPublicTestiForm()" class="btn btn-outline"><i class="fas fa-pen"></i> Tulis Testimoni</button>
-      </div>
     </div>
   </section>
 
@@ -798,7 +795,9 @@
         + '<div style="width:64px;height:64px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 16px;font-size:1.8rem;color:#fff;"><i class="fas fa-user"></i></div>'
         + '<p style="font-weight:600;margin-bottom:4px;">' + currentUser.email + '</p>'
         + '<p style="color:var(--text-light);font-size:.85rem;margin-bottom:16px;">Sudah login</p>'
-        + (currentUser.email === 'rifan.eko25@gmail.com' ? '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>' : '')
+        + (currentUser.email === 'rifan.eko25@gmail.com'
+          ? '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>'
+          : '<button onclick="showPublicTestiForm(); this.closest(\'div\').parentElement.remove(); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni</button>')
         + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
         + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>';
