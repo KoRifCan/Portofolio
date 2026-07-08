@@ -174,7 +174,7 @@
     body.dark .toast { background: #fff; color: #0f172a; }
 
     /* === SECTIONS === */
-    .section { display: none; }
+    .section { display: none; width: 100%; overflow-wrap: break-word; }
     .section.active { display: block; animation: fadeIn .3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -195,6 +195,7 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
       margin-bottom: 24px;
+      width: 100%;
     }
     .stat-card {
       background: var(--card-bg);
@@ -247,7 +248,7 @@
     .toolbar .btn { white-space: nowrap; }
 
     /* === ITEM LIST === */
-    .item-list { display: grid; gap: 10px; }
+    .item-list { display: grid; gap: 10px; width: 100%; }
     .item-card {
       background: var(--card-bg-alt);
       border: 1px solid var(--border-light);
@@ -290,7 +291,7 @@
     .badge-verified { color: #10b981; }
     .badge-unverified { color: #f59e0b; }
 
-    .stars { color: #f59e0b; font-size: .85rem; letter-spacing: 2px; }
+    .stars { color: #f59e0b; font-size: .95rem; }
 
     /* === PAGINATION === */
     .pagination {
@@ -351,6 +352,9 @@
       .content { padding: 16px; }
       .topbar { padding: 0 16px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -446,6 +450,8 @@
             <div class="card-title">Ringkasan Rating</div>
             <div id="ratingSummary"><p style="color:var(--text-light);font-size:.9rem;"><i class="fas fa-spinner fa-spin"></i> Memuat...</p></div>
           </div>
+          <div class="filter-group" id="ratingStarFilter"></div>
+          <div class="filter-group" id="ratingProjectFilter"></div>
           <div class="toolbar">
             <input id="ratingSearch" type="text" placeholder="Cari email atau proyek...">
             <button id="sortRatingBtn" class="btn btn-outline btn-sm"><i class="fas fa-sort"></i> Terbaru</button>
@@ -607,6 +613,7 @@
       return d.innerHTML;
     }
     function esc(str) { return sanitize(str); }
+    function escAttr(str) { return str ? ('' + str).replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : ''; }
     function maskEmail(email) {
       if (!email) return '';
       const parts = email.split('@');
@@ -1049,19 +1056,51 @@
 
     // ===== RATINGS =====
     let allRatings = [], ratingSearch = '', ratingSortAsc = false, ratingPage = 0;
+    let ratingStarFilter = 0, ratingProjectFilter = '__all__';
     const ratingPerPage = 10;
 
     function loadRatings() {
       allRatings = []; ratingSearch = ''; ratingSortAsc = false; ratingPage = 0;
-      const projectNames = { shopwave: 'Portofolio Pribadi' };
+      ratingStarFilter = 0; ratingProjectFilter = '__all__';
       db.collection('ratings').orderBy('createdAt', 'desc').onSnapshot(snap => {
         allRatings = [];
         snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allRatings.push(d); });
+        const projectNames = buildRatingProjectNames();
+        renderRatingStarFilter();
+        renderRatingProjectFilter(projectNames);
         renderRatingSummary(projectNames);
         renderRatingList(projectNames);
       }, () => {
         document.getElementById('ratingListContainer').innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat rating.</p>';
       });
+    }
+
+    function buildRatingProjectNames() {
+      const names = { shopwave: 'Portofolio Pribadi' };
+      allRatings.forEach(r => { if (r.project && !names[r.project]) names[r.project] = r.project; });
+      return names;
+    }
+
+    function renderRatingStarFilter() {
+      const container = document.getElementById('ratingStarFilter');
+      const counts = {};
+      for (let s = 1; s <= 5; s++) counts[s] = allRatings.filter(r => (r.rating || 0) === s).length;
+      container.innerHTML = '<button class="filter-btn' + (ratingStarFilter === 0 ? ' active' : '') + '" data-rstar="0">Semua Rating</button>'
+        + [5,4,3,2,1].map(s => '<button class="filter-btn' + (ratingStarFilter === s ? ' active' : '') + '" data-rstar="' + s + '">' + '★'.repeat(s) + ' (' + counts[s] + ')</button>').join('');
+    }
+
+    function renderRatingProjectFilter(projectNames) {
+      const container = document.getElementById('ratingProjectFilter');
+      const projects = {};
+      allRatings.forEach(r => {
+        const p = r.project || 'unknown';
+        if (!projects[p]) projects[p] = 0;
+        projects[p]++;
+      });
+      const total = allRatings.length;
+      const keys = Object.keys(projects).sort();
+      container.innerHTML = '<button class="filter-btn' + (ratingProjectFilter === '__all__' ? ' active' : '') + '" data-rproj="__all__">Semua Proyek (' + total + ')</button>'
+        + keys.map(p => '<button class="filter-btn' + (ratingProjectFilter === p ? ' active' : '') + '" data-rproj="' + escAttr(p) + '">' + esc(projectNames[p] || p) + ' (' + projects[p] + ')</button>').join('');
     }
 
     function renderRatingSummary(projectNames) {
@@ -1080,9 +1119,9 @@
       }
       const list = Object.keys(projects).map(p => {
         const avg = (projects[p].sum / projects[p].count).toFixed(1);
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:.85rem;">'
-          + '<span style="font-weight:500;">' + esc(projectNames[p] || p) + '</span>'
-          + '<span><span class="stars">' + starHTML(Math.round(projects[p].sum / projects[p].count)) + '</span> ' + avg + ' (' + projects[p].count + ')</span>'
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);font-size:.85rem;min-width:0;">'
+          + '<span style="font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px;">' + esc(projectNames[p] || p) + '</span>'
+          + '<span style="white-space:nowrap;flex-shrink:0;"><span class="stars">' + starHTML(Math.round(projects[p].sum / projects[p].count)) + '</span> ' + avg + ' (' + projects[p].count + ')</span>'
           + '</div>';
       }).join('');
       container.innerHTML = '<div style="font-size:.85rem;margin-bottom:8px;color:var(--text-light);">Total: ' + total + ' rating</div>' + list;
@@ -1091,6 +1130,8 @@
     function renderRatingList(projectNames) {
       const container = document.getElementById('ratingListContainer');
       let filtered = allRatings;
+      if (ratingStarFilter > 0) filtered = filtered.filter(r => (r.rating || 0) === ratingStarFilter);
+      if (ratingProjectFilter !== '__all__') filtered = filtered.filter(r => (r.project || 'unknown') === ratingProjectFilter);
       if (ratingSearch) {
         const q = ratingSearch.toLowerCase();
         filtered = filtered.filter(r => (r.userEmail||'').toLowerCase().includes(q) || (r.project||'').toLowerCase().includes(q));
@@ -1136,13 +1177,23 @@
 
     document.getElementById('ratingSearch')?.addEventListener('input', function() {
       ratingSearch = this.value; ratingPage = 0;
-      const projectNames = { shopwave: 'Portofolio Pribadi' };
-      renderRatingList(projectNames);
+      renderRatingList(buildRatingProjectNames());
     });
     document.getElementById('sortRatingBtn')?.addEventListener('click', function() {
       ratingSortAsc = !ratingSortAsc; ratingPage = 0;
-      const projectNames = { shopwave: 'Portofolio Pribadi' };
-      renderRatingList(projectNames);
+      renderRatingList(buildRatingProjectNames());
+    });
+    document.getElementById('ratingStarFilter')?.addEventListener('click', function(e) {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      ratingStarFilter = parseInt(btn.dataset.rstar) || 0; ratingPage = 0;
+      renderRatingList(buildRatingProjectNames());
+    });
+    document.getElementById('ratingProjectFilter')?.addEventListener('click', function(e) {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      ratingProjectFilter = btn.dataset.rproj || '__all__'; ratingPage = 0;
+      renderRatingList(buildRatingProjectNames());
     });
 
     function deleteRating(id) {
