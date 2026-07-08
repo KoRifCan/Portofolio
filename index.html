@@ -959,8 +959,8 @@
         <button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>
         ${isAdmin ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>' : ''}
         <div class="admin-btn-area"><button onclick="showPublicTestiForm();" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni & Masukan</button></div>
-        <div class="logout-btn-area"><button onclick="auth.signOut(); this.closest('div').parentElement.remove(); showToast('Berhasil logout!'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button></div>
-        <button onclick="this.closest('div').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>`;
+        <div class="logout-btn-area"><button onclick="auth.signOut(); showToast('Berhasil logout!'); profileMenu.remove(); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button></div>
+        <button onclick="profileMenu.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>`;
         const menuInput = document.getElementById('menuPhotoInput');
         const cameraIcon = document.getElementById('cameraIcon');
         if (cameraIcon) cameraIcon.addEventListener('click', () => menuInput?.click());
