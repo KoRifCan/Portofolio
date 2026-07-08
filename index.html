@@ -6,6 +6,9 @@
   <title>Rifan Eko Candra Maulana · Portofolio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -294,6 +297,7 @@
       <div class="nav-actions">
         <button class="toggle-btn" id="themeToggle" aria-label="Toggle theme"><i class="fas fa-moon"></i></button>
         <button class="toggle-btn" id="langToggle" aria-label="Toggle language">ID</button>
+        <button class="toggle-btn" id="loginBtn" aria-label="Login" style="width:auto;padding:0 12px;"><i class="fas fa-user"></i></button>
         <button class="hamburger" id="hamburger" aria-label="Menu">
           <span></span><span></span><span></span>
         </button>
@@ -409,6 +413,10 @@
             <h3>ShopWave</h3>
             <p>Platform e-commerce lengkap dengan inventaris real-time, pemrosesan pembayaran, dan dashboard admin.</p>
             <div class="links"><a href="#">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="#">Kode Sumber</a></div>
+            <div class="project-rating" data-project="shopwave" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+              <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+              <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+            </div>
           </div>
         </div>
         <div class="project-card">
@@ -418,6 +426,10 @@
             <h3>InsightAI</h3>
             <p>Alat analitik berbasis ML yang merangkum dokumen dan menghasilkan wawasan bisnis secara real-time.</p>
             <div class="links"><a href="#">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="#">Kode Sumber</a></div>
+            <div class="project-rating" data-project="insightai" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+              <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+              <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+            </div>
           </div>
         </div>
         <div class="project-card">
@@ -427,6 +439,10 @@
             <h3>EcoTrack</h3>
             <p>Pelacak jejak karbon dengan peta interaktif, tantangan komunitas, dan tips pengurangan emisi personal.</p>
             <div class="links"><a href="#">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="#">Kode Sumber</a></div>
+            <div class="project-rating" data-project="ecotrack" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+              <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+              <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+            </div>
           </div>
         </div>
         <div class="project-card">
@@ -436,6 +452,10 @@
             <h3>DesignPort</h3>
             <p>CMS portofolio untuk desainer dengan blok drag-and-drop, tema kustom, dan optimasi SEO bawaan.</p>
             <div class="links"><a href="#">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="#">Kode Sumber</a></div>
+            <div class="project-rating" data-project="designport" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+              <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+              <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -503,6 +523,25 @@
     </div>
   </section>
 
+  <!-- Login Modal -->
+  <div id="loginModal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.5);place-items:center;">
+    <div style="background:var(--card-bg);border-radius:20px;padding:40px;width:90%;max-width:400px;position:relative;">
+      <button onclick="closeLogin()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>
+      <h2 id="loginTitle" style="margin-bottom:8px;">Login</h2>
+      <p id="loginSub" style="color:var(--text-light);margin-bottom:24px;font-size:.9rem;">Masuk untuk memberi rating</p>
+      <div id="loginFields">
+        <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
+        <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:16px;font-family:inherit;">
+        <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;">Masuk</button>
+        <p style="text-align:center;margin-top:12px;font-size:.85rem;color:var(--text-light);">Belum punya akun? <a href="#" onclick="showRegister()" style="color:#6366f1;font-weight:600;">Daftar</a></p>
+      </div>
+      <div id="loginSuccess" style="display:none;text-align:center;padding:20px 0;">
+        <i class="fas fa-check-circle" style="font-size:3rem;color:#10b981;"></i>
+        <p id="loginSuccessText" style="margin-top:12px;font-weight:600;">Berhasil masuk!</p>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="container">
       &copy; 2026 Rifan Eko Candra Maulana. Dibuat dengan <i class="fas fa-heart" style="color:#ef4444;"></i> dan segelas <i class="fas fa-coffee"></i>.
@@ -510,13 +549,160 @@
   </footer>
 
   <script>
-    // Hamburger
+    // ===== FIREBASE INIT =====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBQkb3mKlnC6gzRuufRcnqBEFY_KJ1RKSM",
+      authDomain: "portofolio-korifcan.firebaseapp.com",
+      projectId: "portofolio-korifcan",
+      storageBucket: "portofolio-korifcan.firebasestorage.app",
+      messagingSenderId: "344306005362",
+      appId: "1:344306005362:web:1ed35ceb391f0cb15fd9eb",
+      measurementId: "G-5NNH1ZPH6M"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // ===== AUTH STATE =====
+    let currentUser = null;
+    auth.onAuthStateChanged(user => {
+      currentUser = user;
+      const btn = document.getElementById('loginBtn');
+      if (user) {
+        btn.innerHTML = '<i class="fas fa-user-check"></i>';
+        btn.title = user.email;
+        btn.onclick = () => { if (confirm('Logout ' + user.email + '?')) { auth.signOut(); } };
+      } else {
+        btn.innerHTML = '<i class="fas fa-user"></i>';
+        btn.title = 'Login';
+        btn.onclick = openLogin;
+      }
+      loadAllRatings();
+    });
+
+    // ===== LOGIN MODAL =====
+    function openLogin() {
+      document.getElementById('loginModal').style.display = 'grid';
+      document.getElementById('loginFields').style.display = 'block';
+      document.getElementById('loginSuccess').style.display = 'none';
+    }
+    function closeLogin() { document.getElementById('loginModal').style.display = 'none'; }
+    document.getElementById('loginModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeLogin(); });
+
+    function handleLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPass').value;
+      if (!email || !pass) return alert('Isi email dan password!');
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
+        .catch(err => {
+          if (err.code === 'auth/user-not-found') {
+            auth.createUserWithEmailAndPassword(email, pass)
+              .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
+              .catch(e => alert(e.message));
+          } else { alert(err.message); }
+        });
+    }
+
+    function showRegister() {
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPass').value;
+      if (!email || !pass) return alert('Isi email dan password dulu!');
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
+        .catch(e => alert(e.message));
+    }
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+    // ===== RATING (REAL-TIME) =====
+    const projectNames = { shopwave: 'ShopWave', insightai: 'InsightAI', ecotrack: 'EcoTrack', designport: 'DesignPort' };
+
+    function renderStars(container, avg) {
+      const full = Math.round(avg);
+      let h = '';
+      for (let i = 1; i <= 5; i++) h += i <= full ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+      container.innerHTML = h;
+    }
+
+    function loadAllRatings() {
+      db.collection('ratings').onSnapshot(snapshot => {
+        const sums = {}, counts = {};
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          if (!sums[d.project]) { sums[d.project] = 0; counts[d.project] = 0; }
+          sums[d.project] += d.rating;
+          counts[d.project]++;
+        });
+        document.querySelectorAll('.project-rating').forEach(el => {
+          const proj = el.dataset.project;
+          const avg = counts[proj] ? (sums[proj] / counts[proj]) : 0;
+          const starsEl = el.querySelector('.rating-stars');
+          const avgEl = el.querySelector('.rating-avg');
+          renderStars(starsEl, avg);
+          avgEl.textContent = counts[proj] ? avg.toFixed(1) + ' (' + counts[proj] + ')' : 'Belum ada rating';
+          starsEl.style.cursor = currentUser ? 'pointer' : 'pointer';
+          starsEl.onclick = () => {
+            if (!currentUser) { openLogin(); return; }
+            const existing = snapshot.docs.find(d => d.data().project === proj && d.data().userId === currentUser.uid);
+            if (existing) { alert('Kamu sudah memberi rating untuk ' + projectNames[proj]); return; }
+            showRatingPicker(proj);
+          };
+        });
+      });
+    }
+
+    function showRatingPicker(proj) {
+      const old = document.querySelector('.rating-picker');
+      if (old) old.remove();
+      const picker = document.createElement('div');
+      picker.className = 'rating-picker';
+      picker.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:grid;place-items:center;';
+      picker.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:320px;width:90%;">'
+        + '<h3 style="margin-bottom:16px;">Rating ' + projectNames[proj] + '</h3>'
+        + '<div id="pickerStars" style="font-size:2rem;color:#f59e0b;cursor:pointer;margin-bottom:20px;">'
+        + '<i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>'
+        + '</div>'
+        + '<button id="submitRating" class="btn btn-primary" disabled style="justify-content:center;width:100%;">Kirim Rating</button>'
+        + '<button onclick="this.closest(\'.rating-picker\').remove()" style="margin-top:8px;background:none;border:none;color:var(--text-light);cursor:pointer;font-size:.85rem;">Batal</button>'
+        + '</div>';
+      document.body.appendChild(picker);
+
+      let selected = 0;
+      picker.querySelectorAll('#pickerStars i').forEach(star => {
+        star.addEventListener('mouseenter', () => {
+          const v = parseInt(star.dataset.v);
+          picker.querySelectorAll('#pickerStars i').forEach((s, i) => {
+            s.className = i < v ? 'fas fa-star' : 'far fa-star';
+          });
+        });
+        star.addEventListener('click', () => {
+          selected = parseInt(star.dataset.v);
+          picker.querySelectorAll('#pickerStars i').forEach((s, i) => {
+            s.className = i < selected ? 'fas fa-star' : 'far fa-star';
+          });
+          document.getElementById('submitRating').disabled = false;
+        });
+      });
+      picker.querySelector('#pickerStars').addEventListener('mouseleave', () => {
+        picker.querySelectorAll('#pickerStars i').forEach((s, i) => {
+          s.className = i < selected ? 'fas fa-star' : 'far fa-star';
+        });
+      });
+      document.getElementById('submitRating').addEventListener('click', () => {
+        if (!selected) return;
+        db.collection('ratings').add({ project: proj, userId: currentUser.uid, userEmail: currentUser.email, rating: selected, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
+          .then(() => { picker.remove(); })
+          .catch(e => alert(e.message));
+      });
+    }
+
+    // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
     const navLinks = document.getElementById('navLinks');
     hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
     document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
 
-    // Theme toggle
+    // ===== THEME TOGGLE =====
     const themeToggle = document.getElementById('themeToggle');
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -529,7 +715,7 @@
       themeToggle.innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     });
 
-    // Language data
+    // ===== LANGUAGE =====
     const langData = {
       nav: {
         id: ['Beranda', 'Tentang', 'Keahlian', 'Pengalaman', 'Proyek', 'Testimoni', 'Kontak'],
@@ -571,7 +757,18 @@
       formMsg: { id: 'Pesan Anda', en: 'Your Message' },
       formBtn: { id: 'Kirim Pesan', en: 'Send Message' },
       footer: { id: 'Dibuat dengan', en: 'Built with' },
-      langBtn: { id: 'ID', en: 'EN' }
+      langBtn: { id: 'ID', en: 'EN' },
+      loginTitle: { id: 'Login', en: 'Login' },
+      loginSub: { id: 'Masuk untuk memberi rating', en: 'Sign in to rate projects' },
+      loginBtn: { id: 'Masuk', en: 'Sign In' },
+      loginRegister: { id: 'Belum punya akun?', en: 'No account?' },
+      loginRegisterLink: { id: 'Daftar', en: 'Register' },
+      loginSuccess: { id: 'Berhasil masuk!', en: 'Logged in!' },
+      ratingEmpty: { id: 'Belum ada rating', en: 'No ratings yet' },
+      ratingAlready: { id: 'Kamu sudah memberi rating untuk', en: 'You already rated' },
+      ratingTitle: { id: 'Rating', en: 'Rate' },
+      ratingSubmit: { id: 'Kirim Rating', en: 'Submit Rating' },
+      ratingCancel: { id: 'Batal', en: 'Cancel' }
     };
 
     let currentLang = localStorage.getItem('lang') || 'id';
@@ -582,15 +779,11 @@
       localStorage.setItem('lang', lang);
       document.documentElement.setAttribute('lang', lang);
       document.getElementById('langToggle').textContent = langData.langBtn[lang];
-
-      // Nav
       document.querySelectorAll('.nav-links a').forEach((a, i) => a.textContent = langData.nav[lang][i]);
-      // Hero
       document.querySelector('#hero h1').innerHTML = langData.heroTitle[lang];
       document.querySelector('#hero .hero-content > p').textContent = langData.heroDesc[lang];
       document.querySelector('.hero-buttons a:first-child').innerHTML = langData.heroBtn1[lang] + ' <i class="fas fa-arrow-right"></i>';
       document.querySelector('.hero-buttons a:last-child').textContent = langData.heroBtn2[lang];
-      // About
       document.querySelector('#about .section-title').textContent = langData.aboutTitle[lang];
       document.querySelector('#about .section-subtitle').textContent = langData.aboutSub[lang];
       const aboutPs = document.querySelectorAll('#about .about-text p');
@@ -600,19 +793,14 @@
       document.querySelectorAll('#about .stat-card .label')[0].textContent = langData.stat1[lang];
       document.querySelectorAll('#about .stat-card .label')[1].textContent = langData.stat2[lang];
       document.querySelectorAll('#about .stat-card .label')[2].textContent = langData.stat3[lang];
-      // Skills
       document.querySelector('#skills .section-title').textContent = langData.skillsTitle[lang];
       document.querySelector('#skills .section-subtitle').textContent = langData.skillsSub[lang];
-      // Experience
       document.querySelector('#experience .section-title').textContent = langData.expTitle[lang];
       document.querySelector('#experience .section-subtitle').textContent = langData.expSub[lang];
-      // Projects
       document.querySelector('#projects .section-title').textContent = langData.projTitle[lang];
       document.querySelector('#projects .section-subtitle').textContent = langData.projSub[lang];
-      // Testimonials
       document.querySelector('#testimonials .section-title').textContent = langData.testTitle[lang];
       document.querySelector('#testimonials .section-subtitle').textContent = langData.testSub[lang];
-      // Contact
       document.querySelector('#contact .section-title').textContent = langData.contactTitle[lang];
       document.querySelector('#contact .section-subtitle').textContent = langData.contactSub[lang];
       document.querySelector('#contact .contact-info h3').textContent = langData.contactH3[lang];
@@ -622,6 +810,13 @@
       document.querySelector('#contact input[placeholder="Subjek"]').placeholder = langData.formSubject[lang];
       document.querySelector('#contact textarea').placeholder = langData.formMsg[lang];
       document.querySelector('#contact .btn-primary').innerHTML = langData.formBtn[lang] + ' <i class="fas fa-paper-plane"></i>';
+      document.getElementById('loginTitle').textContent = langData.loginTitle[lang];
+      document.getElementById('loginSub').textContent = langData.loginSub[lang];
+      const loginBtn = document.querySelector('#loginFields .btn-primary');
+      if (loginBtn) loginBtn.textContent = langData.loginBtn[lang];
+      const regP = document.querySelector('#loginFields p');
+      if (regP) regP.innerHTML = langData.loginRegister[lang] + ' <a href="#" onclick="showRegister()" style="color:#6366f1;font-weight:600;">' + langData.loginRegisterLink[lang] + '</a>';
+      document.getElementById('loginSuccessText').textContent = langData.loginSuccess[lang];
     }
 
     applyLang(currentLang);
