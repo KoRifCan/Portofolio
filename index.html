@@ -1130,7 +1130,7 @@
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + esc(d.text) + '"</blockquote>'
-            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + adminBadge(d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div></div></div>'
+            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + adminBadge(d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div><div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div></div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
@@ -1296,11 +1296,12 @@
           + '</div>'
           + '<button onclick="saveTestimonial();loadAdminTab(\'testimonials\');" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni & Masukan</button>'
           + '</div>'
-          + '<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;" id="testiFilterAdmin">'
+          + '<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;" id="testiFilterAdmin">'
           + '<button class="testi-filter-btn active" data-filter="all" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">Semua</button>'
           + '<button class="testi-filter-btn" data-filter="pending" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Menunggu Izin</button>'
           + '<button class="testi-filter-btn" data-filter="visible" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Terlihat</button>'
           + '</div>'
+          + '<input id="adminTestiSearch" type="text" placeholder="Cari nama, email, atau teks..." style="width:100%;margin-bottom:12px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;box-sizing:border-box;"></div>'
           + '<div style="display:flex;gap:8px;margin-bottom:16px;">'
           + '<button onclick="showConfirm(\'Hapus semua testimoni & masukan? Tindakan ini tidak bisa dibatalkan.\').then(ok => { if(ok) db.collection(\'testimonials\').get().then(s => { const b=db.batch(); s.forEach(d=>b.delete(d.ref)); b.commit().then(()=>{showToast(\'Semua testimoni & masukan dihapus!\');loadAdminTab(\'testimonials\');}).catch(e=>showToast(e.message)); }).catch(e=>showToast(e.message)); })" style="padding:6px 14px;border-radius:8px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i> Clear All Testimoni & Masukan</button>'
           + '</div>'
@@ -1309,16 +1310,22 @@
         loadTestiList();
         setTimeout(() => initStarPicker(document.getElementById('testiRating')), 50);
       } else if (tab === 'comments') {
-        content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat komentar...</p>';
+        content.innerHTML = '<input id="adminComSearch" type="text" placeholder="Cari nama, email, atau teks..." style="width:100%;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;box-sizing:border-box;"><div id="adminComContainer"></div>';
+        const container = document.getElementById('adminComContainer');
         let projects = {};
         let selectedProject = null;
         let comPage = 0;
+        let comSearch = '';
         const comPerPage = 5;
         function renderComments() {
           const projectIds = Object.keys(projects);
-          if (!projectIds.length) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>'; return; }
+          if (!projectIds.length) { container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>'; return; }
           const isAll = !selectedProject || selectedProject === '__all__';
-          const items = isAll ? projectIds.flatMap(p => projects[p]) : (projects[selectedProject] || []);
+          let items = isAll ? projectIds.flatMap(p => projects[p]) : (projects[selectedProject] || []);
+          if (comSearch) {
+            const q = comSearch.toLowerCase();
+            items = items.filter(d => (d.userName||d.userEmail||'').toLowerCase().includes(q) || (d.userEmail||'').toLowerCase().includes(q) || (d.text||'').toLowerCase().includes(q));
+          }
           const totalPages = Math.ceil(items.length / comPerPage) || 1;
           if (comPage >= totalPages) comPage = totalPages - 1;
           const pageItems = items.slice(comPage * comPerPage, (comPage + 1) * comPerPage);
@@ -1333,7 +1340,7 @@
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
             return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
               + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div><div style="font-size:.75rem;color:var(--text-light);">' + esc(d.userEmail) + '</div>'
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
               + '<div style="font-size:.85rem;margin-top:4px;">' + esc(d.text) + '</div>'
@@ -1351,20 +1358,23 @@
               + '<button id="adminComNext" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">Selanjutnya &raquo;</button>'
               + '</div>'
             : '';
-          content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">' + allBtn + projectTabs + '</div>'
+          container.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap;">' + allBtn + projectTabs + '</div>'
             + listHtml + pagHtml
             + '<div style="margin-top:12px;text-align:center;"><button onclick="showConfirm(\'Hapus semua komentar? Tindakan ini tidak bisa dibatalkan.\').then(ok => { if(ok) db.collection(\'comments\').get().then(s => { const b=db.batch(); s.forEach(d=>b.delete(d.ref)); b.commit().then(()=>{showToast(\'Semua komentar dihapus!\');loadAdminTab(\'comments\');}).catch(e=>showToast(e.message)); }).catch(e=>showToast(e.message)); })" style="padding:6px 14px;border-radius:8px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i> Clear All Komentar</button></div>';
-          content.querySelectorAll('[data-switch]').forEach(el => {
+          container.querySelectorAll('[data-switch]').forEach(el => {
             el.addEventListener('click', () => { selectedProject = el.dataset.switch; comPage = 0; renderComments(); });
           });
           const prevBtn = document.getElementById('adminComPrev');
           const nextBtn = document.getElementById('adminComNext');
           if (prevBtn) { if (comPage <= 0) prevBtn.disabled = true; prevBtn.addEventListener('click', () => { if (comPage > 0) { comPage--; renderComments(); } }); }
           if (nextBtn) { if (comPage >= totalPages - 1) nextBtn.disabled = true; nextBtn.addEventListener('click', () => { if (comPage < totalPages - 1) { comPage++; renderComments(); } }); }
-          content.querySelectorAll('.sub-replies[data-type="comment"]').forEach(el => {
+          container.querySelectorAll('.sub-replies[data-type="comment"]').forEach(el => {
             loadSubReplies(el.dataset.parent, 'comment', el);
           });
         }
+        document.getElementById('adminComSearch')?.addEventListener('input', function() {
+          comSearch = this.value; comPage = 0; renderComments();
+        });
         db.collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
           projects = {};
           snap.forEach(doc => {
@@ -1374,24 +1384,27 @@
             projects[p].push(d);
           });
           renderComments();
-        }, () => { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat komentar.</p>'; });
+        }, () => { container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat komentar.</p>'; });
       } else if (tab === 'users') {
-        content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat pengguna...</p>';
+        content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+          + '<input id="userSearch" type="text" placeholder="Cari nama, email, atau nomor HP..." style="flex:1;min-width:180px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;">'
+          + '<button id="sortUserBtn" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;"><i class="fas fa-sort"></i> Terbaru</button>'
+          + '</div>'
+          + '<div id="usersListContainer"><p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat pengguna...</p></div>';
+        const usersListContainer = document.getElementById('usersListContainer');
         let sortAsc = false;
         let searchQuery = '';
         function renderUsers(snap) {
-          if (snap.empty) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada pengguna.</p>'; return; }
+          if (snap.empty) { usersListContainer.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada pengguna.</p>'; return; }
           let users = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           if (searchQuery) {
             const q = searchQuery.toLowerCase();
             users = users.filter(u => (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q) || (u.phone||'').includes(q));
           }
           const sorted = sortAsc ? [...users].reverse() : users;
-          content.innerHTML = '<div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
-            + '<input id="userSearch" type="text" placeholder="Cari nama, email, atau nomor HP..." style="flex:1;min-width:180px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;">'
-            + '<button id="sortUserBtn" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;"><i class="fas fa-sort"></i> ' + (sortAsc ? 'Terlama' : 'Terbaru') + '</button>'
-            + '</div>'
-            + '<div style="display:grid;gap:8px;">' + sorted.map(u => {
+          const sortBtn = document.getElementById('sortUserBtn');
+          if (sortBtn) sortBtn.innerHTML = '<i class="fas fa-sort"></i> ' + (sortAsc ? 'Terlama' : 'Terbaru');
+          usersListContainer.innerHTML = '<div style="display:grid;gap:8px;">' + sorted.map(u => {
             const date = u.createdAt ? u.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
             const disabled = u.disabled === true;
             return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;opacity:' + (disabled ? '.5' : '1') + ';">'
@@ -1404,17 +1417,12 @@
               + '</div>'
               + '</div>';
           }).join('') + '</div>';
-          const searchInput = document.getElementById('userSearch');
-          const sortBtn = document.getElementById('sortUserBtn');
-          if (searchInput) {
-            searchInput.value = searchQuery;
-            searchInput.addEventListener('input', () => { searchQuery = searchInput.value; renderUsers(snap); });
-          }
-          if (sortBtn) {
-            sortBtn.addEventListener('click', () => { sortAsc = !sortAsc; renderUsers(snap); });
-          }
         }
+        document.getElementById('userSearch')?.addEventListener('input', function() { searchQuery = this.value; if (typeof currentSnap !== 'undefined') renderUsers(currentSnap); });
+        document.getElementById('sortUserBtn')?.addEventListener('click', function() { sortAsc = !sortAsc; if (typeof currentSnap !== 'undefined') renderUsers(currentSnap); });
+        let currentSnap = null;
         db.collection('userProfiles').orderBy('createdAt', 'desc').onSnapshot(snap => {
+          currentSnap = snap;
           renderUsers(snap);
         }, () => { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat pengguna.</p>'; });
       }
@@ -1461,6 +1469,7 @@
       if (!list) return;
       let filter = 'all';
       let page = 0;
+      let testiSearch = '';
       const perPage = 5;
       function render(allTestimonials) {
         const filterEl = document.getElementById('testiFilterAdmin');
@@ -1473,6 +1482,10 @@
             + '<button class="testi-filter-btn' + (filter === 'visible' ? ' active' : '') + '" data-filter="visible" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (filter === 'visible' ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (filter === 'visible' ? 'font-weight:600;' : '') + '">Terlihat (' + visibleCount + ')</button>';
         }
         let filtered = allTestimonials;
+        if (testiSearch) {
+          const q = testiSearch.toLowerCase();
+          filtered = filtered.filter(t => (t.name||'').toLowerCase().includes(q) || (t.email||t.userEmail||'').toLowerCase().includes(q) || (t.text||'').toLowerCase().includes(q));
+        }
         if (filter === 'pending') filtered = filtered.filter(t => !t.visible);
         else if (filter === 'visible') filtered = filtered.filter(t => t.visible);
         const totalPages = Math.ceil(filtered.length / perPage) || 1;
@@ -1490,6 +1503,7 @@
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-weight:600;font-size:.9rem;">' + esc(d.name) + adminBadge(d.isAdmin) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.role || '') + '</div>'
+            + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.email || d.userEmail || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + esc(d.text) + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
             + '<div style="font-size:.75rem;color:var(--text-light);margin-top:6px;">' + (d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '') + '</div>'
@@ -1529,6 +1543,11 @@
       db.collection('testimonials').orderBy('createdAt', 'desc').onSnapshot(snap => {
         allTestimonials = [];
         snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allTestimonials.push(d); });
+        page = 0;
+        render(allTestimonials);
+      });
+      document.getElementById('adminTestiSearch')?.addEventListener('input', function() {
+        testiSearch = this.value;
         page = 0;
         render(allTestimonials);
       });
@@ -1750,7 +1769,7 @@
         const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
         const canDelete = currentUser && (currentUser.uid === d.userId || currentUserRole === 'admin');
         const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
-        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span class="c-date">' + date + '</span>'
+        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-size:.7rem;color:var(--text-light);">' + maskEmail(d.userEmail) + '</span> <span class="c-date">' + date + '</span>'
           + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
           + '</div><div class="c-text">' + esc(d.text) + '</div>' + renderReplies(d.replies, d._id, 'comment')
           + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
