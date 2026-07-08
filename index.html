@@ -68,6 +68,7 @@
     .nav-links { display: flex; gap: 32px; font-size: .9rem; font-weight: 500; }
     .nav-links a { transition: color .2s; position: relative; }
     .nav-links a:hover,
+    .nav-links a:hover,
     .nav-links a.active { color: #6366f1; }
     .nav-links a::after {
       content: ''; position: absolute; bottom: -4px; left: 0;
@@ -76,8 +77,6 @@
     }
     .nav-links a.active { color: #6366f1; }
     .nav-links a.active::after { width: 100%; }
-    .nav-links:hover a.active::after { width: 0; }
-    .nav-links a.active:hover::after { width: 100%; }
     .nav-links a:hover::after { width: 100%; }
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
     .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: .3s; }
@@ -806,22 +805,19 @@
     // ===== SCROLL SPY =====
     const sections = document.querySelectorAll('section[id]');
     const navAnchors = document.querySelectorAll('.nav-links a');
-    function updateActiveNav() {
-      let current = '';
-      let minDist = Infinity;
-      sections.forEach(s => {
-        const mid = s.getBoundingClientRect().top + s.offsetHeight / 2;
-        const dist = Math.abs(mid - 150);
-        if (dist < minDist) { minDist = dist; current = s.id; }
+    const spyObserver = new IntersectionObserver(entries => {
+      let maxVis = 0; let best = '';
+      entries.forEach(entry => {
+        const vis = entry.intersectionRect.height;
+        if (vis > maxVis) { maxVis = vis; best = entry.target.id; }
       });
       navAnchors.forEach(a => a.classList.remove('active'));
-      if (current) {
-        const active = document.querySelector('.nav-links a[href="#' + current + '"]');
-        if (active) active.classList.add('active');
+      if (best) {
+        const el = document.querySelector('.nav-links a[href="#' + best + '"]');
+        if (el) el.classList.add('active');
       }
-    }
-    window.addEventListener('scroll', updateActiveNav, { passive: true });
-    updateActiveNav();
+    }, { threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] });
+    sections.forEach(s => spyObserver.observe(s));
 
     // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
