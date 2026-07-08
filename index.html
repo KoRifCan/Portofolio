@@ -674,7 +674,7 @@
   <section id="testimonials" class="reveal">
     <div class="container text-center">
       <div class="section-title">Kata Mereka</div>
-      <div class="section-subtitle">Ucapan hangat dari kolega dan klien.</div>
+      <div class="section-subtitle">Ucapan hangat dari kolega dan klien. <span id="testiCount" style="color:var(--text-muted);font-weight:500;"></span></div>
       <div class="testi-filter" id="testiFilter"></div>
       <div class="testimonials-grid" id="testimonialsGrid"></div>
       <div class="testi-pagination" id="testiPagination"></div>
@@ -926,6 +926,8 @@
         allTestimonials = [];
         snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allTestimonials.push(d); });
         allTestimonials.reverse();
+        const countEl = document.getElementById('testiCount');
+        if (countEl) countEl.textContent = '— ' + allTestimonials.length + ' testimoni';
         page = 0;
         render();
       });
