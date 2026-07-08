@@ -953,7 +953,7 @@
       profileMenu.innerHTML = '<div id="profileMenuInner" style="position:relative;background:var(--card-bg);border-radius:20px;padding:32px;text-align:center;max-width:340px;width:90%;">'
         + '<div style="position:relative;display:inline-block;">'
         + photoAvatar
-        + '<label for="menuPhotoInput" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></label>'
+        + '<span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>'
         + '</div>'
         + '<input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">'
         + '<p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">' + name + '</p>'
@@ -966,16 +966,27 @@
         + '</div>';
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
-      document.getElementById('menuPhotoInput')?.addEventListener('change', function() {
+      const menuInput = document.getElementById('menuPhotoInput');
+      const cameraIcon = document.getElementById('cameraIcon');
+      if (cameraIcon) cameraIcon.addEventListener('click', () => menuInput?.click());
+      if (menuInput) menuInput.addEventListener('change', function() {
         const file = this.files[0];
         if (!file) return;
         const reader = new FileReader();
+        reader.onerror = () => showToast('Gagal membaca file.');
         reader.onload = e => {
           const dataURL = e.target.result;
           db.collection('userProfiles').doc(currentUser.uid).set({ photoURL: dataURL }, { merge: true }).then(() => {
             profileData.photoURL = dataURL;
-            const img = document.querySelector('#profileMenuInner img');
-            if (img) img.src = dataURL;
+            const inner = document.getElementById('profileMenuInner');
+            if (inner) {
+              const oldImg = inner.querySelector('img');
+              if (oldImg) { oldImg.src = dataURL; }
+              else {
+                const container = inner.querySelector('div:first-child > div:first-child');
+                if (container) container.innerHTML = '<img src="' + dataURL + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;">';
+              }
+            }
             showToast('Foto profil berhasil diubah!');
           }).catch(err => showToast(err.message));
         };
