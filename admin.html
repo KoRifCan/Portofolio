@@ -431,9 +431,14 @@
                 <i class="far fa-star" data-v="5"></i>
               </div>
             </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer;margin-bottom:12px;">
-              <input type="checkbox" id="testiShowEmail"> Tampilkan email (sensor)
-            </label>
+            <div style="display:flex;gap:16px;font-size:.82rem;margin-bottom:12px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="radio" name="testiEmailOpt" value="hide" checked> Sembunyikan email
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="radio" name="testiEmailOpt" value="masked"> Tampilkan email (sensor)
+              </label>
+            </div>
             <button onclick="saveTestimonial()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
           </div>
           <div class="filter-group" id="testiFilterAdmin"></div>
@@ -911,7 +916,7 @@
       const role = document.getElementById('testiRole')?.value.trim();
       const picker = document.getElementById('testiRating');
       const rating = picker ? parseInt(picker.dataset.value) : 0;
-      const showEmail = document.getElementById('testiShowEmail').checked;
+      const showEmail = document.querySelector('input[name="testiEmailOpt"]:checked').value === 'masked';
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi.');
       if (rating < 1) return showToast('Pilih rating terlebih dahulu.');
       db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
@@ -930,7 +935,7 @@
           document.getElementById('testiName').value = '';
           document.getElementById('testiText').value = '';
           document.getElementById('testiRole').value = '';
-          document.getElementById('testiShowEmail').checked = false;
+          document.querySelector('input[name="testiEmailOpt"][value="hide"]').checked = true;
           picker.dataset.value = '0'; initStarPicker(picker);
         }).catch(e => showToast('Gagal: ' + e.message));
       }).catch(() => {
@@ -943,7 +948,7 @@
           document.getElementById('testiName').value = '';
           document.getElementById('testiText').value = '';
           document.getElementById('testiRole').value = '';
-          document.getElementById('testiShowEmail').checked = false;
+          document.querySelector('input[name="testiEmailOpt"][value="hide"]').checked = true;
           picker.dataset.value = '0'; initStarPicker(picker);
         }).catch(e => showToast('Gagal: ' + e.message));
       });
