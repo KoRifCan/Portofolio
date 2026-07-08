@@ -1154,7 +1154,7 @@
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + esc(d.text) + '"</blockquote>'
-            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div>' + (d.showEmail ? '<div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div>' : '') + '</div></div>'
+            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div>' + (d.showEmail === 'full' ? '<div style="font-size:.75rem;color:var(--text-light);">' + esc(d.userEmail || d.email) + '</div>' : d.showEmail === 'masked' || d.showEmail === true ? '<div style="font-size:.75rem;color:var(--text-light);">' + maskEmail(d.userEmail || d.email) + '</div>' : '') + '</div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
@@ -1378,6 +1378,11 @@
           + '<div class="star-picker" id="testiRating" data-value="0" style="font-size:1.6rem;color:#f59e0b;cursor:pointer;margin-bottom:16px;letter-spacing:4px;">'
           + '<i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>'
           + '</div>'
+          + '<div style="display:flex;gap:16px;font-size:.82rem;margin-bottom:12px;">'
+          + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="adminTestiEmailOpt" value="hide" checked> Sembunyikan email</label>'
+          + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="adminTestiEmailOpt" value="masked"> Tampilkan email (sensor)</label>'
+          + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="radio" name="adminTestiEmailOpt" value="full"> Tampilkan email (tanpa sensor)</label>'
+          + '</div>'
           + '<button onclick="saveTestimonial();loadAdminTab(\'testimonials\');" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni & Masukan</button>'
           + '</div>'
           + '<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;" id="testiFilterAdmin">'
@@ -1570,7 +1575,7 @@
       if (!name || !text) return showToast('Nama dan isi testimoni & masukan wajib diisi!');
       if (!rating || rating < 1 || rating > 5) return showToast('Pilih rating bintang!');
       const testiData = {
-        name, text, role, rating,
+        name, text, role, rating, showEmail: document.querySelector('input[name="adminTestiEmailOpt"]:checked').value,
         visible: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         userId: currentUser.uid,
@@ -1626,7 +1631,7 @@
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-weight:600;font-size:.9rem;">' + esc(d.name) + roleBadge(d.userRole, d.isAdmin) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.role || '') + '</div>'
-            + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.email || d.userEmail || '') + '</div>'
+            + (d.showEmail === 'full' ? '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.email || d.userEmail || '') + '</div>' : d.showEmail === 'masked' || d.showEmail === true ? '<div style="font-size:.8rem;color:var(--text-light);">' + esc(maskEmail(d.email || d.userEmail || '')) + '</div>' : '')
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + esc(d.text) + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
             + '<div style="font-size:.75rem;color:var(--text-light);margin-top:6px;">' + (d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '') + '</div>'
@@ -1734,6 +1739,17 @@
         <div class="star-picker" id="pubTestiRating" data-value="0" style="font-size:1.6rem;color:#f59e0b;cursor:pointer;margin-bottom:16px;letter-spacing:4px;">
           <i class="far fa-star" data-v="1"></i><i class="far fa-star" data-v="2"></i><i class="far fa-star" data-v="3"></i><i class="far fa-star" data-v="4"></i><i class="far fa-star" data-v="5"></i>
         </div>
+        <div style="display:flex;gap:16px;font-size:.82rem;margin-bottom:12px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="pubTestiEmailOpt" value="hide" checked> Sembunyikan email
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="pubTestiEmailOpt" value="masked"> Tampilkan email (sensor)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="radio" name="pubTestiEmailOpt" value="full"> Tampilkan email (tanpa sensor)
+          </label>
+        </div>
         <button onclick="submitPublicTesti(this)" class="btn btn-primary" style="width:100%;justify-content:center;">Kirim Testimoni</button>
       </div>`;
       document.body.appendChild(overlay);
@@ -1753,7 +1769,7 @@
       db.collection('userProfiles').doc(currentUser.uid).get().then(p => {
         const pdata = p.exists ? p.data() : {};
         const testiData = {
-          name, text, role, rating,
+          name, text, role, rating, showEmail: document.querySelector('input[name="pubTestiEmailOpt"]:checked').value,
           visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
@@ -1767,7 +1783,7 @@
         }).catch(e => { showToast(e.message); btn.disabled = false; });
       }).catch(() => {
         db.collection('testimonials').add({
-          name, text, role, rating,
+          name, text, role, rating, showEmail: document.querySelector('input[name="pubTestiEmailOpt"]:checked').value,
           visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
