@@ -124,6 +124,7 @@
 
     .main {
       margin-left: var(--sidebar-w);
+      flex: 1;
       min-height: 100vh;
       display: flex; flex-direction: column;
       overflow-y: auto;
@@ -157,6 +158,9 @@
       flex: 1;
       padding: 24px 28px;
       min-height: calc(100vh - var(--header-h));
+      width: 100%; max-width: 100%;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     /* === TOAST === */
