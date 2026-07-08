@@ -1423,6 +1423,15 @@
       let page = 0;
       const perPage = 5;
       function render(allTestimonials) {
+        const filterEl = document.getElementById('testiFilterAdmin');
+        if (filterEl) {
+          const allCount = allTestimonials.length;
+          const pendingCount = allTestimonials.filter(t => !t.visible).length;
+          const visibleCount = allTestimonials.filter(t => t.visible).length;
+          filterEl.innerHTML = '<button class="testi-filter-btn' + (filter === 'all' ? ' active' : '') + '" data-filter="all" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (filter === 'all' ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (filter === 'all' ? 'font-weight:600;' : '') + '">Semua (' + allCount + ')</button>'
+            + '<button class="testi-filter-btn' + (filter === 'pending' ? ' active' : '') + '" data-filter="pending" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (filter === 'pending' ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (filter === 'pending' ? 'font-weight:600;' : '') + '">Menunggu Izin (' + pendingCount + ')</button>'
+            + '<button class="testi-filter-btn' + (filter === 'visible' ? ' active' : '') + '" data-filter="visible" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (filter === 'visible' ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (filter === 'visible' ? 'font-weight:600;' : '') + '">Terlihat (' + visibleCount + ')</button>';
+        }
         let filtered = allTestimonials;
         if (filter === 'pending') filtered = filtered.filter(t => !t.visible);
         else if (filter === 'visible') filtered = filtered.filter(t => t.visible);
