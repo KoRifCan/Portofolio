@@ -2425,7 +2425,7 @@
     });
 
     document.querySelector('.contact-form')?.addEventListener('submit', function(e) {
-      document.getElementById('redirectUrl').value = window.location.origin + '/thank-you.html';
+      document.getElementById('redirectUrl').value = new URL('thank-you.html', window.location.href).href;
       const hCaptcha = this.querySelector('textarea[name=h-captcha-response]')?.value;
       if (!hCaptcha) {
         e.preventDefault();
