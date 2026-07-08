@@ -155,6 +155,7 @@
     .content {
       flex: 1;
       padding: 24px 28px;
+      min-height: calc(100vh - var(--header-h));
     }
 
     /* === TOAST === */
@@ -190,7 +191,7 @@
     /* === STATS GRID === */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 14px;
       margin-bottom: 24px;
     }
@@ -218,21 +219,21 @@
     input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); }
     textarea { resize: vertical; min-height: 80px; }
 
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
+    .btn { display: inline-flex; align-items: center; gap: 6px;
       padding: 10px 20px; border-radius: 10px;
       border: none; font-size: .85rem; font-weight: 500;
       transition: all .2s ease; cursor: pointer;
       font-family: inherit;
     }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
     .btn-outline {
       background: transparent; border: 1px solid var(--border); color: var(--text);
     }
-    .btn-outline:hover { background: var(--card-bg-alt); }
+    .btn-outline:hover:not(:disabled) { background: var(--card-bg-alt); }
     .btn-danger { background: var(--danger); color: #fff; }
-    .btn-danger:hover { opacity: .85; }
+    .btn-danger:hover:not(:disabled) { opacity: .85; }
     .btn-sm { padding: 6px 14px; font-size: .8rem; }
     .btn-xs { padding: 4px 10px; font-size: .75rem; border-radius: 8px; }
 
@@ -255,11 +256,13 @@
     }
     .item-card .avatar {
       width: 40px; height: 40px; border-radius: 50%;
-      background: var(--border); flex-shrink: 0;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      flex-shrink: 0;
       display: grid; place-items: center;
-      font-weight: 600; font-size: .9rem;
-      color: var(--text-light);
+      font-weight: 700; font-size: .95rem;
+      color: #fff;
       overflow: hidden;
+      text-transform: uppercase;
     }
     .item-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
     .item-card .body { flex: 1; min-width: 0; }
@@ -326,6 +329,8 @@
       flex-shrink: 0; margin-top: 2px;
     }
     .reply-delete:hover { background: rgba(239,68,68,.1); }
+    .reply-form { display: flex; gap: 6px; margin-top: 8px; }
+    .reply-form input { flex: 1; }
 
     /* === SIDEBAR OVERLAY (mobile) === */
     #sidebarOverlay {
@@ -814,19 +819,39 @@
       const picker = document.getElementById('testiRating');
       const rating = picker ? parseInt(picker.dataset.value) : 0;
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi.');
-      db.collection('testimonials').add({
-        name, text, role: role || '', rating,
-        visible: true, isAdmin: true,
-        userEmail: currentUser.email,
-        userId: currentUser.uid,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        showToast('Testimoni berhasil ditambahkan!');
-        document.getElementById('testiName').value = '';
-        document.getElementById('testiText').value = '';
-        document.getElementById('testiRole').value = '';
-        picker.dataset.value = '0'; initStarPicker(picker);
-      }).catch(e => showToast('Gagal: ' + e.message));
+      db.collection('userProfiles').doc(currentUser.uid).get().then(prof => {
+        const pdata = prof.exists ? prof.data() : {};
+        const testiData = {
+          name, text, role: role || '', rating,
+          visible: true, isAdmin: true,
+          userEmail: currentUser.email,
+          userId: currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
+        if (pdata.name) testiData.adminName = pdata.name;
+        db.collection('testimonials').add(testiData).then(() => {
+          showToast('Testimoni berhasil ditambahkan!');
+          document.getElementById('testiName').value = '';
+          document.getElementById('testiText').value = '';
+          document.getElementById('testiRole').value = '';
+          picker.dataset.value = '0'; initStarPicker(picker);
+        }).catch(e => showToast('Gagal: ' + e.message));
+      }).catch(() => {
+        db.collection('testimonials').add({
+          name, text, role: role || '', rating,
+          visible: true, isAdmin: true,
+          userEmail: currentUser.email,
+          userId: currentUser.uid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          showToast('Testimoni berhasil ditambahkan!');
+          document.getElementById('testiName').value = '';
+          document.getElementById('testiText').value = '';
+          document.getElementById('testiRole').value = '';
+          picker.dataset.value = '0'; initStarPicker(picker);
+        }).catch(e => showToast('Gagal: ' + e.message));
+      });
     }
 
     function toggleTesti(id, visible) {
