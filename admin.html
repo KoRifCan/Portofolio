@@ -573,7 +573,7 @@
 
     // ===== THEME =====
     function loadTheme() {
-      if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+      if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark');
       } else {
         document.body.classList.remove('dark');
@@ -1009,7 +1009,7 @@
         container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>';
         return;
       }
-      const projectNames = { shopwave: 'Portofolio Pribadi' };
+      const projectNames = { portofolio: 'Portofolio Pribadi' };
       function friendlyName(id) { return projectNames[id] || id; }
       const totalAll = projectIds.reduce((s, p) => s + comProjects[p].length, 0);
 
@@ -1133,7 +1133,7 @@
     }
 
     function buildRatingProjectNames() {
-      const names = { shopwave: 'Portofolio Pribadi' };
+      const names = { portofolio: 'Portofolio Pribadi' };
       allRatings.forEach(r => { if (r.project && !names[r.project]) names[r.project] = r.project; });
       return names;
     }

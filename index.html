@@ -671,7 +671,7 @@
             <h3>Portofolio Pribadi</h3>
             <p>Website portofolio interaktif dengan login, rating real-time, dark/light mode, multi bahasa, dan efek gooey blob.</p>
             <div class="links"><a href="https://korifcan.netlify.app" target="_blank">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="https://github.com/KoRifCan/Portofolio" target="_blank">Kode Sumber</a></div>
-            <div class="project-rating" data-project="shopwave" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+            <div class="project-rating" data-project="portofolio" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
               <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
               <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
             </div>
@@ -721,7 +721,7 @@
         </div>
         <form class="contact-form" action="https://api.web3forms.com/submit" method="POST">
           <input type="hidden" name="access_key" value="0fbc88a6-f747-47b8-ba23-6509b89c64c2" />
-          <input type="hidden" name="redirect" value="https://korifcan.github.io/Portofolio/thank-you/" />
+          <input type="hidden" name="redirect" value="https://korifcan.github.io/Portofolio/thank-you.html" />
           <input type="text" name="name" placeholder="Nama Anda" required />
           <input type="email" name="email" placeholder="Email Anda" required />
           <input type="text" name="subject" placeholder="Subjek" />
@@ -847,14 +847,14 @@
     setInterval(() => {
       const u = firebase.auth().currentUser;
       if (u) u.reload().then(() => {
-        db.collection('userProfiles').doc(u.uid).update({ emailVerified: u.emailVerified }).catch(() => {});
+        if (u.emailVerified) db.collection('userProfiles').doc(u.uid).update({ emailVerified: true }).catch(() => {});
       }).catch(() => {});
     }, 30000);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         const u = firebase.auth().currentUser;
         if (u) u.reload().then(() => {
-          db.collection('userProfiles').doc(u.uid).update({ emailVerified: u.emailVerified }).catch(() => {});
+          if (u.emailVerified) db.collection('userProfiles').doc(u.uid).update({ emailVerified: true }).catch(() => {});
         }).catch(() => {});
       }
     });
@@ -979,7 +979,7 @@
       profileMenu.addEventListener('click', e => { if (e.target === e.currentTarget) { profileMenu.remove(); profileMenu = null; } });
       document.body.appendChild(profileMenu);
       currentUser.reload().then(() => {
-      db.collection('userProfiles').doc(currentUser.uid).update({ emailVerified: currentUser.emailVerified }).catch(() => {});
+      if (currentUser.emailVerified) db.collection('userProfiles').doc(currentUser.uid).update({ emailVerified: true }).catch(() => {});
       db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
         profileData = doc.exists ? doc.data() : {};
         const name = profileData.name || currentUser?.email?.split('@')[0] || 'User';
@@ -1425,7 +1425,7 @@
           const totalPages = Math.ceil(items.length / comPerPage) || 1;
           if (comPage >= totalPages) comPage = totalPages - 1;
           const pageItems = items.slice(comPage * comPerPage, (comPage + 1) * comPerPage);
-          const projectNames = { shopwave: 'Portofolio Pribadi' };
+          const projectNames = { portofolio: 'Portofolio Pribadi' };
           function friendlyName(id) { return projectNames[id] || id; }
           const totalAll = projectIds.reduce((s, p) => s + projects[p].length, 0);
           const allBtn = '<button data-switch="__all__" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (isAll ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (isAll ? 'font-weight:600;' : '') + '">Semua (' + totalAll + ')</button>';
@@ -1800,7 +1800,7 @@
     loadTestimonials();
 
     // ===== RATING (REAL-TIME) =====
-    const projectNames = { shopwave: 'Portofolio Pribadi' };
+    const projectNames = { portofolio: 'Portofolio Pribadi' };
 
     function renderStars(container, avg) {
       const full = Math.round(avg);
@@ -1934,7 +1934,7 @@
         loadSubReplies(el.dataset.parent, 'comment', el);
       });
     }
-    db.collection('comments').where('projectId', '==', 'shopwave').onSnapshot(snap => {
+    db.collection('comments').where('projectId', '==', 'portofolio').onSnapshot(snap => {
       commentsCache = [];
       snap.forEach(doc => { const d = doc.data(); d._id = doc.id; commentsCache.push(d); });
       commentsCache.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
@@ -1952,7 +1952,7 @@
         const pdata = profile.exists ? profile.data() : {};
         const userName = pdata.name || currentUser.email;
         const commentData = {
-          projectId: 'shopwave',
+          projectId: 'portofolio',
           userId: currentUser.uid,
           userEmail: currentUser.email,
           userName,
@@ -1965,7 +1965,7 @@
         .catch(e => showToast(e.message));
       }).catch(() => {
         db.collection('comments').add({
-          projectId: 'shopwave',
+          projectId: 'portofolio',
           userId: currentUser.uid,
           userEmail: currentUser.email,
           userName: currentUser.email,
