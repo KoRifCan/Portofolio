@@ -782,7 +782,7 @@
       const starFilterEl = document.getElementById('testiStarFilter');
       const starCounts = {};
       for (let s = 1; s <= 5; s++) starCounts[s] = testiAll.filter(t => (t.rating || 0) === s).length;
-      starFilterEl.innerHTML = '<button class="filter-btn' + (testiStarFilter === 0 ? ' active' : '') + '" data-star="0">Semua Rating</button>'
+      starFilterEl.innerHTML = '<button class="filter-btn' + (testiStarFilter === 0 ? ' active' : '') + '" data-star="0">Semua Rating (' + testiAll.length + ')</button>'
         + [5,4,3,2,1].map(s => '<button class="filter-btn' + (testiStarFilter === s ? ' active' : '') + '" data-star="' + s + '">' + '★'.repeat(s) + ' (' + starCounts[s] + ')</button>').join('');
 
       let filtered = testiAll;
