@@ -840,10 +840,14 @@
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div><blockquote>"' + d.text + '"</blockquote><div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div></div>';
         }).join('');
         const totalPages = Math.ceil(allTestimonials.length / perPage);
-        pag.innerHTML = '<button onclick="page--;render()" ' + (page <= 0 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i> Sebelumnya</button>'
+        pag.innerHTML = '<button id="testiPrev" ' + (page <= 0 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i> Sebelumnya</button>'
           + '<span>' + (page + 1) + ' / ' + totalPages + '</span>'
-          + '<button onclick="page++;render()" ' + (page >= totalPages - 1 ? 'disabled' : '') + '>Selanjutnya <i class="fas fa-chevron-right"></i></button>';
+          + '<button id="testiNext" ' + (page >= totalPages - 1 ? 'disabled' : '') + '>Selanjutnya <i class="fas fa-chevron-right"></i></button>';
       }
+      pag.onclick = e => {
+        if (e.target.id === 'testiPrev' && !e.target.disabled) { page--; render(); }
+        if (e.target.id === 'testiNext' && !e.target.disabled) { page++; render(); }
+      };
       db.collection('testimonials').where('visible', '==', true).onSnapshot(snap => {
         allTestimonials = [];
         snap.forEach(doc => allTestimonials.push(doc.data()));
