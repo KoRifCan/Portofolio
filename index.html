@@ -258,7 +258,8 @@
       border-radius: 18px; padding: 32px; transition: transform .2s;
     }
     .testimonial-card:hover { transform: translateY(-4px); }
-    .testimonial-card .stars { color: #f59e0b; font-size: .9rem; margin-bottom: 12px; }
+    .testimonial-card .stars { color: #f59e0b; font-size: .9rem; margin-bottom: 8px; }
+    .testimonial-card .testi-date { font-size: .75rem; color: var(--text-light); margin-bottom: 8px; }
     .testimonial-card blockquote { color: var(--text); font-style: italic; margin-bottom: 16px; font-size: .95rem; }
     .testimonial-card .author { display: flex; align-items: center; gap: 12px; }
     .testimonial-card .author .avatar {
@@ -268,6 +269,15 @@
     }
     .testimonial-card .author .name { font-weight: 600; font-size: .9rem; }
     .testimonial-card .author .role { font-size: .8rem; color: var(--text-light); }
+    .testimonial-card .testi-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .testimonial-card .like-btn { background: none; border: none; cursor: pointer; font-size: .85rem; color: var(--text-light); display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 8px; transition: all .2s; }
+    .testimonial-card .like-btn:hover { background: var(--card-bg-alt); }
+    .testimonial-card .like-btn.liked { color: #ef4444; }
+    .testimonial-card .like-btn.liked i { font-weight: 900; }
+    .testi-filter { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .testi-filter button { padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); font-size: .8rem; font-weight: 500; cursor: pointer; transition: all .2s; }
+    .testi-filter button:hover { border-color: #6366f1; color: #6366f1; }
+    .testi-filter button.active { background: #6366f1; color: #fff; border-color: #6366f1; }
     .testimonial-card .admin-actions { margin-top: 12px; display: flex; gap: 8px; justify-content: center; }
     .testimonial-card .admin-actions button {
       font-size: .75rem; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border);
@@ -631,6 +641,7 @@
     <div class="container text-center">
       <div class="section-title">Kata Mereka</div>
       <div class="section-subtitle">Ucapan hangat dari kolega dan klien.</div>
+      <div class="testi-filter" id="testiFilter"></div>
       <div class="testimonials-grid" id="testimonialsGrid"></div>
       <div class="testi-pagination" id="testiPagination"></div>
       <div style="margin-top:24px;">
@@ -826,20 +837,38 @@
     function loadTestimonials() {
       let allTestimonials = [];
       let page = 0;
+      let filterRating = 0;
       const perPage = 5;
       const grid = document.getElementById('testimonialsGrid');
       const pag = document.getElementById('testiPagination');
+      const filterEl = document.getElementById('testiFilter');
+      function fmtDate(ts) {
+        if (!ts) return '';
+        const d = ts.toDate();
+        return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
       function render() {
+        let filtered = allTestimonials;
+        if (filterRating > 0) filtered = filtered.filter(t => t.rating === filterRating);
+        filtered.sort((a, b) => b.rating - a.rating || (b.likes ? b.likes.length : 0) - (a.likes ? a.likes.length : 0));
         const start = page * perPage;
-        const items = allTestimonials.slice(start, start + perPage);
-        if (!items.length) { grid.innerHTML = '<p style="color:var(--text-light);font-style:italic;">Belum ada testimoni.</p>'; pag.innerHTML = ''; return; }
+        const items = filtered.slice(start, start + perPage);
+        if (!items.length) { grid.innerHTML = '<p style="color:var(--text-light);font-style:italic;">Tidak ada testimoni.</p>'; pag.innerHTML = ''; return; }
         grid.innerHTML = items.map(d => {
           const initials = d.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
           let stars = '';
           for (let i = 1; i <= 5; i++) stars += i <= d.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
-          return '<div class="testimonial-card"><div class="stars">' + stars + '</div><blockquote>"' + d.text + '"</blockquote><div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div></div>';
+          const liked = currentUser && d.likes && d.likes.includes(currentUser.uid);
+          const likeCount = d.likes ? d.likes.length : 0;
+          return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
+            + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
+            + '<blockquote>"' + d.text + '"</blockquote>'
+            + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
+            + '<div class="testi-footer">'
+            + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
+            + '</div></div>';
         }).join('');
-        const totalPages = Math.ceil(allTestimonials.length / perPage);
+        const totalPages = Math.ceil(filtered.length / perPage);
         pag.innerHTML = '<button id="testiPrev" ' + (page <= 0 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i> Sebelumnya</button>'
           + '<span>' + (page + 1) + ' / ' + totalPages + '</span>'
           + '<button id="testiNext" ' + (page >= totalPages - 1 ? 'disabled' : '') + '>Selanjutnya <i class="fas fa-chevron-right"></i></button>';
@@ -848,13 +877,36 @@
         if (e.target.id === 'testiPrev' && !e.target.disabled) { page--; render(); }
         if (e.target.id === 'testiNext' && !e.target.disabled) { page++; render(); }
       };
+      filterEl.innerHTML = '<button class="active" data-r="0">Semua</button>'
+        + [5,4,3,2,1].map(r => '<button data-r="' + r + '">' + r + '★</button>').join('');
+      filterEl.onclick = e => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        filterEl.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterRating = parseInt(btn.dataset.r);
+        page = 0;
+        render();
+      };
       db.collection('testimonials').where('visible', '==', true).onSnapshot(snap => {
         allTestimonials = [];
-        snap.forEach(doc => allTestimonials.push(doc.data()));
+        snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allTestimonials.push(d); });
         allTestimonials.reverse();
         page = 0;
         render();
       });
+    }
+
+    function toggleLike(id) {
+      if (!currentUser) { openLogin(); return; }
+      const ref = db.collection('testimonials').doc(id);
+      ref.get().then(doc => {
+        if (!doc.exists) return;
+        const likes = doc.data().likes || [];
+        const idx = likes.indexOf(currentUser.uid);
+        if (idx > -1) likes.splice(idx, 1); else likes.push(currentUser.uid);
+        ref.update({ likes });
+      }).catch(e => showToast(e.message));
     }
 
     function showTestimonialManager() {
