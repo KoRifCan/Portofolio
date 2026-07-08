@@ -930,7 +930,7 @@
         if (countEl) countEl.textContent = '— ' + allTestimonials.length + ' testimoni';
         page = 0;
         render();
-      });
+      }, () => { const countEl = document.getElementById('testiCount'); if (countEl) countEl.textContent = ''; });
     }
 
     function toggleLike(id) {
@@ -1172,15 +1172,17 @@
     function loadComments() {
       const container = document.getElementById('commentsContainer');
       if (!container) return;
-      db.collection('comments').where('projectId', '==', 'shopwave').orderBy('createdAt', 'asc').onSnapshot(snap => {
+      db.collection('comments').where('projectId', '==', 'shopwave').onSnapshot(snap => {
         if (snap.empty) { container.innerHTML = '<p style="font-size:.82rem;color:var(--text-light);">Belum ada komentar.</p>'; return; }
-        container.innerHTML = snap.map(doc => {
-          const d = doc.data();
+        const items = [];
+        snap.forEach(doc => items.push(doc.data()));
+        items.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+        container.innerHTML = items.map(d => {
           const initials = d.userEmail[0].toUpperCase();
           const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '';
           return '<div class="comment-item"><div class="c-avatar">' + initials + '</div><div class="c-body"><div class="c-name">' + d.userEmail + ' <span class="c-date">' + date + '</span></div><div class="c-text">' + d.text + '</div></div></div>';
         }).join('');
-      });
+      }, () => {});
     }
     function submitComment() {
       const input = document.getElementById('commentInput');
