@@ -1058,6 +1058,7 @@
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
             + '<blockquote>"' + d.text + '"</blockquote>'
             + '<div class="author"><div class="avatar">' + initials + '</div><div><div class="name">' + d.name + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
+            + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '</div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
             + '</div></div>';
@@ -1239,9 +1240,13 @@
               + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
-              + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div></div>'
-              + '<button onclick="deleteComment(\'' + d._id + '\')" style="flex-shrink:0;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
-              + '</div></div>';
+              + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div>'
+              + renderReplies(d.replies)
+              + '</div>'
+              + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
+              + '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
+              + '<button onclick="deleteComment(\'' + d._id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
+              + '</div></div></div>';
           }).join('');
           const pagHtml = totalPages > 1
             ? '<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;">'
@@ -1349,8 +1354,10 @@
             + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
+            + renderReplies(d.replies)
             + '</div>'
-            + '<div style="display:flex;gap:6px;flex-shrink:0;">'
+            + '<div style="display:flex;gap:4px;flex-shrink:0;flex-direction:column;">'
+            + '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
             + '<button onclick="toggleTesti(\'' + d._id + '\',' + !d.visible + ')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:' + (d.visible ? '#f59e0b' : '#10b981') + ';cursor:pointer;font-size:.8rem;">' + (d.visible ? 'Sembunyi' : 'Tampil') + '</button>'
             + '<button onclick="deleteTesti(\'' + d._id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;">Hapus</button>'
             + '</div>'
@@ -1578,7 +1585,7 @@
           const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
           return '<div class="comment-item"><div class="c-avatar">' + initials + '</div><div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
             + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
-            + '</div><div class="c-text">' + d.text + '</div></div></div>';
+            + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies) + '</div></div>';
         }).join('');
       }, () => {});
     }
@@ -1635,6 +1642,61 @@
           });
         }
       }).catch(e => showToast(e.message));
+    }
+
+    function replyToComment(id, text) {
+      if (!currentUser) return showToast('Login dulu!');
+      db.collection('comments').doc(id).update({
+        replies: firebase.firestore.FieldValue.arrayUnion({
+          text: text,
+          createdAt: new Date().toISOString(),
+          adminEmail: currentUser.email
+        })
+      }).then(() => showToast('Balasan terkirim!')).catch(e => showToast(e.message));
+    }
+
+    function replyToTesti(id, text) {
+      if (!currentUser) return showToast('Login dulu!');
+      db.collection('testimonials').doc(id).update({
+        replies: firebase.firestore.FieldValue.arrayUnion({
+          text: text,
+          createdAt: new Date().toISOString(),
+          adminEmail: currentUser.email
+        })
+      }).then(() => showToast('Balasan terkirim!')).catch(e => showToast(e.message));
+    }
+
+    function openReplyForm(id, type) {
+      if (!currentUser) return showToast('Login dulu!');
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);display:grid;place-items:center;';
+      overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:16px;padding:24px;max-width:400px;width:90%;">'
+        + '<h4 style="margin-bottom:12px;">Tulis Balasan</h4>'
+        + '<textarea id="replyText" placeholder="Tulis balasan..." style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;resize:vertical;min-height:80px;margin-bottom:12px;"></textarea>'
+        + '<div style="display:flex;gap:8px;justify-content:flex-end;">'
+        + '<button onclick="this.closest(\'div\').parentElement.parentElement.remove();" class="btn btn-outline" style="padding:8px 16px;justify-content:center;">Batal</button>'
+        + '<button id="sendReplyBtn" class="btn btn-primary" style="padding:8px 16px;justify-content:center;">Kirim</button>'
+        + '</div></div>';
+      document.body.appendChild(overlay);
+      document.getElementById('sendReplyBtn').addEventListener('click', () => {
+        const text = document.getElementById('replyText').value.trim();
+        if (!text) return showToast('Tulis balasan dulu!');
+        if (type === 'comment') replyToComment(id, text);
+        else replyToTesti(id, text);
+        overlay.remove();
+      });
+      setTimeout(() => document.getElementById('replyText')?.focus(), 100);
+    }
+
+    function renderReplies(replies) {
+      if (!replies || !replies.length) return '';
+      return replies.map(r => {
+        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '';
+        return '<div style="margin-top:8px;padding:10px 12px;background:var(--bg);border-radius:10px;border-left:3px solid #6366f1;font-size:.82rem;">'
+          + '<div style="font-weight:600;font-size:.78rem;color:#6366f1;">Admin <span style="font-weight:400;color:var(--text-light);font-size:.7rem;">' + date + '</span></div>'
+          + '<div style="margin-top:2px;">' + r.text + '</div>'
+          + '</div>';
+      }).join('');
     }
 
     // ===== SCROLL SPY =====
