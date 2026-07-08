@@ -1149,8 +1149,6 @@
         if (e.target.id === 'testiPrev' && !e.target.disabled) { page--; render(); }
         if (e.target.id === 'testiNext' && !e.target.disabled) { page++; render(); }
       };
-      filterEl.innerHTML = '<button class="active" data-r="0">Semua</button>'
-        + [5,4,3,2,1].map(r => '<button data-r="' + r + '">' + r + '★</button>').join('');
       filterEl.onclick = e => {
         const btn = e.target.closest('button');
         if (!btn) return;
@@ -1164,11 +1162,18 @@
         const countEl = document.getElementById('testiCount');
         if (countEl) countEl.textContent = count >= 0 ? '— ' + count + ' testimoni' : '';
       }
+      function updateFilterCounts() {
+        filterEl.innerHTML = '<button class="active" data-r="0">Semua (' + allTestimonials.length + ')</button>'
+          + [5,4,3,2,1].map(r => '<button data-r="' + r + '">' + r + '★ (' + allTestimonials.filter(t => t.rating === r).length + ')</button>').join('');
+        const active = filterEl.querySelector('button[data-r="' + filterRating + '"]');
+        if (active) active.classList.add('active');
+      }
       db.collection('testimonials').where('visible', '==', true).onSnapshot(snap => {
         allTestimonials = [];
         snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allTestimonials.push(d); });
         allTestimonials.reverse();
         updateTestiCount(allTestimonials.length);
+        updateFilterCounts();
         page = 0;
         render();
       }, () => {
