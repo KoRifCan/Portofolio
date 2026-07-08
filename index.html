@@ -7,13 +7,40 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-alt: #fff;
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --border-light: #f1f5f9;
+      --card-bg: #fff;
+      --card-bg-alt: #f8fafc;
+      --nav-bg: rgba(248,250,252,.85);
+      --section-alt: #fff;
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-alt: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-light: #64748b;
+      --border: #334155;
+      --border-light: #1e293b;
+      --card-bg: #1e293b;
+      --card-bg-alt: #0f172a;
+      --nav-bg: rgba(15,23,42,.85);
+      --section-alt: #1e293b;
+    }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Inter', -apple-system, sans-serif;
-      background: #f8fafc;
-      color: #0f172a;
+      background: var(--bg);
+      color: var(--text);
       line-height: 1.6;
+      transition: background .3s, color .3s;
     }
     a { text-decoration: none; color: inherit; }
     ul { list-style: none; }
@@ -24,8 +51,8 @@
     /* Nav */
     nav {
       position: fixed; top: 0; left: 0; right: 0;
-      background: rgba(248,250,252,.85); backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0,0,0,.05);
+      background: var(--nav-bg); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
       z-index: 1000;
     }
     nav .container { display: flex; align-items: center; justify-content: space-between; height: 64px; }
@@ -41,7 +68,15 @@
     .nav-links a:hover { color: #6366f1; }
     .nav-links a:hover::after { width: 100%; }
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
-    .hamburger span { width: 24px; height: 2px; background: #0f172a; border-radius: 2px; transition: .3s; }
+    .hamburger span { width: 24px; height: 2px; background: var(--text); border-radius: 2px; transition: .3s; }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+    .toggle-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--card-bg);
+      color: var(--text-muted); font-size: 1rem; cursor: pointer;
+      display: grid; place-items: center; transition: all .2s;
+    }
+    .toggle-btn:hover { border-color: #6366f1; color: #6366f1; }
 
     /* Sections */
     section { padding: 100px 0; }
@@ -50,7 +85,7 @@
       letter-spacing: -.03em;
     }
     .section-subtitle {
-      color: #64748b; font-size: 1.05rem; max-width: 540px;
+      color: var(--text-light); font-size: 1.05rem; max-width: 540px;
       margin-bottom: 48px;
     }
     .text-center { text-align: center; }
@@ -68,7 +103,7 @@
       margin-bottom: 16px;
     }
     .hero-content h1 span { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero-content p { font-size: 1.1rem; color: #475569; margin-bottom: 32px; max-width: 480px; }
+    .hero-content p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 32px; max-width: 480px; }
     .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
     .btn {
       display: inline-flex; align-items: center; gap: 8px;
@@ -77,7 +112,7 @@
     }
     .btn-primary { background: #0f172a; color: #fff; }
     .btn-primary:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.15); }
-    .btn-outline { background: transparent; color: #0f172a; border: 2px solid #e2e8f0; }
+    .btn-outline { background: transparent; color: var(--text); border: 2px solid var(--border); }
     .btn-outline:hover { border-color: #6366f1; color: #6366f1; transform: translateY(-2px); }
     .hero-image { position: relative; }
     .hero-image .img-wrapper {
@@ -96,43 +131,43 @@
     .hero-socials { display: flex; gap: 16px; margin-top: 32px; }
     .hero-socials a {
       width: 44px; height: 44px; border-radius: 12px;
-      background: #fff; border: 1px solid #e2e8f0;
+      background: var(--card-bg); border: 1px solid var(--border);
       display: grid; place-items: center; font-size: 1.15rem;
-      color: #64748b; transition: all .2s;
+      color: var(--text-light); transition: all .2s;
     }
     .hero-socials a:hover { background: #6366f1; color: #fff; border-color: #6366f1; transform: translateY(-2px); }
 
     /* About */
-    #about { background: #fff; }
+    #about { background: var(--section-alt); }
     .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-    .about-text p { color: #475569; margin-bottom: 16px; font-size: 1.05rem; }
+    .about-text p { color: var(--text-muted); margin-bottom: 16px; font-size: 1.05rem; }
     .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .stat-card {
-      background: #f8fafc; border-radius: 16px; padding: 24px; text-align: center;
-      border: 1px solid #f1f5f9; transition: transform .2s;
+      background: var(--card-bg-alt); border-radius: 16px; padding: 24px; text-align: center;
+      border: 1px solid var(--border-light); transition: transform .2s;
     }
     .stat-card:hover { transform: translateY(-4px); }
     .stat-card .number { font-size: 2rem; font-weight: 800; color: #6366f1; }
-    .stat-card .label { font-size: .85rem; color: #64748b; margin-top: 4px; }
+    .stat-card .label { font-size: .85rem; color: var(--text-light); margin-top: 4px; }
 
     /* Skills */
     .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
     .skill-item {
-      background: #fff; border: 1px solid #f1f5f9;
+      background: var(--card-bg); border: 1px solid var(--border-light);
       border-radius: 14px; padding: 24px 16px; text-align: center;
       transition: all .25s; cursor: default;
     }
     .skill-item:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #6366f1; }
     .skill-item i { font-size: 2rem; color: #6366f1; margin-bottom: 10px; }
     .skill-item .name { font-weight: 600; font-size: .9rem; }
-    .skill-item .level { font-size: .75rem; color: #94a3b8; margin-top: 4px; }
+    .skill-item .level { font-size: .75rem; color: var(--text-light); margin-top: 4px; }
 
     /* Experience */
-    #experience { background: #fff; }
+    #experience { background: var(--section-alt); }
     .timeline { position: relative; padding-left: 32px; }
     .timeline::before {
       content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px;
-      width: 2px; background: #e2e8f0;
+      width: 2px; background: var(--border);
     }
     .timeline-item { position: relative; margin-bottom: 40px; }
     .timeline-item::before {
@@ -142,14 +177,14 @@
     }
     .timeline-item .date { font-size: .85rem; color: #6366f1; font-weight: 600; margin-bottom: 4px; }
     .timeline-item h3 { font-size: 1.15rem; font-weight: 700; }
-    .timeline-item .company { color: #64748b; font-weight: 500; margin-bottom: 8px; }
-    .timeline-item p { color: #475569; font-size: .95rem; }
+    .timeline-item .company { color: var(--text-light); font-weight: 500; margin-bottom: 8px; }
+    .timeline-item p { color: var(--text-muted); font-size: .95rem; }
 
     /* Projects */
     .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
     .project-card {
-      background: #fff; border-radius: 18px; overflow: hidden;
-      border: 1px solid #f1f5f9; transition: all .3s;
+      background: var(--card-bg); border-radius: 18px; overflow: hidden;
+      border: 1px solid var(--border-light); transition: all .3s;
     }
     .project-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(0,0,0,.07); }
     .project-card .thumb {
@@ -164,24 +199,24 @@
     .project-card .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
     .project-card .tags span {
       font-size: .75rem; font-weight: 600; padding: 4px 12px;
-      border-radius: 20px; background: #f1f5f9; color: #475569;
+      border-radius: 20px; background: var(--card-bg-alt); color: var(--text-muted);
     }
     .project-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
-    .project-card p { color: #64748b; font-size: .9rem; margin-bottom: 16px; }
+    .project-card p { color: var(--text-light); font-size: .9rem; margin-bottom: 16px; }
     .project-card .links { display: flex; gap: 16px; }
     .project-card .links a { font-size: .85rem; font-weight: 600; color: #6366f1; transition: color .2s; }
     .project-card .links a:hover { color: #4338ca; }
 
     /* Testimonials */
-    #testimonials { background: #fff; }
+    #testimonials { background: var(--section-alt); }
     .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
     .testimonial-card {
-      background: #f8fafc; border: 1px solid #f1f5f9;
+      background: var(--card-bg-alt); border: 1px solid var(--border-light);
       border-radius: 18px; padding: 32px; transition: transform .2s;
     }
     .testimonial-card:hover { transform: translateY(-4px); }
     .testimonial-card .stars { color: #f59e0b; font-size: .9rem; margin-bottom: 12px; }
-    .testimonial-card blockquote { color: #334155; font-style: italic; margin-bottom: 16px; font-size: .95rem; }
+    .testimonial-card blockquote { color: var(--text); font-style: italic; margin-bottom: 16px; font-size: .95rem; }
     .testimonial-card .author { display: flex; align-items: center; gap: 12px; }
     .testimonial-card .author .avatar {
       width: 44px; height: 44px; border-radius: 50%;
@@ -189,7 +224,7 @@
       color: #fff; font-weight: 700; font-size: 1.1rem;
     }
     .testimonial-card .author .name { font-weight: 600; font-size: .9rem; }
-    .testimonial-card .author .role { font-size: .8rem; color: #94a3b8; }
+    .testimonial-card .author .role { font-size: .8rem; color: var(--text-light); }
 
     /* Contact */
     #contact { background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; }
@@ -218,12 +253,13 @@
       background: #0f172a; border-top: 1px solid #1e293b;
       padding: 32px 0; text-align: center; color: #64748b; font-size: .9rem;
     }
+    [data-theme="dark"] footer { background: #0a0f18; border-color: #1e293b; }
 
     /* Responsive */
     @media (max-width: 768px) {
       .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0;
-        background: rgba(248,250,252,.98); flex-direction: column; padding: 24px;
-        gap: 16px; border-bottom: 1px solid #e2e8f0;
+        background: var(--nav-bg); flex-direction: column; padding: 24px;
+        gap: 16px; border-bottom: 1px solid var(--border);
       }
       .nav-links.open { display: flex; }
       .hamburger { display: flex; }
@@ -255,9 +291,13 @@
         <li><a href="#testimonials">Testimoni</a></li>
         <li><a href="#contact">Kontak</a></li>
       </ul>
-      <button class="hamburger" id="hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="nav-actions">
+        <button class="toggle-btn" id="themeToggle" aria-label="Toggle theme"><i class="fas fa-moon"></i></button>
+        <button class="toggle-btn" id="langToggle" aria-label="Toggle language">ID</button>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -468,10 +508,126 @@
   </footer>
 
   <script>
+    // Hamburger
     const hamburger = document.getElementById('hamburger');
     const navLinks = document.getElementById('navLinks');
     hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
     document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    themeToggle.innerHTML = savedTheme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      themeToggle.innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+
+    // Language data
+    const langData = {
+      nav: {
+        id: ['Beranda', 'Tentang', 'Keahlian', 'Pengalaman', 'Proyek', 'Testimoni', 'Kontak'],
+        en: ['Home', 'About', 'Skills', 'Experience', 'Projects', 'Testimonials', 'Contact']
+      },
+      heroTitle: {
+        id: 'Halo, Saya <span>Rifan Eko Candra Maulana</span><br />Pengembang Full-Stack',
+        en: 'Hi, I\'m <span>Rifan Eko Candra Maulana</span><br />Full-Stack Developer'
+      },
+      heroDesc: {
+        id: 'Saya membangun pengalaman digital yang indah, mudah diakses, dan berperforma tinggi. Berkomitmen pada kode bersih, desain yang matang, dan produk yang memberi dampak.',
+        en: 'I build beautiful, accessible, and performant digital experiences. Passionate about clean code, thoughtful design, and products that make a difference.'
+      },
+      heroBtn1: { id: 'Lihat Karya Saya', en: 'View My Work' },
+      heroBtn2: { id: 'Hubungi Saya', en: 'Get in Touch' },
+      aboutTitle: { id: 'Tentang Saya', en: 'About Me' },
+      aboutSub: { id: 'Sekilas tentang siapa saya dan apa yang saya lakukan.', en: 'A quick overview of who I am and what I do.' },
+      aboutP1: { id: 'Saya seorang pengembang full-stack yang berbasis di San Francisco dengan pengalaman 5+ tahun membangun aplikasi web. Saya suka mengubah masalah kompleks menjadi solusi yang sederhana dan indah.', en: 'I\'m a full-stack developer based in San Francisco with 5+ years of experience building web applications. I love turning complex problems into simple, beautiful solutions.' },
+      aboutP2: { id: 'Perjalanan saya dimulai dari rasa penasaran tentang cara kerja website, yang membawa saya belajar Ilmu Komputer di Stanford. Sejak itu, saya bekerja dengan startup dan agensi, membantu mereka meluncurkan produk yang dicintai pengguna.', en: 'My journey started with a curiosity about how websites work, which led me to study Computer Science at Stanford. Since then, I\'ve worked with startups and agencies, helping them ship products that users love.' },
+      aboutP3: { id: 'Saat tidak sedang coding, saya biasanya mendaki gunung, membaca fiksi ilmiah, atau bereksperimen dengan resep baru.', en: 'When I\'m not coding, you\'ll find me hiking, reading sci-fi, or experimenting with new recipes.' },
+      stat1: { id: 'Tahun Pengalaman', en: 'Years Experience' },
+      stat2: { id: 'Proyek Selesai', en: 'Projects Done' },
+      stat3: { id: 'Klien Puas', en: 'Happy Clients' },
+      skillsTitle: { id: 'Keahlian & Alat', en: 'Skills & Tools' },
+      skillsSub: { id: 'Teknologi yang saya gunakan sehari-hari.', en: 'Technologies I work with on a daily basis.' },
+      expTitle: { id: 'Pengalaman', en: 'Experience' },
+      expSub: { id: 'Perjalanan profesional saya sejauh ini.', en: 'My professional journey so far.' },
+      projTitle: { id: 'Proyek Unggulan', en: 'Featured Projects' },
+      projSub: { id: 'Beberapa karya yang baru saja saya buat.', en: 'Some things I\'ve built recently.' },
+      testTitle: { id: 'Kata Mereka', en: 'Testimonials' },
+      testSub: { id: 'Ucapan hangat dari kolega dan klien.', en: 'Kind words from colleagues and clients.' },
+      contactTitle: { id: 'Hubungi Saya', en: 'Get in Touch' },
+      contactSub: { id: 'Ada proyek yang ingin didiskusikan? Mari bicara.', en: 'Have a project in mind? Let\'s talk.' },
+      contactH3: { id: 'Mari bangun sesuatu yang hebat bersama.', en: 'Let\'s build something great together.' },
+      contactP: { id: 'Saya selalu terbuka untuk peluang baru, kolaborasi, atau sekadar obrolan ringan. Hubungi saya dan saya akan membalas dalam 24 jam.', en: 'I\'m always open to new opportunities, collaborations, or just a friendly chat. Reach out and I\'ll get back to you within 24 hours.' },
+      formName: { id: 'Nama Anda', en: 'Your Name' },
+      formEmail: { id: 'Email Anda', en: 'Your Email' },
+      formSubject: { id: 'Subjek', en: 'Subject' },
+      formMsg: { id: 'Pesan Anda', en: 'Your Message' },
+      formBtn: { id: 'Kirim Pesan', en: 'Send Message' },
+      formAlert: { id: 'Terima kasih! Pesan Anda akan segera saya balas.', en: 'Thanks for reaching out! I\'ll get back to you soon.' },
+      footer: { id: 'Dibuat dengan', en: 'Built with' },
+      langBtn: { id: 'ID', en: 'EN' }
+    };
+
+    let currentLang = localStorage.getItem('lang') || 'id';
+    document.getElementById('langToggle').textContent = langData.langBtn[currentLang];
+
+    function applyLang(lang) {
+      currentLang = lang;
+      localStorage.setItem('lang', lang);
+      document.documentElement.setAttribute('lang', lang);
+      document.getElementById('langToggle').textContent = langData.langBtn[lang];
+
+      // Nav
+      document.querySelectorAll('.nav-links a').forEach((a, i) => a.textContent = langData.nav[lang][i]);
+      // Hero
+      document.querySelector('#hero h1').innerHTML = langData.heroTitle[lang];
+      document.querySelector('#hero .hero-content > p').textContent = langData.heroDesc[lang];
+      document.querySelector('.hero-buttons a:first-child').innerHTML = langData.heroBtn1[lang] + ' <i class="fas fa-arrow-right"></i>';
+      document.querySelector('.hero-buttons a:last-child').textContent = langData.heroBtn2[lang];
+      // About
+      document.querySelector('#about .section-title').textContent = langData.aboutTitle[lang];
+      document.querySelector('#about .section-subtitle').textContent = langData.aboutSub[lang];
+      const aboutPs = document.querySelectorAll('#about .about-text p');
+      aboutPs[0].textContent = langData.aboutP1[lang];
+      aboutPs[1].textContent = langData.aboutP2[lang];
+      aboutPs[2].textContent = langData.aboutP3[lang];
+      document.querySelectorAll('#about .stat-card .label')[0].textContent = langData.stat1[lang];
+      document.querySelectorAll('#about .stat-card .label')[1].textContent = langData.stat2[lang];
+      document.querySelectorAll('#about .stat-card .label')[2].textContent = langData.stat3[lang];
+      // Skills
+      document.querySelector('#skills .section-title').textContent = langData.skillsTitle[lang];
+      document.querySelector('#skills .section-subtitle').textContent = langData.skillsSub[lang];
+      // Experience
+      document.querySelector('#experience .section-title').textContent = langData.expTitle[lang];
+      document.querySelector('#experience .section-subtitle').textContent = langData.expSub[lang];
+      // Projects
+      document.querySelector('#projects .section-title').textContent = langData.projTitle[lang];
+      document.querySelector('#projects .section-subtitle').textContent = langData.projSub[lang];
+      // Testimonials
+      document.querySelector('#testimonials .section-title').textContent = langData.testTitle[lang];
+      document.querySelector('#testimonials .section-subtitle').textContent = langData.testSub[lang];
+      // Contact
+      document.querySelector('#contact .section-title').textContent = langData.contactTitle[lang];
+      document.querySelector('#contact .section-subtitle').textContent = langData.contactSub[lang];
+      document.querySelector('#contact .contact-info h3').textContent = langData.contactH3[lang];
+      document.querySelector('#contact .contact-info p').textContent = langData.contactP[lang];
+      document.querySelector('#contact input[type="text"]').placeholder = langData.formName[lang];
+      document.querySelector('#contact input[type="email"]').placeholder = langData.formEmail[lang];
+      document.querySelector('#contact input[placeholder="Subjek"]').placeholder = langData.formSubject[lang];
+      document.querySelector('#contact textarea').placeholder = langData.formMsg[lang];
+      document.querySelector('#contact .btn-primary').innerHTML = langData.formBtn[lang] + ' <i class="fas fa-paper-plane"></i>';
+      document.querySelector('#contact form').onsubmit = function(e) { e.preventDefault(); alert(langData.formAlert[lang]); };
+    }
+
+    applyLang(currentLang);
+    document.getElementById('langToggle').addEventListener('click', () => {
+      applyLang(currentLang === 'id' ? 'en' : 'id');
+    });
   </script>
 </body>
 </html>
