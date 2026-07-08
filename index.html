@@ -225,15 +225,20 @@
     }
     .project-card .thumb .slider-overlay {
       position: absolute; inset: 0; z-index: 1; clip-path: inset(0 50% 0 0);
-      transition: clip-path 0.12s ease-out;
     }
     .project-card .thumb .slider-overlay .slider-img { object-position: center; }
     .project-card .thumb .slider-handle {
       position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff;
       transform: translateX(-1.5px); z-index: 2; pointer-events: none;
-      transition: left 0.08s ease-out;
     }
-    .project-card .thumb .slider-handle .knob { z-index: 3; }
+    .project-card .thumb .slider-handle .knob {
+      z-index: 3; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      border: 2px solid rgba(255,255,255,.6);
+    }
+    .project-card .thumb .slider-shade {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      box-shadow: inset 6px 0 12px rgba(0,0,0,.15), inset -6px 0 12px rgba(0,0,0,.15);
+    }
     .project-card .thumb .slider-handle .knob {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
       width: 30px; height: 30px; border-radius: 50%; background: #fff;
@@ -692,6 +697,7 @@
             </div>
             <img class="slider-img" src="screenshot-light.png" alt="light">
             <div class="slider-handle" id="sliderHandle"><div class="knob">⟷</div></div>
+            <div class="slider-shade"></div>
           </div>
           <div class="body">
             <div class="tags"><span>HTML/CSS</span><span>JavaScript</span><span>Firebase</span></div>
