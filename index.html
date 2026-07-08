@@ -897,14 +897,16 @@
       if (!email || !pass) return showToast('Isi email dan password dulu!');
       if (pass.length < 6) return showToast('Password minimal 6 karakter.');
       if (!name) return showToast('Nama lengkap wajib diisi!');
+      if (isDisposableEmail(email)) return showToast('Email sekali pakai tidak diizinkan. Gunakan email asli.');
       auth.createUserWithEmailAndPassword(email, pass)
         .then(cred => {
+          cred.user.sendEmailVerification().catch(() => {});
           return db.collection('userProfiles').doc(cred.user.uid).set({
             name, phone, email, role: 'user',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
-        .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
+        .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; document.getElementById('loginSuccessText').textContent = 'Akun dibuat! Cek email untuk verifikasi.'; setTimeout(closeLogin, 1500); })
         .catch(e => {
           if (e.code === 'auth/email-already-in-use') showToast('Email sudah terdaftar. Klik "Masuk" bukan "Daftar".');
           else if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
@@ -955,6 +957,7 @@
         <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
         <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin)}</p>
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">${currentUser.email}</p>
+        ${currentUser.emailVerified ? '' : '<p style="color:#f59e0b;font-size:.75rem;margin-bottom:2px;"><i class="fas fa-exclamation-triangle"></i> Email belum diverifikasi</p>'}
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">${phone}</p>
         <button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>
         ${isAdmin ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>' : ''}
@@ -1537,6 +1540,7 @@
     }
 
     function submitPublicTesti(btn) {
+      if (!requireVerified()) return;
       const name = document.getElementById('pubTestiName').value.trim();
       const text = document.getElementById('pubTestiText').value.trim();
       const role = document.getElementById('pubTestiRole').value.trim();
@@ -1723,6 +1727,7 @@
       const text = input.value.trim();
       if (!text) return showToast('Tulis komentar dulu!');
       if (!currentUser) return showToast('Login dulu!');
+      if (!requireVerified()) return;
       db.collection('userProfiles').doc(currentUser.uid).get().then(profile => {
         const pdata = profile.exists ? profile.data() : {};
         const userName = pdata.name || currentUser.email;
@@ -1781,6 +1786,7 @@
 
     function openReplyForm(id, type) {
       if (!currentUser) return showToast('Login dulu!');
+      if (!requireVerified()) return;
       const overlay = document.createElement('div');
       overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);display:grid;place-items:center;';
       overlay.innerHTML = `<div style="background:var(--card-bg);border-radius:16px;padding:24px;max-width:400px;width:90%;">
@@ -1949,7 +1955,34 @@
       return phone.slice(0, 2) + '******' + phone.slice(-2);
     }
 
-    // ===== SCROLL SPY =====
+    const disposableDomains = new Set([
+      'mailinator.com','guerrillamail.com','10minutemail.com','yopmail.com','tempmail.com',
+      'throwaway.email','trashmail.com','sharklasers.com','maildrop.cc','getnada.com',
+      'temp-mail.org','tempail.com','mohmal.com','emailfake.com','mailexpire.com',
+      'mailcatch.com','spambox.us','minutemail.com','dispostable.com','mailnesia.com',
+      'spamgourmet.com','sogetthis.com','mailmetrash.com','maileater.com','mintemail.com',
+      'spamavert.com','thankyou2010.com','trash2009.com','mt2009.com','trashymail.com',
+      'tyldd.com','uggsrock.com','wegwerfmail.de','wh4f.org','whyspam.me','willselfdestruct.com',
+      'winemaven.info','wronghead.com','wuzup.net','xagloo.com','xemaps.com','xents.com',
+      'xmaily.com','xoxy.net','yep.it','yogamaven.com','yopmail.fr','yopmail.net','ypmail.webarnak.fr.eu.org',
+      'yuurok.com','zehnminutenmail.de','zippymail.info','zoaxe.com','zoemail.org','tempinbox.com',
+      'fakemailgenerator.com','generator.email','mailnator.com','tempmail.net','spambox.info',
+      'quickinbox.com','mail-temp.com','spam4.me','burnermail.io','inboxbear.com'
+    ]);
+    function isDisposableEmail(email) {
+      const domain = email.split('@')[1];
+      return domain && disposableDomains.has(domain.toLowerCase());
+    }
+    function requireVerified() {
+      const user = firebase.auth().currentUser;
+      if (!user) { showToast('Login dulu!'); return false; }
+      if (!user.emailVerified) {
+        showToast('Verifikasi email dulu! Cek kotak masuk (termasuk spam).');
+        user.sendEmailVerification().catch(() => {});
+        return false;
+      }
+      return true;
+    }
     const spySections = document.querySelectorAll('section[id]');
     const spyLinks = document.querySelectorAll('.nav-links a');
     function updateSpy() {
