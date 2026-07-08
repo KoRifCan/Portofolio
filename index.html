@@ -632,7 +632,10 @@
       if (pass.length < 6) return showToast('Password minimal 6 karakter.');
       auth.createUserWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-        .catch(e => showToast(e.message));
+        .catch(e => {
+          if (e.code === 'auth/email-already-in-use') showToast('Email sudah terdaftar. Klik "Masuk" bukan "Daftar".');
+          else showToast(e.message);
+        });
     }
 
     function togglePassword() {
