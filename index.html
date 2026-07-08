@@ -805,24 +805,25 @@
     // ===== SCROLL SPY =====
     const sections = document.querySelectorAll('section[id]');
     const navAnchors = document.querySelectorAll('.nav-links a');
-    const offsets = [];
-    function updateOffsets() {
-      offsets.length = 0;
-      sections.forEach(s => offsets.push({ id: s.id, top: s.offsetTop }));
+    function getActiveId() {
+      const offset = window.innerHeight * 0.25;
+      const scrollY = window.scrollY + offset;
+      let best = ''; let bestTop = -1;
+      sections.forEach(s => {
+        const t = s.offsetTop;
+        if (t <= scrollY && t > bestTop) { bestTop = t; best = s.id; }
+      });
+      return best;
     }
     function updateActiveNav() {
-      const scrollY = window.scrollY + 150;
-      let current = offsets[0]?.id || '';
-      for (const o of offsets) {
-        if (o.top <= scrollY) current = o.id;
-      }
+      const current = getActiveId();
       navAnchors.forEach(a => a.classList.remove('active'));
-      const el = document.querySelector('.nav-links a[href="#' + current + '"]');
-      if (el) el.classList.add('active');
+      if (current) {
+        const el = document.querySelector('.nav-links a[href="#' + current + '"]');
+        if (el) el.classList.add('active');
+      }
     }
     window.addEventListener('scroll', updateActiveNav, { passive: true });
-    window.addEventListener('resize', updateOffsets);
-    updateOffsets();
     updateActiveNav();
 
     // ===== HAMBURGER =====
