@@ -1343,13 +1343,13 @@
               + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div><div style="font-size:.75rem;color:var(--text-light);">' + esc(d.userEmail) + '</div>'
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
-              + '<div style="font-size:.85rem;margin-top:4px;">' + esc(d.text) + '</div>'
-              + renderReplies(d.replies, d._id, 'comment') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
-              + '</div>'
               + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
               + '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
               + '<button onclick="deleteComment(\'' + d._id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
-              + '</div></div></div>';
+              + '</div></div>'
+              + '<div style="font-size:.85rem;margin-top:8px;">' + esc(d.text) + '</div>'
+              + renderReplies(d.replies, d._id, 'comment') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
+              + '</div>';
           }).join('');
           const pagHtml = totalPages > 1
             ? '<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;">'
