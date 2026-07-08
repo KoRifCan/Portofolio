@@ -1427,12 +1427,35 @@
               + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'
               + '<div style="font-size:.75rem;color:var(--text-light);text-align:right;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;background:' + (u.role === 'admin' ? '#dbeafe' : 'var(--card-bg)') + ';color:' + (u.role === 'admin' ? '#3b82f6' : 'var(--text-light)') + ';">' + (u.role || 'user') + '</span><br>' + date + '</div>'
               + (u.role !== 'admin' ? '<button class="toggle-disable-btn" data-uid="' + u.id + '" data-current="' + disabled + '" style="font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid ' + (disabled ? 'var(--border)' : '#ef4444') + ';background:transparent;color:' + (disabled ? 'var(--text-light)' : '#ef4444') + ';cursor:pointer;">' + (disabled ? 'Aktifkan' : 'Nonaktifkan') + '</button>' : '')
+              + (u.role !== 'admin' ? '<button class="delete-user-btn" data-uid="' + u.id + '" data-name="' + esc(u.name || u.email || '') + '" style="font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid #dc2626;background:transparent;color:#dc2626;cursor:pointer;margin-top:2px;">Hapus</button>' : '')
               + '</div>'
               + '</div>';
           }).join('') + '</div>';
         }
         document.getElementById('userSearch')?.addEventListener('input', function() { searchQuery = this.value; if (typeof currentSnap !== 'undefined') renderUsers(currentSnap); });
         document.getElementById('sortUserBtn')?.addEventListener('click', function() { sortAsc = !sortAsc; if (typeof currentSnap !== 'undefined') renderUsers(currentSnap); });
+        usersListContainer.addEventListener('click', e => {
+          const btn = e.target.closest('.delete-user-btn');
+          if (!btn) return;
+          const uid = btn.dataset.uid;
+          const name = btn.dataset.name;
+          showConfirm('Yakin ingin menghapus akun ' + name + '? Semua data pengguna ini (testimoni, komentar) akan dihapus.').then(async ok => {
+            if (!ok) return;
+            btn.disabled = true; btn.textContent = '...';
+            try {
+              const batch = db.batch();
+              const [testiSnap, commSnap] = await Promise.all([
+                db.collection('testimonials').where('userId', '==', uid).get(),
+                db.collection('comments').where('userId', '==', uid).get()
+              ]);
+              testiSnap.forEach(d => batch.delete(d.ref));
+              commSnap.forEach(d => batch.delete(d.ref));
+              batch.delete(db.collection('userProfiles').doc(uid));
+              await batch.commit();
+              showToast('Data akun ' + name + ' berhasil dihapus.');
+            } catch (e) { showToast('Gagal: ' + e.message); }
+          });
+        });
         let currentSnap = null;
         db.collection('userProfiles').orderBy('createdAt', 'desc').onSnapshot(snap => {
           currentSnap = snap;
@@ -1469,6 +1492,7 @@
         visible: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         userId: currentUser.uid,
+        userEmail: currentUser.email,
         isAdmin: true
       };
       if (profileData.photoURL) testiData.userPhotoURL = profileData.photoURL;
@@ -1651,6 +1675,7 @@
           visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
+          userEmail: currentUser.email,
           isAdmin: pdata.role === 'admin'
         };
         if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
@@ -1663,7 +1688,8 @@
           name, text, role, rating,
           visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          userId: currentUser.uid
+          userId: currentUser.uid,
+          userEmail: currentUser.email
         }).then(() => {
           btn.closest('div').parentElement.remove();
           showToast('Testimoni & masukan terkirim!');
