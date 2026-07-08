@@ -762,6 +762,22 @@
       t.textContent = msg; t.classList.add('show');
       clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000);
     }
+    function showConfirm(msg) {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.4);display:grid;place-items:center;';
+        overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:16px;padding:28px;text-align:center;max-width:320px;width:90%;">'
+          + '<p style="margin-bottom:20px;font-size:.95rem;">' + msg + '</p>'
+          + '<div style="display:flex;gap:12px;justify-content:center;">'
+          + '<button id="confirmYes" class="btn btn-primary" style="padding:8px 24px;justify-content:center;">Ya</button>'
+          + '<button id="confirmNo" class="btn btn-outline" style="padding:8px 24px;justify-content:center;">Batal</button>'
+          + '</div></div>';
+        document.body.appendChild(overlay);
+        overlay.querySelector('#confirmYes').onclick = () => { overlay.remove(); resolve(true); };
+        overlay.querySelector('#confirmNo').onclick = () => { overlay.remove(); resolve(false); };
+        overlay.onclick = e => { if (e.target === overlay) { overlay.remove(); resolve(false); } };
+      });
+    }
 
     // ===== FIREBASE INIT =====
     const firebaseConfig = {
@@ -941,7 +957,7 @@
       const phone = document.getElementById('editProfilePhone').value.trim();
       if (!name) return showToast('Nama wajib diisi!');
       btn.disabled = true;
-      db.collection('userProfiles').doc(currentUser.uid).update({ name, phone }).then(() => {
+      db.collection('userProfiles').doc(currentUser.uid).set({ name, phone }, { merge: true }).then(() => {
         profileData.name = name;
         profileData.phone = phone;
         btn.closest('div').parentElement.remove();
@@ -1127,9 +1143,9 @@
       db.collection('testimonials').doc(id).update({ visible }).catch(e => showToast(e.message));
     }
 
-    function deleteTesti(id) {
+    async function deleteTesti(id) {
       if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') return;
-      if (!confirm('Hapus testimoni ini?')) return;
+      if (!await showConfirm('Hapus testimoni ini?')) return;
       db.collection('testimonials').doc(id).delete().catch(e => showToast(e.message));
     }
 
@@ -1310,8 +1326,10 @@
         const data = doc.data();
         if (currentUser.uid !== data.userId && currentUser.email !== 'rifan.eko25@gmail.com')
           return showToast('Kamu tidak punya izin menghapus komentar ini.');
-        if (!confirm('Hapus komentar ini?')) return;
-        ref.delete().then(() => showToast('Komentar dihapus!')).catch(e => showToast(e.message));
+        showConfirm('Hapus komentar ini?').then(ok => {
+          if (!ok) return;
+          ref.delete().then(() => showToast('Komentar dihapus!')).catch(e => showToast(e.message));
+        });
       }).catch(e => showToast(e.message));
     }
 
