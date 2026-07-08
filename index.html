@@ -967,7 +967,7 @@
     function showEditProfile() {
       if (profileMenu) { profileMenu.remove(); profileMenu = null; }
       const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);display:grid;place-items:center;';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);overflow-y:auto;padding:24px;display:grid;place-items:start center;';
       overlay.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:420px;width:90%;position:relative;text-align:left;">'
         + '<button onclick="this.closest(\'div\').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '<h3 style="margin-bottom:16px;text-align:center;">Ubah Profil</h3>'
