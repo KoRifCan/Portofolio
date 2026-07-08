@@ -804,27 +804,22 @@
     }
 
     // ===== SCROLL SPY =====
-    const sections = document.querySelectorAll('section[id]');
-    const navAnchors = document.querySelectorAll('.nav-links a');
-    function setActive(id) {
-      navAnchors.forEach(a => a.classList.remove('active'));
-      const el = document.querySelector('.nav-links a[href="#' + id + '"]');
-      if (el) el.classList.add('active');
-    }
-    function updateActiveNav() {
+    const spySections = document.querySelectorAll('section[id]');
+    const spyLinks = document.querySelectorAll('.nav-links a');
+    function updateSpy() {
       requestAnimationFrame(() => {
-        let current = sections[0].id;
-        sections.forEach(s => {
-          if (s.getBoundingClientRect().top <= 120) current = s.id;
+        let best = '';
+        const check = window.scrollY + 100;
+        spySections.forEach(s => {
+          if (s.offsetTop <= check) best = s.id;
         });
-        setActive(current);
+        spyLinks.forEach(a => a.classList.remove('active'));
+        const el = document.querySelector('.nav-links a[href="#' + best + '"]');
+        if (el) el.classList.add('active');
       });
     }
-    navAnchors.forEach(a => a.addEventListener('click', () => {
-      requestAnimationFrame(() => updateActiveNav());
-    }));
-    window.addEventListener('scroll', updateActiveNav, { passive: true });
-    updateActiveNav();
+    window.addEventListener('scroll', updateSpy, { passive: true });
+    updateSpy();
 
     // ===== HAMBURGER =====
     const hamburger = document.getElementById('hamburger');
