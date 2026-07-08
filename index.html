@@ -1301,7 +1301,10 @@
           + '<button class="testi-filter-btn" data-filter="pending" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Menunggu Izin</button>'
           + '<button class="testi-filter-btn" data-filter="visible" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card-bg);color:var(--text-light);cursor:pointer;font-size:.8rem;">Terlihat</button>'
           + '</div>'
-          + '<input id="adminTestiSearch" type="text" placeholder="Cari nama, email, atau teks..." style="width:100%;margin-bottom:12px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;box-sizing:border-box;"></div>'
+          + '<div style="display:flex;gap:8px;margin-bottom:12px;">'
+          + '<input id="adminTestiSearch" type="text" placeholder="Cari nama, email, atau teks..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;">'
+          + '<button id="sortTestiBtn" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;white-space:nowrap;"><i class="fas fa-sort"></i> Terbaru</button>'
+          + '</div>'
           + '<div style="display:flex;gap:8px;margin-bottom:16px;">'
           + '<button onclick="showConfirm(\'Hapus semua testimoni & masukan? Tindakan ini tidak bisa dibatalkan.\').then(ok => { if(ok) db.collection(\'testimonials\').get().then(s => { const b=db.batch(); s.forEach(d=>b.delete(d.ref)); b.commit().then(()=>{showToast(\'Semua testimoni & masukan dihapus!\');loadAdminTab(\'testimonials\');}).catch(e=>showToast(e.message)); }).catch(e=>showToast(e.message)); })" style="padding:6px 14px;border-radius:8px;border:1px solid #ef4444;background:transparent;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i> Clear All Testimoni & Masukan</button>'
           + '</div>'
@@ -1310,12 +1313,13 @@
         loadTestiList();
         setTimeout(() => initStarPicker(document.getElementById('testiRating')), 50);
       } else if (tab === 'comments') {
-        content.innerHTML = '<input id="adminComSearch" type="text" placeholder="Cari nama, email, atau teks..." style="width:100%;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;box-sizing:border-box;"><div id="adminComContainer"></div>';
+        content.innerHTML = '<div style="display:flex;gap:8px;margin-bottom:8px;"><input id="adminComSearch" type="text" placeholder="Cari nama, email, atau teks..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;"><button id="sortComBtn" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;white-space:nowrap;"><i class="fas fa-sort"></i> Terbaru</button></div><div id="adminComContainer"></div>';
         const container = document.getElementById('adminComContainer');
         let projects = {};
         let selectedProject = null;
         let comPage = 0;
         let comSearch = '';
+        let comSortAsc = false;
         const comPerPage = 5;
         function renderComments() {
           const projectIds = Object.keys(projects);
@@ -1326,6 +1330,9 @@
             const q = comSearch.toLowerCase();
             items = items.filter(d => (d.userName||d.userEmail||'').toLowerCase().includes(q) || (d.userEmail||'').toLowerCase().includes(q) || (d.text||'').toLowerCase().includes(q));
           }
+          if (comSortAsc) items = [...items].reverse();
+          const sortBtn = document.getElementById('sortComBtn');
+          if (sortBtn) sortBtn.innerHTML = '<i class="fas fa-sort"></i> ' + (comSortAsc ? 'Terlama' : 'Terbaru');
           const totalPages = Math.ceil(items.length / comPerPage) || 1;
           if (comPage >= totalPages) comPage = totalPages - 1;
           const pageItems = items.slice(comPage * comPerPage, (comPage + 1) * comPerPage);
@@ -1374,6 +1381,9 @@
         }
         document.getElementById('adminComSearch')?.addEventListener('input', function() {
           comSearch = this.value; comPage = 0; renderComments();
+        });
+        document.getElementById('sortComBtn')?.addEventListener('click', function() {
+          comSortAsc = !comSortAsc; comPage = 0; renderComments();
         });
         db.collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
           projects = {};
@@ -1470,6 +1480,7 @@
       let filter = 'all';
       let page = 0;
       let testiSearch = '';
+      let testiSortAsc = false;
       const perPage = 5;
       function render(allTestimonials) {
         const filterEl = document.getElementById('testiFilterAdmin');
@@ -1486,6 +1497,9 @@
           const q = testiSearch.toLowerCase();
           filtered = filtered.filter(t => (t.name||'').toLowerCase().includes(q) || (t.email||t.userEmail||'').toLowerCase().includes(q) || (t.text||'').toLowerCase().includes(q));
         }
+        if (testiSortAsc) filtered = [...filtered].reverse();
+        const sortBtn = document.getElementById('sortTestiBtn');
+        if (sortBtn) sortBtn.innerHTML = '<i class="fas fa-sort"></i> ' + (testiSortAsc ? 'Terlama' : 'Terbaru');
         if (filter === 'pending') filtered = filtered.filter(t => !t.visible);
         else if (filter === 'visible') filtered = filtered.filter(t => t.visible);
         const totalPages = Math.ceil(filtered.length / perPage) || 1;
@@ -1503,7 +1517,7 @@
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-weight:600;font-size:.9rem;">' + esc(d.name) + adminBadge(d.isAdmin) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
             + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.role || '') + '</div>'
-            + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.email || d.userEmail || '') + '</div>'
+            + '<div style="font-size:.8rem;color:var(--text-light);">' + maskEmail(d.email || d.userEmail || '') + '</div>'
             + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + esc(d.text) + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
             + '<div style="font-size:.75rem;color:var(--text-light);margin-top:6px;">' + (d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '') + '</div>'
@@ -1550,6 +1564,9 @@
         testiSearch = this.value;
         page = 0;
         render(allTestimonials);
+      });
+      document.getElementById('sortTestiBtn')?.addEventListener('click', function() {
+        testiSortAsc = !testiSortAsc; page = 0; render(allTestimonials);
       });
       // reset filter button styles on init
       document.querySelectorAll('#testiFilterAdmin .testi-filter-btn').forEach(b => {
