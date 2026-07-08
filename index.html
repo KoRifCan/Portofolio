@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alex Rivera · Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      line-height: 1.6;
+    }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    img { max-width: 100%; display: block; }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(248,250,252,.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,.05);
+      z-index: 1000;
+    }
+    nav .container { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -.02em; }
+    .logo span { color: #6366f1; }
+    .nav-links { display: flex; gap: 32px; font-size: .9rem; font-weight: 500; }
+    .nav-links a { transition: color .2s; position: relative; }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 2px; background: #6366f1;
+      transition: width .25s;
+    }
+    .nav-links a:hover { color: #6366f1; }
+    .nav-links a:hover::after { width: 100%; }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
+    .hamburger span { width: 24px; height: 2px; background: #0f172a; border-radius: 2px; transition: .3s; }
+
+    /* Sections */
+    section { padding: 100px 0; }
+    .section-title {
+      font-size: 2rem; font-weight: 700; margin-bottom: 12px;
+      letter-spacing: -.03em;
+    }
+    .section-subtitle {
+      color: #64748b; font-size: 1.05rem; max-width: 540px;
+      margin-bottom: 48px;
+    }
+    .text-center { text-align: center; }
+    .text-center .section-subtitle { margin-left: auto; margin-right: auto; }
+
+    /* Hero */
+    #hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding-top: 64px;
+    }
+    #hero .container { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .hero-content h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800; line-height: 1.1; letter-spacing: -.04em;
+      margin-bottom: 16px;
+    }
+    .hero-content h1 span { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-content p { font-size: 1.1rem; color: #475569; margin-bottom: 32px; max-width: 480px; }
+    .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; border-radius: 12px; font-weight: 600; font-size: .95rem;
+      transition: all .25s; cursor: pointer; border: none;
+    }
+    .btn-primary { background: #0f172a; color: #fff; }
+    .btn-primary:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,.15); }
+    .btn-outline { background: transparent; color: #0f172a; border: 2px solid #e2e8f0; }
+    .btn-outline:hover { border-color: #6366f1; color: #6366f1; transform: translateY(-2px); }
+    .hero-image { position: relative; }
+    .hero-image .img-wrapper {
+      width: 100%; aspect-ratio: 1; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 6rem; color: #fff;
+      position: relative;
+    }
+    .hero-image .img-wrapper::after {
+      content: ''; position: absolute; inset: -8px;
+      border-radius: 50%; border: 2px solid rgba(99,102,241,.2);
+      animation: pulse-ring 2s infinite;
+    }
+    @keyframes pulse-ring { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(1.08); opacity: 0; } }
+    .hero-socials { display: flex; gap: 16px; margin-top: 32px; }
+    .hero-socials a {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: #fff; border: 1px solid #e2e8f0;
+      display: grid; place-items: center; font-size: 1.15rem;
+      color: #64748b; transition: all .2s;
+    }
+    .hero-socials a:hover { background: #6366f1; color: #fff; border-color: #6366f1; transform: translateY(-2px); }
+
+    /* About */
+    #about { background: #fff; }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .about-text p { color: #475569; margin-bottom: 16px; font-size: 1.05rem; }
+    .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .stat-card {
+      background: #f8fafc; border-radius: 16px; padding: 24px; text-align: center;
+      border: 1px solid #f1f5f9; transition: transform .2s;
+    }
+    .stat-card:hover { transform: translateY(-4px); }
+    .stat-card .number { font-size: 2rem; font-weight: 800; color: #6366f1; }
+    .stat-card .label { font-size: .85rem; color: #64748b; margin-top: 4px; }
+
+    /* Skills */
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
+    .skill-item {
+      background: #fff; border: 1px solid #f1f5f9;
+      border-radius: 14px; padding: 24px 16px; text-align: center;
+      transition: all .25s; cursor: default;
+    }
+    .skill-item:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #6366f1; }
+    .skill-item i { font-size: 2rem; color: #6366f1; margin-bottom: 10px; }
+    .skill-item .name { font-weight: 600; font-size: .9rem; }
+    .skill-item .level { font-size: .75rem; color: #94a3b8; margin-top: 4px; }
+
+    /* Experience */
+    #experience { background: #fff; }
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px;
+      width: 2px; background: #e2e8f0;
+    }
+    .timeline-item { position: relative; margin-bottom: 40px; }
+    .timeline-item::before {
+      content: ''; position: absolute; left: -26px; top: 6px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #6366f1; border: 3px solid #fff; box-shadow: 0 0 0 2px #6366f1;
+    }
+    .timeline-item .date { font-size: .85rem; color: #6366f1; font-weight: 600; margin-bottom: 4px; }
+    .timeline-item h3 { font-size: 1.15rem; font-weight: 700; }
+    .timeline-item .company { color: #64748b; font-weight: 500; margin-bottom: 8px; }
+    .timeline-item p { color: #475569; font-size: .95rem; }
+
+    /* Projects */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .project-card {
+      background: #fff; border-radius: 18px; overflow: hidden;
+      border: 1px solid #f1f5f9; transition: all .3s;
+    }
+    .project-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(0,0,0,.07); }
+    .project-card .thumb {
+      height: 200px; background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; color: rgba(255,255,255,.3);
+    }
+    .project-card:nth-child(2) .thumb { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .project-card:nth-child(3) .thumb { background: linear-gradient(135deg, #10b981, #06b6d4); }
+    .project-card:nth-child(4) .thumb { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+    .project-card .body { padding: 24px; }
+    .project-card .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .project-card .tags span {
+      font-size: .75rem; font-weight: 600; padding: 4px 12px;
+      border-radius: 20px; background: #f1f5f9; color: #475569;
+    }
+    .project-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+    .project-card p { color: #64748b; font-size: .9rem; margin-bottom: 16px; }
+    .project-card .links { display: flex; gap: 16px; }
+    .project-card .links a { font-size: .85rem; font-weight: 600; color: #6366f1; transition: color .2s; }
+    .project-card .links a:hover { color: #4338ca; }
+
+    /* Testimonials */
+    #testimonials { background: #fff; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .testimonial-card {
+      background: #f8fafc; border: 1px solid #f1f5f9;
+      border-radius: 18px; padding: 32px; transition: transform .2s;
+    }
+    .testimonial-card:hover { transform: translateY(-4px); }
+    .testimonial-card .stars { color: #f59e0b; font-size: .9rem; margin-bottom: 12px; }
+    .testimonial-card blockquote { color: #334155; font-style: italic; margin-bottom: 16px; font-size: .95rem; }
+    .testimonial-card .author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-card .author .avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #6366f1; display: grid; place-items: center;
+      color: #fff; font-weight: 700; font-size: 1.1rem;
+    }
+    .testimonial-card .author .name { font-weight: 600; font-size: .9rem; }
+    .testimonial-card .author .role { font-size: .8rem; color: #94a3b8; }
+
+    /* Contact */
+    #contact { background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; }
+    #contact .section-title { color: #fff; }
+    #contact .section-subtitle { color: #94a3b8; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+    .contact-info h3 { font-size: 1.3rem; margin-bottom: 16px; }
+    .contact-info p { color: #94a3b8; margin-bottom: 24px; }
+    .contact-info .item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; color: #cbd5e1; }
+    .contact-info .item i { width: 20px; color: #6366f1; }
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .contact-form input,
+    .contact-form textarea {
+      padding: 14px 18px; border-radius: 12px; border: 1px solid #334155;
+      background: #1e293b; color: #fff; font-family: inherit; font-size: .95rem;
+      transition: border-color .2s;
+    }
+    .contact-form input:focus,
+    .contact-form textarea:focus { outline: none; border-color: #6366f1; }
+    .contact-form textarea { resize: vertical; min-height: 120px; }
+    .contact-form .btn-primary { background: #6366f1; justify-content: center; }
+    .contact-form .btn-primary:hover { background: #4f46e5; }
+
+    /* Footer */
+    footer {
+      background: #0f172a; border-top: 1px solid #1e293b;
+      padding: 32px 0; text-align: center; color: #64748b; font-size: .9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0;
+        background: rgba(248,250,252,.98); flex-direction: column; padding: 24px;
+        gap: 16px; border-bottom: 1px solid #e2e8f0;
+      }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; }
+      #hero .container { grid-template-columns: 1fr; text-align: center; gap: 32px; }
+      .hero-content p { margin-left: auto; margin-right: auto; }
+      .hero-buttons { justify-content: center; }
+      .hero-socials { justify-content: center; }
+      .hero-image .img-wrapper { width: 240px; margin: 0 auto; font-size: 4rem; }
+      .about-grid { grid-template-columns: 1fr; }
+      .about-text { order: 2; }
+      .about-stats { order: 1; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container">
+      <div class="logo">Alex<span>.</span></div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#hero">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1>Hi, I'm <span>Alex Rivera</span><br />Full-Stack Developer</h1>
+        <p>I build beautiful, accessible, and performant digital experiences. Passionate about clean code, thoughtful design, and products that make a difference.</p>
+        <div class="hero-buttons">
+          <a href="#projects" class="btn btn-primary">View My Work <i class="fas fa-arrow-right"></i></a>
+          <a href="#contact" class="btn btn-outline">Get in Touch</a>
+        </div>
+        <div class="hero-socials">
+          <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+          <a href="#" aria-label="Dribbble"><i class="fab fa-dribbble"></i></a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="img-wrapper">
+          <i class="fas fa-user-astronaut"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="container">
+      <div class="section-title">About Me</div>
+      <div class="section-subtitle">A quick overview of who I am and what I do.</div>
+      <div class="about-grid">
+        <div class="about-text">
+          <p>I'm a full-stack developer based in San Francisco with 5+ years of experience building web applications. I love turning complex problems into simple, beautiful solutions.</p>
+          <p>My journey started with a curiosity about how websites work, which led me to study Computer Science at Stanford. Since then, I've worked with startups and agencies, helping them ship products that users love.</p>
+          <p>When I'm not coding, you'll find me hiking, reading sci-fi, or experimenting with new recipes.</p>
+        </div>
+        <div class="about-stats">
+          <div class="stat-card"><div class="number">5+</div><div class="label">Years Experience</div></div>
+          <div class="stat-card"><div class="number">50+</div><div class="label">Projects Done</div></div>
+          <div class="stat-card"><div class="number">30+</div><div class="label">Happy Clients</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills -->
+  <section id="skills">
+    <div class="container text-center">
+      <div class="section-title">Skills &amp; Tools</div>
+      <div class="section-subtitle">Technologies I work with on a daily basis.</div>
+      <div class="skills-grid">
+        <div class="skill-item"><i class="fab fa-html5"></i><div class="name">HTML</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-css3-alt"></i><div class="name">CSS</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-js"></i><div class="name">JavaScript</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-react"></i><div class="name">React</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-node-js"></i><div class="name">Node.js</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-python"></i><div class="name">Python</div><div class="level">Intermediate</div></div>
+        <div class="skill-item"><i class="fab fa-vuejs"></i><div class="name">Vue</div><div class="level">Intermediate</div></div>
+        <div class="skill-item"><i class="fas fa-database"></i><div class="name">SQL</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-docker"></i><div class="name">Docker</div><div class="level">Intermediate</div></div>
+        <div class="skill-item"><i class="fab fa-git-alt"></i><div class="name">Git</div><div class="level">Advanced</div></div>
+        <div class="skill-item"><i class="fab fa-figma"></i><div class="name">Figma</div><div class="level">Intermediate</div></div>
+        <div class="skill-item"><i class="fas fa-cloud"></i><div class="name">AWS</div><div class="level">Intermediate</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experience -->
+  <section id="experience">
+    <div class="container">
+      <div class="section-title">Experience</div>
+      <div class="section-subtitle">My professional journey so far.</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="date">2022 – Present</div>
+          <h3>Senior Full-Stack Developer</h3>
+          <div class="company">TechFlow Inc. · San Francisco, CA</div>
+          <p>Leading frontend architecture for a SaaS platform serving 50K+ users. Built a design system, improved Lighthouse scores by 40%, and mentored 3 juniors.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="date">2020 – 2022</div>
+          <h3>Full-Stack Developer</h3>
+          <div class="company">Bright Studio · New York, NY</div>
+          <p>Built 15+ client websites and web apps using React, Node.js, and headless CMS platforms. Delivered projects on time and under budget.</p>
+        </div>
+        <div class="timeline-item">
+          <div class="date">2019 – 2020</div>
+          <h3>Junior Developer</h3>
+          <div class="company">WebCraft Agency · Remote</div>
+          <p>Developed responsive landing pages, email templates, and WordPress themes. Collaborated with designers and senior devs in agile sprints.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projects -->
+  <section id="projects">
+    <div class="container text-center">
+      <div class="section-title">Featured Projects</div>
+      <div class="section-subtitle">Some things I've built recently.</div>
+      <div class="projects-grid">
+        <div class="project-card">
+          <div class="thumb"><i class="fas fa-store"></i></div>
+          <div class="body">
+            <div class="tags"><span>React</span><span>Node.js</span><span>Stripe</span></div>
+            <h3>ShopWave</h3>
+            <p>A full-featured e-commerce platform with real-time inventory, payment processing, and admin dashboards.</p>
+            <div class="links"><a href="#">Live Demo <i class="fas fa-external-link-alt"></i></a><a href="#">Source Code</a></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="thumb"><i class="fas fa-brain"></i></div>
+          <div class="body">
+            <div class="tags"><span>Python</span><span>TensorFlow</span><span>FastAPI</span></div>
+            <h3>InsightAI</h3>
+            <p>ML-powered analytics tool that summarizes documents and generates actionable business insights in real time.</p>
+            <div class="links"><a href="#">Live Demo <i class="fas fa-external-link-alt"></i></a><a href="#">Source Code</a></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="thumb"><i class="fas fa-leaf"></i></div>
+          <div class="body">
+            <div class="tags"><span>Vue</span><span>Firebase</span><span>Mapbox</span></div>
+            <h3>EcoTrack</h3>
+            <p>A carbon footprint tracker with interactive maps, community challenges, and personalized reduction tips.</p>
+            <div class="links"><a href="#">Live Demo <i class="fas fa-external-link-alt"></i></a><a href="#">Source Code</a></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="thumb"><i class="fas fa-palette"></i></div>
+          <div class="body">
+            <div class="tags"><span>Next.js</span><span>TypeScript</span><span>Tailwind</span></div>
+            <h3>DesignPort</h3>
+            <p>A portfolio CMS for designers with drag-and-drop blocks, custom themes, and built-in SEO optimization.</p>
+            <div class="links"><a href="#">Live Demo <i class="fas fa-external-link-alt"></i></a><a href="#">Source Code</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section id="testimonials">
+    <div class="container text-center">
+      <div class="section-title">What People Say</div>
+      <div class="section-subtitle">Kind words from colleagues and clients.</div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <blockquote>"Alex is one of the most talented developers I've worked with. His attention to detail and ability to solve complex problems is unmatched."</blockquote>
+          <div class="author">
+            <div class="avatar">SM</div>
+            <div><div class="name">Sarah Mitchell</div><div class="role">CTO, TechFlow</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <blockquote>"Working with Alex was a pleasure. He delivered our platform on time, communicated clearly, and the end result exceeded our expectations."</blockquote>
+          <div class="author">
+            <div class="avatar">JD</div>
+            <div><div class="name">James Davidson</div><div class="role">Founder, Bright Studio</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <blockquote>"Alex has a rare combination of technical skill and design sense. He doesn't just write code — he crafts experiences."</blockquote>
+          <div class="author">
+            <div class="avatar">EL</div>
+            <div><div class="name">Emily Liu</div><div class="role">Product Designer, Freelance</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-title">Get in Touch</div>
+      <div class="section-subtitle">Have a project in mind? Let's talk.</div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <h3>Let's build something great together.</h3>
+          <p>I'm always open to new opportunities, collaborations, or just a friendly chat. Reach out and I'll get back to you within 24 hours.</p>
+          <div class="item"><i class="fas fa-envelope"></i> alex@rivera.dev</div>
+          <div class="item"><i class="fas fa-phone"></i> +1 (415) 555-0192</div>
+          <div class="item"><i class="fas fa-map-marker-alt"></i> San Francisco, CA</div>
+          <div class="item" style="margin-top:16px;"><i class="fab fa-github"></i> github.com/alexrivera</div>
+        </div>
+        <form class="contact-form" onsubmit="event.preventDefault(); alert('Thanks for reaching out! I\'ll get back to you soon.');">
+          <input type="text" placeholder="Your Name" required />
+          <input type="email" placeholder="Your Email" required />
+          <input type="text" placeholder="Subject" />
+          <textarea placeholder="Your Message" required></textarea>
+          <button type="submit" class="btn btn-primary">Send Message <i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      &copy; 2026 Alex Rivera. Built with <i class="fas fa-heart" style="color:#ef4444;"></i> and lots of <i class="fas fa-coffee"></i>.
+    </div>
+  </footer>
+
+  <script>
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    hamburger.addEventListener('click', () => navLinks.classList.toggle('open'));
+    document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => navLinks.classList.remove('open')));
+  </script>
+</body>
+</html>
