@@ -1135,8 +1135,10 @@
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies) + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
+            + '<div style="display:flex;gap:8px;">'
             + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="background:none;border:none;color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
-            + '</div></div>';
+            + (currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com') ? '<button onclick="deleteTesti(\'' + d._id + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
+            + '</div></div></div>';
         }).join('');
         const totalPages = Math.ceil(filtered.length / perPage);
         pag.innerHTML = '<button id="testiPrev" ' + (page <= 0 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i> Sebelumnya</button>'
@@ -1516,14 +1518,26 @@
 
     async function deleteTesti(id) {
       if (!currentUser) return showToast('Login dulu!');
-      const doc = await db.collection('userProfiles').doc(currentUser.uid).get().catch(() => null);
-      const role = doc?.exists ? doc.data().role : null;
-      if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com') { showToast('Hanya admin yang bisa menghapus testimoni.'); return; }
-      if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com') {
-        db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
+      const doc = await db.collection('testimonials').doc(id).get().catch(() => null);
+      if (!doc || !doc.exists) return showToast('Testimoni tidak ditemukan.');
+      const testi = doc.data();
+      if (testi.userId === currentUser.uid) { /* own testimonial, ok */ }
+      else {
+        const prof = await db.collection('userProfiles').doc(currentUser.uid).get().catch(() => null);
+        const role = prof?.exists ? prof.data().role : null;
+        if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com') { showToast('Hanya admin yang bisa menghapus testimoni ini.'); return; }
+        if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com') {
+          db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
+        }
       }
       if (!await showConfirm('Hapus testimoni ini?')) return;
-      db.collection('testimonials').doc(id).delete().catch(e => showToast(e.message));
+      doc.ref.collection('replies').get().then(snap => {
+        const batch = db.batch();
+        snap.forEach(d => batch.delete(d.ref));
+        if (snap.size) batch.commit();
+      }).catch(() => {});
+      doc.ref.delete().catch(e => showToast(e.message));
+      showToast('Testimoni dihapus!');
     }
 
 
