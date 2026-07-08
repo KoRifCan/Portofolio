@@ -719,16 +719,20 @@
       <h2 id="loginTitle" style="margin-bottom:8px;">Login</h2>
       <p id="loginSub" style="color:var(--text-light);margin-bottom:24px;font-size:.9rem;">Masuk untuk memberi rating</p>
       <div id="loginFields">
+        <div id="registerExtra" style="display:none;">
+          <input id="regName" type="text" placeholder="Nama Lengkap" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
+          <input id="regPhone" type="tel" placeholder="Nomor HP" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
+        </div>
         <input id="loginEmail" type="email" placeholder="Email" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-bottom:12px;font-family:inherit;">
         <div style="position:relative;">
           <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;padding-right:44px;">
           <span id="togglePass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-light);font-size:1.1rem;" onclick="togglePassword()"><i class="far fa-eye"></i></span>
         </div>
-        <div style="text-align:right;margin-bottom:16px;">
+        <div style="text-align:right;margin-bottom:16px;" id="forgotRow">
           <a href="#" onclick="forgotPassword()" style="font-size:.8rem;color:#6366f1;font-weight:500;">Lupa password?</a>
         </div>
-        <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;">Masuk</button>
-        <button onclick="handleRegister()" class="btn btn-outline" style="width:100%;justify-content:center;">Daftar Akun Baru</button>
+        <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;" id="loginSubmitBtn">Masuk</button>
+        <button onclick="toggleRegisterMode()" class="btn btn-outline" style="width:100%;justify-content:center;" id="registerToggleBtn">Daftar Akun Baru</button>
       </div>
       <div id="loginSuccess" style="display:none;text-align:center;padding:20px 0;">
         <i class="fas fa-check-circle" style="font-size:3rem;color:#10b981;"></i>
@@ -793,15 +797,50 @@
     });
 
     // ===== LOGIN MODAL =====
+    let isRegisterMode = false;
+
     function openLogin() {
       document.getElementById('loginModal').style.display = 'grid';
       document.getElementById('loginFields').style.display = 'block';
       document.getElementById('loginSuccess').style.display = 'none';
+      isRegisterMode = false;
+      document.getElementById('registerExtra').style.display = 'none';
+      document.getElementById('forgotRow').style.display = 'block';
+      document.getElementById('loginSubmitBtn').textContent = 'Masuk';
+      document.getElementById('registerToggleBtn').textContent = 'Daftar Akun Baru';
+      document.getElementById('loginTitle').textContent = 'Login';
+      document.getElementById('loginSub').textContent = 'Masuk untuk memberi rating';
     }
     function closeLogin() { document.getElementById('loginModal').style.display = 'none'; }
     document.getElementById('loginModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeLogin(); });
 
+    function toggleRegisterMode() {
+      isRegisterMode = !isRegisterMode;
+      const extra = document.getElementById('registerExtra');
+      const forgot = document.getElementById('forgotRow');
+      const btn = document.getElementById('loginSubmitBtn');
+      const toggle = document.getElementById('registerToggleBtn');
+      const title = document.getElementById('loginTitle');
+      const sub = document.getElementById('loginSub');
+      if (isRegisterMode) {
+        extra.style.display = 'block';
+        forgot.style.display = 'none';
+        btn.textContent = 'Daftar';
+        toggle.textContent = 'Sudah punya akun? Masuk';
+        title.textContent = 'Daftar Akun Baru';
+        sub.textContent = 'Isi data untuk membuat akun baru.';
+      } else {
+        extra.style.display = 'none';
+        forgot.style.display = 'block';
+        btn.textContent = 'Masuk';
+        toggle.textContent = 'Daftar Akun Baru';
+        title.textContent = 'Login';
+        sub.textContent = 'Masuk untuk memberi rating';
+      }
+    }
+
     function handleLogin() {
+      if (isRegisterMode) { handleRegister(); return; }
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
       if (!email || !pass) return showToast('Isi email dan password!');
@@ -816,9 +855,18 @@
     function handleRegister() {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPass').value;
+      const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
       if (!email || !pass) return showToast('Isi email dan password dulu!');
       if (pass.length < 6) return showToast('Password minimal 6 karakter.');
+      if (!name) return showToast('Nama lengkap wajib diisi!');
       auth.createUserWithEmailAndPassword(email, pass)
+        .then(cred => {
+          return db.collection('userProfiles').doc(cred.user.uid).set({
+            name, phone, email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
         .catch(e => {
           if (e.code === 'auth/email-already-in-use') showToast('Email sudah terdaftar. Klik "Masuk" bukan "Daftar".');
@@ -863,7 +911,9 @@
       document.body.appendChild(profileMenu);
     }
 
-    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+    document.getElementById('loginPass').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { if (isRegisterMode) handleRegister(); else handleLogin(); }
+    });
 
     // ===== TESTIMONIALS CRUD =====
     let testiManager = null;
