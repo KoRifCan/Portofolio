@@ -719,6 +719,7 @@
           <input type="text" name="subject" placeholder="Subjek" />
           <textarea name="message" placeholder="Pesan Anda" required></textarea>
           <input type="checkbox" name="botcheck" style="display:none" />
+          <div class="h-captcha" data-captcha="true" style="margin-bottom:8px;"></div>
           <button type="submit" class="btn btn-primary">Kirim Pesan <i class="fas fa-paper-plane"></i></button>
         </form>
       </div>
@@ -2142,6 +2143,15 @@
     document.getElementById('langToggle').addEventListener('click', () => {
       applyLang(currentLang === 'id' ? 'en' : 'id');
     });
+
+    document.querySelector('.contact-form')?.addEventListener('submit', function(e) {
+      const hCaptcha = this.querySelector('textarea[name=h-captcha-response]')?.value;
+      if (!hCaptcha) {
+        e.preventDefault();
+        showToast('Harap selesaikan captcha!');
+      }
+    });
   </script>
+  <script src="https://web3forms.com/client/script.js" async defer></script>
 </body>
 </html>
