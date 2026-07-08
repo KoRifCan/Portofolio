@@ -622,7 +622,10 @@
       if (!email || !pass) return showToast('Isi email dan password!');
       auth.signInWithEmailAndPassword(email, pass)
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
-        .catch(e => showToast(e.message));
+        .catch(e => {
+          if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
+          else showToast('Email atau password salah.');
+        });
     }
 
     function handleRegister() {
@@ -634,6 +637,7 @@
         .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
         .catch(e => {
           if (e.code === 'auth/email-already-in-use') showToast('Email sudah terdaftar. Klik "Masuk" bukan "Daftar".');
+          else if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
           else showToast(e.message);
         });
     }
@@ -750,7 +754,10 @@
         if (!selected) return;
         db.collection('ratings').add({ project: proj, userId: currentUser.uid, userEmail: currentUser.email, rating: selected, createdAt: firebase.firestore.FieldValue.serverTimestamp() })
           .then(() => { picker.remove(); })
-          .catch(e => showToast(e.message));
+        .catch(e => {
+          if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
+          else showToast(e.message);
+        });
       });
     }
 
