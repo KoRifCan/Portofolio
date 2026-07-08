@@ -808,17 +808,13 @@
 
     // ===== AUTH STATE =====
     let currentUser = null;
-    let currentUserIsAdmin = false;
+    let currentUserRole = null;
     auth.onAuthStateChanged(user => {
       currentUser = user;
-      currentUserIsAdmin = false;
+      currentUserRole = null;
       if (user) {
         db.collection('userProfiles').doc(user.uid).get().then(doc => {
-          if (doc.exists && doc.data().role === 'admin') {
-            currentUserIsAdmin = true;
-          } else if (user.email === 'rifan.eko25@gmail.com') {
-            db.collection('userProfiles').doc(user.uid).set({ role: 'admin', email: user.email, name: 'Admin', createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }).then(() => { currentUserIsAdmin = true; }).catch(() => {});
-          }
+          currentUserRole = doc.exists ? doc.data().role : null;
         }).catch(() => {});
       }
       const overlay = document.getElementById('loadingOverlay');
@@ -904,7 +900,7 @@
       auth.createUserWithEmailAndPassword(email, pass)
         .then(cred => {
           return db.collection('userProfiles').doc(cred.user.uid).set({
-            name, phone, email,
+            name, phone, email, role: 'user',
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
@@ -957,7 +953,7 @@
           <span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>
         </div>
         <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
-        <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin, currentUser.email)}</p>
+        <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${adminBadge(isAdmin)}</p>
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:2px;">${currentUser.email}</p>
         <p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">${phone}</p>
         <button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>
@@ -1114,14 +1110,14 @@
           const likeCount = likes.length;
           return '<div class="testimonial-card"><div class="stars">' + stars + '</div>'
             + '<div class="testi-date">' + fmtDate(d.createdAt) + '</div>'
-            + '<blockquote>"' + d.text + '"</blockquote>'
-            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + d.name + adminBadge(d.isAdmin, d.userEmail) + '</div><div class="role">' + (d.role || '') + '</div></div></div>'
+            + '<blockquote>"' + esc(d.text) + '"</blockquote>'
+            + '<div class="author">' + getAvatarHTML(d.name, d.userPhotoURL, 44) + '<div><div class="name">' + esc(d.name) + adminBadge(d.isAdmin) + '</div><div class="role">' + esc(d.role || '') + '</div></div></div>'
             + '<div style="margin:8px 0 0;">' + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div></div>'
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
             + '<div style="display:flex;gap:8px;">'
             + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="background:none;border:none;color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
-            + (currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com') ? '<button onclick="deleteTesti(\'' + d._id + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
+            + (currentUser && (currentUser.uid === d.userId || currentUserRole === 'admin') ? '<button onclick="deleteTesti(\'' + d._id + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
             + '</div></div></div>';
         }).join('');
         const totalPages = Math.ceil(filtered.length / perPage);
@@ -1194,11 +1190,7 @@
       if (profileMenu) { profileMenu.remove(); profileMenu = null; }
       db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
         if (!doc.exists || doc.data().role !== 'admin') {
-          if (currentUser.email === 'rifan.eko25@gmail.com') {
-            db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email, name: 'Admin' }, { merge: true }).then(() => { doOpenAdmin(); }).catch(() => showToast('Gagal verifikasi admin.'));
-          } else {
-            showToast('Hanya pemilik akun yang bisa membuka panel admin.');
-          }
+          showToast('Hanya admin yang bisa membuka panel admin.');
           return;
         }
         doOpenAdmin();
@@ -1309,10 +1301,10 @@
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
             return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
               + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + (d.userName || d.userEmail) + adminBadge(d.isAdmin, d.userEmail) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span>'
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
-              + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div>'
+              + '<div style="font-size:.85rem;margin-top:4px;">' + esc(d.text) + '</div>'
               + renderReplies(d.replies, d._id, 'comment') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
               + '</div>'
               + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
@@ -1360,7 +1352,7 @@
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
             return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;">'
               + getAvatarHTML(d.name, d.photoURL, 40)
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + (d.name || 'Tanpa Nama') + adminBadge(d.role === 'admin', d.email) + '</div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + esc(d.name || 'Tanpa Nama') + adminBadge(d.role === 'admin') + '</div>'
               + '<div style="font-size:.8rem;color:var(--text-light);">' + maskEmail(d.email) + (d.phone ? ' &middot; ' + maskPhone(d.phone) : '') + '</div></div>'
               + '<div style="font-size:.75rem;color:var(--text-light);flex-shrink:0;text-align:right;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;background:' + (d.role === 'admin' ? '#dbeafe' : 'var(--card-bg)') + ';color:' + (d.role === 'admin' ? '#3b82f6' : 'var(--text-light)') + ';">' + (d.role || 'user') + '</span><br>' + date + '</div>'
               + '</div>';
@@ -1437,9 +1429,9 @@
             + '<div style="display:flex;align-items:start;gap:12px;">'
             + getAvatarHTML(d.name, d.userPhotoURL, 40)
             + '<div style="flex:1;min-width:0;">'
-            + '<div style="font-weight:600;font-size:.9rem;">' + d.name + adminBadge(d.isAdmin, d.userEmail) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
-            + '<div style="font-size:.8rem;color:var(--text-light);">' + (d.role || '') + '</div>'
-            + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + d.text + '"</div>'
+            + '<div style="font-weight:600;font-size:.9rem;">' + esc(d.name) + adminBadge(d.isAdmin) + ' <span style="font-size:.7rem;color:' + (d.visible ? '#10b981' : '#f59e0b') + ';">' + (d.visible ? 'Aktif' : 'Pending') + '</span></div>'
+            + '<div style="font-size:.8rem;color:var(--text-light);">' + esc(d.role || '') + '</div>'
+            + '<div style="font-size:.85rem;color:var(--text);margin-top:6px;">"' + esc(d.text) + '"</div>'
             + '<div style="color:#f59e0b;font-size:.8rem;margin-top:4px;">' + '★'.repeat(d.rating) + '☆'.repeat(5 - d.rating) + '</div>'
             + '<div style="font-size:.75rem;color:var(--text-light);margin-top:6px;">' + (d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '') + '</div>'
             + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div>'
@@ -1491,11 +1483,7 @@
     function toggleTesti(id, visible) {
       if (!currentUser) return showToast('Login dulu!');
       db.collection('userProfiles').doc(currentUser.uid).get().then(doc => {
-        const role = doc.exists ? doc.data().role : null;
-        if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com') { showToast('Hanya admin yang bisa mengubah testimoni.'); return; }
-        if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com') {
-          db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
-        }
+        if (!doc.exists || doc.data().role !== 'admin') { showToast('Hanya admin yang bisa mengubah testimoni.'); return; }
         db.collection('testimonials').doc(id).update({ visible }).catch(e => showToast(e.message));
       }).catch(() => showToast('Gagal verifikasi.'));
     }
@@ -1508,11 +1496,7 @@
       if (testi.userId === currentUser.uid) { /* own testimonial, ok */ }
       else {
         const prof = await db.collection('userProfiles').doc(currentUser.uid).get().catch(() => null);
-        const role = prof?.exists ? prof.data().role : null;
-        if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com') { showToast('Hanya admin yang bisa menghapus testimoni & masukan ini.'); return; }
-        if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com') {
-          db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
-        }
+        if (!prof?.exists || prof.data().role !== 'admin') { showToast('Hanya admin yang bisa menghapus testimoni & masukan ini.'); return; }
       }
       if (!await showConfirm('Hapus testimoni & masukan ini?')) return;
       doc.ref.collection('replies').get().then(snap => {
@@ -1568,7 +1552,7 @@
           visible: true,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           userId: currentUser.uid,
-          isAdmin: pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com'
+          isAdmin: pdata.role === 'admin'
         };
         if (pdata.photoURL) testiData.userPhotoURL = pdata.photoURL;
         db.collection('testimonials').add(testiData).then(() => {
@@ -1704,11 +1688,11 @@
       const items = commentsCache.slice(commentsPage * COMMENTS_PER_PAGE, (commentsPage + 1) * COMMENTS_PER_PAGE);
       container.innerHTML = items.map(d => {
         const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
-        const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
+        const canDelete = currentUser && (currentUser.uid === d.userId || currentUserRole === 'admin');
         const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
-        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + adminBadge(d.isAdmin, d.userEmail) + ' <span class="c-date">' + date + '</span>'
+        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + esc(d.userName || d.userEmail) + adminBadge(d.isAdmin) + ' <span class="c-date">' + date + '</span>'
           + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
-          + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies, d._id, 'comment')
+          + '</div><div class="c-text">' + esc(d.text) + '</div>' + renderReplies(d.replies, d._id, 'comment')
           + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
           + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#6366f1;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
           + '</div></div>';
@@ -1751,7 +1735,7 @@
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         if (pdata.photoURL) commentData.userPhotoURL = pdata.photoURL;
-        if (pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com') commentData.isAdmin = true;
+        if (pdata.role === 'admin') commentData.isAdmin = true;
         db.collection('comments').add(commentData).then(() => { input.value = ''; showToast('Komentar terkirim!'); })
         .catch(e => showToast(e.message));
       }).catch(() => {
@@ -1774,11 +1758,8 @@
         const data = doc.data();
         if (currentUser.uid !== data.userId) {
           db.collection('userProfiles').doc(currentUser.uid).get().then(profile => {
-            const role = profile.exists ? profile.data().role : null;
-            if (role !== 'admin' && currentUser.email !== 'rifan.eko25@gmail.com')
+            if (!profile.exists || profile.data().role !== 'admin')
               return showToast('Kamu tidak punya izin menghapus komentar ini.');
-            if (role !== 'admin' && currentUser.email === 'rifan.eko25@gmail.com')
-              db.collection('userProfiles').doc(currentUser.uid).set({ role: 'admin', email: currentUser.email }, { merge: true });
             confirmAndDelete();
           }).catch(() => showToast('Gagal verifikasi.'));
         } else {
@@ -1823,7 +1804,7 @@
             userId: currentUser.uid
           };
           if (pdata.photoURL) replyData.userPhotoURL = pdata.photoURL;
-          if (pdata.role === 'admin' || currentUser.email === 'rifan.eko25@gmail.com') replyData.isAdmin = true;
+          if (pdata.role === 'admin') replyData.isAdmin = true;
           const ref = type === 'comment' ? db.collection('comments').doc(id) : db.collection('testimonials').doc(id);
           ref.collection('replies').add(replyData).then(docRef => {
             showToast('Balasan terkirim!');
@@ -1833,7 +1814,7 @@
               const date = fmtDate();
               const photo = avatarSm(replyData.userPhotoURL, replyData.userName);
               const name = replyData.userName || replyData.userEmail || 'Admin';
-              const badge = adminBadge(replyData.isAdmin, replyData.userEmail);
+              const badge = adminBadge(replyData.isAdmin);
               const del = `<button onclick="deleteSubReply('${id}','${type}','${docRef.id}')" class="reply-delete"><i class="fas fa-trash"></i></button>`;
               target.innerHTML += replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), replyData.text);
             }
@@ -1847,14 +1828,14 @@
       if (!replies || !replies.length) return '';
       return replies.map((r, idx) => {
         const date = formatDate(r.createdAt);
-        const canDelete = currentUser && (currentUser.uid === r.userId || currentUser.email === 'rifan.eko25@gmail.com');
+          const canDelete = currentUser && (currentUser.uid === r.userId || currentUserRole === 'admin');
         const photo = avatarSm(r.userPhotoURL, r.userName);
         const name = r.userName || r.userEmail || 'Admin';
-        const badge = adminBadge(r.isAdmin, r.userEmail);
+        const badge = adminBadge(r.isAdmin);
         const del = canDelete
           ? `<button onclick="deleteReply('${parentId}','${type}',${idx})" class="reply-delete"><i class="fas fa-trash"></i></button>`
           : '';
-        return replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), r.text);
+        return replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), esc(r.text));
       }).join('');
     }
 
@@ -1869,7 +1850,7 @@
           const replies = doc.data().replies || [];
           const reply = replies[idx];
           if (!reply) return showToast('Balasan tidak ditemukan.');
-          if (user.uid !== reply.userId && user.email !== 'rifan.eko25@gmail.com') return showToast('Tidak punya izin.');
+          if (user.uid !== reply.userId && currentUserRole !== 'admin') return showToast('Tidak punya izin.');
           ref.update({ replies: firebase.firestore.FieldValue.arrayRemove(reply) }).then(() => showToast('Balasan dihapus!')).catch(e => showToast(e.message));
         }).catch(e => showToast(e.message));
       });
@@ -1898,14 +1879,14 @@
         snap.forEach(doc => {
           const r = doc.data();
           const date = formatDate(r.createdAt);
-          const canDelete = currentUser && (currentUser.uid === r.userId || currentUser.email === 'rifan.eko25@gmail.com');
+          const canDelete = currentUser && (currentUser.uid === r.userId || currentUserRole === 'admin');
           const photo = avatarSm(r.userPhotoURL, r.userName);
           const name = r.userName || r.userEmail || 'Admin';
-          const badge = adminBadge(r.isAdmin, r.userEmail);
+          const badge = adminBadge(r.isAdmin);
           const del = canDelete
             ? `<button onclick="deleteSubReply('${parentId}','${type}','${doc.id}')" class="reply-delete"><i class="fas fa-trash"></i></button>`
             : '';
-          containerEl.innerHTML += replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), r.text);
+          containerEl.innerHTML += replyCardHTML(replyHeaderHTML(photo, name, badge, date, del), esc(r.text));
         });
       }).catch(() => {});
     }
@@ -1926,8 +1907,8 @@
       const initials = name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?';
       return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:${size * 0.4}px;flex-shrink:0;">${initials}</div>`;
     }
-    function adminBadge(isAdmin, email) {
-      return (isAdmin || email === 'rifan.eko25@gmail.com') ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
+    function adminBadge(isAdmin) {
+      return isAdmin ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
     }
     function formatDate(iso) {
       if (!iso) return '';
@@ -1941,6 +1922,18 @@
     }
     function replyHeaderHTML(photo, name, badge, date, deleteBtn) {
       return `${photo}<span>${name}${badge}</span> <span class="reply-date">${date}</span>${deleteBtn}`;
+    }
+    function sanitize(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+    function esc(str) { return sanitize(str); }
+    function verifyAdmin(uid) {
+      return db.collection('userProfiles').doc(uid).get().then(doc => {
+        return doc.exists && doc.data().role === 'admin';
+      }).catch(() => false);
     }
     function maskEmail(email) {
       if (!email) return '';
