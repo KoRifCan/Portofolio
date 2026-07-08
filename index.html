@@ -929,7 +929,7 @@
         + '<p style="color:var(--text-light);font-size:.82rem;margin-bottom:16px;">' + phone + '</p>'
         + '<button onclick="showEditProfile()" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-edit"></i> Ubah Profil</button>'
         + (currentUser.email === 'rifan.eko25@gmail.com'
-          ? '<button onclick="showTestimonialManager();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-comment-dots"></i> Kelola Testimoni</button>'
+          ? '<button onclick="showAdminPanel();" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> Panel Admin</button>'
           : '<button onclick="showPublicTestiForm(); this.closest(\'div\').parentElement.remove(); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;margin-bottom:8px;"><i class="fas fa-pen"></i> Tulis Testimoni</button>')
         + '<button onclick="auth.signOut(); this.closest(\'div\').parentElement.remove(); showToast(\'Berhasil logout!\'); profileMenu=null;" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#ef4444;color:#ef4444;">Logout <i class="fas fa-sign-out-alt"></i></button>'
         + '<button onclick="this.closest(\'div\').parentElement.remove(); profileMenu=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
@@ -1005,7 +1005,6 @@
     });
 
     // ===== TESTIMONIALS CRUD =====
-    let testiManager = null;
 
     function loadTestimonials() {
       let allTestimonials = [];
@@ -1097,38 +1096,120 @@
       }).catch(e => showToast(e.message));
     }
 
-    function showTestimonialManager() {
+    function showAdminPanel() {
       if (!currentUser || currentUser.email !== 'rifan.eko25@gmail.com') {
-        showToast('Hanya pemilik akun yang bisa kelola testimoni.');
+        showToast('Hanya pemilik akun yang bisa membuka panel admin.');
         return;
       }
       if (profileMenu) { profileMenu.remove(); profileMenu = null; }
-      if (testiManager) { testiManager.remove(); testiManager = null; return; }
-      testiManager = document.createElement('div');
-      testiManager.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.5);overflow-y:auto;padding:24px;display:grid;place-items:start center;';
-      testiManager.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:32px;max-width:560px;width:100%;margin:auto;position:relative;">'
-        + '<button onclick="this.closest(\'div\').parentElement.remove(); testiManager=null;" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
-        + '<h2 style="margin-bottom:20px;">Kelola Testimoni</h2>'
-        + '<div class="testimonial-form">'
-        + '<h3>Tambah Testimoni Baru</h3>'
-        + '<input id="testiName" placeholder="Nama" required>'
-        + '<input id="testiRole" placeholder="Jabatan/Asal (opsional)">'
-        + '<textarea id="testiText" placeholder="Isi testimoni" required></textarea>'
-        + '<select id="testiRating"><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
-        + '<button onclick="saveTestimonial()" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni</button>'
+      let panel = document.getElementById('adminPanel');
+      if (panel) { panel.remove(); return; }
+      panel = document.createElement('div');
+      panel.id = 'adminPanel';
+      panel.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.6);overflow-y:auto;padding:16px;display:grid;place-items:start center;';
+      panel.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:0;max-width:720px;width:100%;margin:auto;position:relative;overflow:hidden;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border-light);background:var(--card-bg-alt);">'
+        + '<h2 style="margin:0;font-size:1.15rem;"><i class="fas fa-shield-alt" style="color:#6366f1;margin-right:8px;"></i>Panel Admin</h2>'
+        + '<button onclick="this.closest(\'#adminPanel\').remove();" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>'
-        + '<h3 style="margin-bottom:12px;">Testimoni Tersimpan</h3>'
-        + '<div id="testiList"></div>'
+        + '<div style="display:flex;gap:0;border-bottom:1px solid var(--border-light);background:var(--bg);">'
+        + '<button class="admin-tab active" data-tab="dashboard" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text);font-size:.85rem;font-weight:500;border-bottom:2px solid #6366f1;"><i class="fas fa-chart-pie"></i> Dashboard</button>'
+        + '<button class="admin-tab" data-tab="testimonials" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-size:.85rem;"><i class="fas fa-comment-dots"></i> Testimoni</button>'
+        + '<button class="admin-tab" data-tab="comments" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-size:.85rem;"><i class="fas fa-comments"></i> Komentar</button>'
+        + '<button class="admin-tab" data-tab="users" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-size:.85rem;"><i class="fas fa-users"></i> Pengguna</button>'
+        + '</div>'
+        + '<div id="adminContent" style="padding:24px;max-height:70vh;overflow-y:auto;"></div>'
         + '</div>';
-      document.body.appendChild(testiManager);
-      loadTestiList();
+      document.body.appendChild(panel);
+      panel.querySelectorAll('.admin-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          panel.querySelectorAll('.admin-tab').forEach(t => { t.style.borderBottomColor = 'transparent'; t.style.color = 'var(--text-light)'; t.classList.remove('active'); });
+          tab.style.borderBottomColor = '#6366f1'; tab.style.color = 'var(--text)'; tab.classList.add('active');
+          loadAdminTab(tab.dataset.tab);
+        });
+      });
+      loadAdminTab('dashboard');
+    }
+
+    function loadAdminTab(tab) {
+      const content = document.getElementById('adminContent');
+      if (!content) return;
+      if (tab === 'dashboard') {
+        content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>';
+        Promise.all([
+          db.collection('testimonials').get(),
+          db.collection('comments').get(),
+          db.collection('userProfiles').get(),
+          db.collection('ratings').get()
+        ]).then(([testiSnap, commSnap, usersSnap, ratingSnap]) => {
+          const testiCount = testiSnap.size;
+          const visibleTesti = testiSnap.docs.filter(d => d.data().visible).length;
+          const hiddenTesti = testiCount - visibleTesti;
+          content.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">'
+            + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + testiCount + '</div><div style="font-size:.8rem;color:var(--text-light);">Total Testimoni</div></div>'
+            + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + visibleTesti + '</div><div style="font-size:.8rem;color:var(--text-light);">Testimoni Aktif</div></div>'
+            + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + hiddenTesti + '</div><div style="font-size:.8rem;color:var(--text-light);">Testimoni Tersembunyi</div></div>'
+            + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + commSnap.size + '</div><div style="font-size:.8rem;color:var(--text-light);">Total Komentar</div></div>'
+            + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + usersSnap.size + '</div><div style="font-size:.8rem;color:var(--text-light);">Pengguna Terdaftar</div></div>'
+            + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + ratingSnap.size + '</div><div style="font-size:.8rem;color:var(--text-light);">Total Rating</div></div>'
+            + '</div>'
+            + '<div style="text-align:center;padding:12px;background:var(--card-bg-alt);border-radius:12px;font-size:.85rem;color:var(--text-light);">'
+            + '<i class="fas fa-info-circle"></i> Gunakan tab di atas untuk mengelola testimoni, komentar, dan pengguna.'
+            + '</div>';
+        }).catch(() => {
+          content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat data.</p>';
+        });
+      } else if (tab === 'testimonials') {
+        content.innerHTML = '<div class="testimonial-form" style="margin-bottom:20px;">'
+          + '<h3 style="margin-bottom:12px;font-size:.95rem;">Tambah Testimoni Baru</h3>'
+          + '<input id="testiName" placeholder="Nama" required>'
+          + '<input id="testiRole" placeholder="Jabatan/Asal (opsional)">'
+          + '<textarea id="testiText" placeholder="Isi testimoni" required></textarea>'
+          + '<select id="testiRating"><option value="5">5 Bintang</option><option value="4">4 Bintang</option><option value="3">3 Bintang</option><option value="2">2 Bintang</option><option value="1">1 Bintang</option></select>'
+          + '<button onclick="saveTestimonial();loadAdminTab(\'testimonials\');" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Testimoni</button>'
+          + '</div>'
+          + '<h3 style="margin-bottom:12px;font-size:.95rem;">Semua Testimoni</h3>'
+          + '<div id="testiList"></div>';
+        loadTestiList();
+      } else if (tab === 'comments') {
+        content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat komentar...</p>';
+        db.collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
+          if (snap.empty) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>'; return; }
+          content.innerHTML = snap.docs.map(doc => {
+            const d = doc.data();
+            const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+            return '<div style="background:var(--card-bg-alt);border:1px solid var(--border-light);border-radius:12px;padding:14px;margin-bottom:10px;text-align:left;">'
+              + '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;">'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.85rem;">' + d.userEmail + ' <span style="font-weight:400;color:var(--text-light);font-size:.75rem;">' + date + '</span></div>'
+              + '<div style="font-size:.85rem;margin-top:4px;">' + d.text + '</div></div>'
+              + '<button onclick="deleteComment(\'' + doc.id + '\')" style="flex-shrink:0;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
+              + '</div></div>';
+          }).join('');
+        }, () => { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat komentar.</p>'; });
+      } else if (tab === 'users') {
+        content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat pengguna...</p>';
+        db.collection('userProfiles').orderBy('createdAt', 'desc').onSnapshot(snap => {
+          if (snap.empty) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada pengguna.</p>'; return; }
+          content.innerHTML = '<div style="display:grid;gap:8px;">' + snap.docs.map(doc => {
+            const d = doc.data();
+            const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric' }) : '-';
+            const initials = (d.name || d.email || '?')[0].toUpperCase();
+            return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;">'
+              + '<div style="width:40px;height:40px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;flex-shrink:0;">' + initials + '</div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + (d.name || 'Tanpa Nama') + '</div>'
+              + '<div style="font-size:.8rem;color:var(--text-light);">' + d.email + (d.phone ? ' &middot; ' + d.phone : '') + '</div></div>'
+              + '<div style="font-size:.75rem;color:var(--text-light);flex-shrink:0;">' + date + '</div>'
+              + '</div>';
+          }).join('') + '</div>';
+        }, () => { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat pengguna.</p>'; });
+      }
     }
 
     function saveTestimonial() {
-      const name = document.getElementById('testiName').value.trim();
-      const text = document.getElementById('testiText').value.trim();
-      const role = document.getElementById('testiRole').value.trim();
-      const rating = parseInt(document.getElementById('testiRating').value);
+      const name = document.getElementById('testiName')?.value.trim();
+      const text = document.getElementById('testiText')?.value.trim();
+      const role = document.getElementById('testiRole')?.value.trim();
+      const rating = parseInt(document.getElementById('testiRating')?.value || '5');
       if (!name || !text) return showToast('Nama dan isi testimoni wajib diisi!');
       db.collection('testimonials').add({
         name, text, role, rating,
@@ -1136,10 +1217,6 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         userId: currentUser.uid
       }).then(() => {
-        document.getElementById('testiName').value = '';
-        document.getElementById('testiText').value = '';
-        document.getElementById('testiRole').value = '';
-        document.getElementById('testiRating').value = '5';
         showToast('Testimoni berhasil ditambahkan!');
       }).catch(e => showToast(e.message));
     }
