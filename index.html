@@ -1650,60 +1650,60 @@
     function toggleComment(btn) {
       const area = btn.nextElementSibling;
       const open = area.classList.toggle('open');
-      btn.querySelector('span').textContent = open ? 'Tutup Komentar' : 'Komentar';
       btn.querySelector('i').className = open ? 'fas fa-comment' : 'far fa-comment';
       if (open) {
         const form = area.querySelector('.comment-form');
         const msg = area.querySelector('#commentLoginMsg');
         if (currentUser) { form.style.display = 'block'; msg.style.display = 'none'; }
         else { form.style.display = 'none'; msg.style.display = 'block'; }
-        loadComments();
+        renderComments();
       }
     }
-    function loadComments() {
+    let commentsCache = null;
+    let commentsPage = 0;
+    const COMMENTS_PER_PAGE = 4;
+    function renderComments() {
       const container = document.getElementById('commentsContainer');
       if (!container) return;
-      let allItems = [];
-      let page = 0;
-      const perPage = 4;
-      function render() {
-        const totalPages = Math.ceil(allItems.length / perPage) || 1;
-        if (page >= totalPages) page = totalPages - 1;
-        const items = allItems.slice(page * perPage, (page + 1) * perPage);
-        container.innerHTML = items.map(d => {
-          const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
-          const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
-          const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
-          return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
-            + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
-            + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies)
-            + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
-            + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#6366f1;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
-            + '</div></div>';
-        }).join('');
-        if (totalPages > 1) {
-          container.innerHTML += '<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;">'
-            + '<button id="comPrev" ' + (page <= 0 ? 'disabled' : '') + ' style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">&laquo;</button>'
-            + '<span style="font-size:.82rem;color:var(--text-light);">' + (page + 1) + ' / ' + totalPages + '</span>'
-            + '<button id="comNext" ' + (page >= totalPages - 1 ? 'disabled' : '') + ' style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">&raquo;</button>'
-            + '</div>';
-          document.getElementById('comPrev')?.addEventListener('click', () => { if (page > 0) { page--; render(); } });
-          document.getElementById('comNext')?.addEventListener('click', () => { if (page < totalPages - 1) { page++; render(); } });
-        }
-        container.querySelectorAll('.sub-replies[data-type="comment"]').forEach(el => {
-          loadSubReplies(el.dataset.parent, 'comment', el);
-        });
+      if (!commentsCache || !commentsCache.length) {
+        container.innerHTML = '<p style="font-size:.82rem;color:var(--text-light);">' + (commentsCache === null ? 'Memuat komentar...' : 'Belum ada komentar.') + '</p>';
+        return;
       }
-      db.collection('comments').where('projectId', '==', 'shopwave').onSnapshot(snap => {
-        const toggleSpan = document.querySelector('.comment-toggle span');
-        if (toggleSpan) toggleSpan.textContent = 'Komentar (' + snap.size + ')';
-        if (snap.empty) { container.innerHTML = '<p style="font-size:.82rem;color:var(--text-light);">Belum ada komentar.</p>'; return; }
-        allItems = [];
-        snap.forEach(doc => { const d = doc.data(); d._id = doc.id; allItems.push(d); });
-        allItems.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
-        render();
-      }, () => {});
+      const totalPages = Math.ceil(commentsCache.length / COMMENTS_PER_PAGE) || 1;
+      if (commentsPage >= totalPages) commentsPage = totalPages - 1;
+      const items = commentsCache.slice(commentsPage * COMMENTS_PER_PAGE, (commentsPage + 1) * COMMENTS_PER_PAGE);
+      container.innerHTML = items.map(d => {
+        const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+        const canDelete = currentUser && (currentUser.uid === d.userId || currentUser.email === 'rifan.eko25@gmail.com');
+        const avatar = getAvatarHTML(d.userName || d.userEmail, d.userPhotoURL, 36);
+        return '<div class="comment-item">' + avatar + '<div class="c-body"><div class="c-name">' + (d.userName || d.userEmail) + ' <span class="c-date">' + date + '</span>'
+          + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
+          + '</div><div class="c-text">' + d.text + '</div>' + renderReplies(d.replies)
+          + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
+          + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#6366f1;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
+          + '</div></div>';
+      }).join('');
+      if (totalPages > 1) {
+        container.innerHTML += '<div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;">'
+          + '<button id="comPrev" ' + (commentsPage <= 0 ? 'disabled' : '') + ' style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">&laquo;</button>'
+          + '<span style="font-size:.82rem;color:var(--text-light);">' + (commentsPage + 1) + ' / ' + totalPages + '</span>'
+          + '<button id="comNext" ' + (commentsPage >= totalPages - 1 ? 'disabled' : '') + ' style="padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;">&raquo;</button>'
+          + '</div>';
+        document.getElementById('comPrev')?.addEventListener('click', () => { if (commentsPage > 0) { commentsPage--; renderComments(); } });
+        document.getElementById('comNext')?.addEventListener('click', () => { if (commentsPage < totalPages - 1) { commentsPage++; renderComments(); } });
+      }
+      container.querySelectorAll('.sub-replies[data-type="comment"]').forEach(el => {
+        loadSubReplies(el.dataset.parent, 'comment', el);
+      });
     }
+    db.collection('comments').where('projectId', '==', 'shopwave').onSnapshot(snap => {
+      commentsCache = [];
+      snap.forEach(doc => { const d = doc.data(); d._id = doc.id; commentsCache.push(d); });
+      commentsCache.sort((a, b) => (a.createdAt?.toMillis() || 0) - (b.createdAt?.toMillis() || 0));
+      const toggleSpan = document.querySelector('.comment-toggle span');
+      if (toggleSpan) toggleSpan.textContent = 'Komentar (' + commentsCache.length + ')';
+      renderComments();
+    }, () => {});
     function submitComment() {
       const input = document.getElementById('commentInput');
       const text = input.value.trim();
