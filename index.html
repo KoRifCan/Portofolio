@@ -64,11 +64,11 @@
     .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
 
     @keyframes adminFade {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(10px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
-    #adminContent { animation: adminFade .35s ease; }
-    #adminPanel > div { animation: adminFade .4s ease; }
+    #adminPanel > div { animation: adminFade .35s ease; }
+    .admin-pane { transition: opacity .3s ease; }
 
     /* Nav */
     nav {
@@ -1241,36 +1241,96 @@
       function doOpenAdmin() {
         const panel = document.createElement('div');
         panel.id = 'adminPanel';
-      panel.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.6);overflow-y:auto;padding:16px;display:grid;place-items:start center;';
+      panel.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.6);overflow:hidden;padding:16px;display:grid;place-items:start center;';
+      const tabNames = ['dashboard','testimonials','comments','users'];
+      const tabLabels = ['<i class="fas fa-chart-pie"></i> Dashboard','<i class="fas fa-comment-dots"></i> Testimoni & Masukan','<i class="fas fa-comments"></i> Komentar','<i class="fas fa-users"></i> Pengguna'];
       panel.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:0;max-width:720px;width:100%;margin:auto;position:relative;overflow:hidden;">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border-light);background:var(--card-bg-alt);">'
         + '<h2 style="margin:0;font-size:1.15rem;"><i class="fas fa-shield-alt" style="color:#6366f1;margin-right:8px;"></i>Panel Admin</h2>'
         + '<button onclick="this.closest(\'#adminPanel\').remove();" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>'
-        + '<div style="display:flex;gap:0;border-bottom:1px solid var(--border-light);background:var(--bg);">'
-        + '<button class="admin-tab active" data-tab="dashboard" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text);font-size:.85rem;font-weight:500;border-bottom:2px solid #6366f1;"><i class="fas fa-chart-pie"></i> Dashboard</button>'
-        + '<button class="admin-tab" data-tab="testimonials" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-size:.85rem;"><i class="fas fa-comment-dots"></i> Testimoni & Masukan</button>'
-        + '<button class="admin-tab" data-tab="comments" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-size:.85rem;"><i class="fas fa-comments"></i> Komentar</button>'
-        + '<button class="admin-tab" data-tab="users" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;color:var(--text-light);font-size:.85rem;"><i class="fas fa-users"></i> Pengguna</button>'
+        + '<div id="adminTabBar" style="display:flex;position:relative;border-bottom:1px solid var(--border-light);background:var(--bg);">'
+        + '<div id="tabIndicator" style="position:absolute;bottom:0;left:0;width:0;height:2px;background:#6366f1;transition:left .4s cubic-bezier(.4,0,.2,1),width .4s cubic-bezier(.4,0,.2,1);border-radius:2px 2px 0 0;"></div>'
+        + tabNames.map((t,i) => '<button class="admin-tab' + (i===0?' active':'') + '" data-tab="' + t + '" style="flex:1;padding:12px 6px;border:none;background:transparent;cursor:pointer;color:' + (i===0?'var(--text)':'var(--text-light)') + ';font-size:.82rem;' + (i===0?'font-weight:500;':'') + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + tabLabels[i] + '</button>').join('')
         + '</div>'
-        + '<div id="adminContent" style="padding:24px;max-height:70vh;overflow-y:auto;"></div>'
+        + '<div id="adminSliderWrap" style="overflow:hidden;max-height:70vh;transition:max-height .35s cubic-bezier(.4,0,.2,1);">'
+        + '<div id="adminSlider" style="display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1);">'
+        + tabNames.map(t => '<div class="admin-pane" data-pane="' + t + '" style="flex:0 0 100%;min-width:0;padding:24px;overflow-y:auto;max-height:70vh;opacity:0;"></div>').join('')
+        + '</div></div>'
         + '</div>';
       document.body.appendChild(panel);
-      panel.querySelectorAll('.admin-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-          panel.querySelectorAll('.admin-tab').forEach(t => { t.style.borderBottomColor = 'transparent'; t.style.color = 'var(--text-light)'; t.classList.remove('active'); });
-          tab.style.borderBottomColor = '#6366f1'; tab.style.color = 'var(--text)'; tab.classList.add('active');
-          loadAdminTab(tab.dataset.tab);
+
+      let loadedPanes = {};
+      function switchTab(idx) {
+        const tabs = panel.querySelectorAll('.admin-tab');
+        tabs.forEach((t,i) => {
+          t.style.color = i===idx ? 'var(--text)' : 'var(--text-light)';
+          t.style.fontWeight = i===idx ? '500' : '';
+          t.classList.toggle('active', i===idx);
         });
+        const activeTab = tabs[idx];
+        const ind = document.getElementById('tabIndicator');
+        ind.style.left = activeTab.offsetLeft + 'px';
+        ind.style.width = activeTab.offsetWidth + 'px';
+        document.getElementById('adminSlider').style.transform = 'translateX(-' + (idx * 100) + '%)';
+        const pane = document.querySelectorAll('.admin-pane')[idx];
+        if (pane && !loadedPanes[tabNames[idx]]) {
+          loadedPanes[tabNames[idx]] = true;
+          loadAdminTab(tabNames[idx], pane);
+          requestAnimationFrame(() => { pane.style.opacity = '1'; });
+        } else if (pane && loadedPanes[tabNames[idx]]) {
+          pane.style.opacity = '0';
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => { pane.style.opacity = '1'; });
+          });
+        }
+        requestAnimationFrame(() => {
+          const w = document.getElementById('adminSliderWrap');
+          w.style.maxHeight = 'none';
+          const h = pane.scrollHeight;
+          w.style.maxHeight = Math.min(h, window.innerHeight * 0.7) + 'px';
+        });
+      }
+
+      panel.querySelectorAll('.admin-tab').forEach((tab, i) => {
+        tab.addEventListener('click', () => switchTab(i));
       });
-      loadAdminTab('dashboard');
-      panel.querySelector('#adminContent').addEventListener('click', e => {
+
+      // Touch/swipe support
+      let touchStartX = 0, touchCurrentX = 0, isDragging = false, currentIdx = 0;
+      const sliderWrap = document.getElementById('adminSliderWrap');
+      const slider = document.getElementById('adminSlider');
+      sliderWrap.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+        isDragging = true;
+        slider.style.transition = 'none';
+      }, { passive: true });
+      sliderWrap.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        touchCurrentX = e.touches[0].clientX;
+        const delta = touchCurrentX - touchStartX;
+        const offset = -currentIdx * sliderWrap.offsetWidth + delta;
+        slider.style.transform = 'translateX(' + offset + 'px)';
+      }, { passive: true });
+      sliderWrap.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        slider.style.transition = 'transform .35s cubic-bezier(.4,0,.2,1)';
+        const delta = touchCurrentX - touchStartX;
+        const threshold = sliderWrap.offsetWidth * 0.2;
+        if (Math.abs(delta) > threshold) {
+          currentIdx = delta > 0 ? Math.max(0, currentIdx - 1) : Math.min(tabNames.length - 1, currentIdx + 1);
+        }
+        switchTab(currentIdx);
+      }, { passive: true });
+
+      switchTab(0);
+      panel.querySelector('#adminSliderWrap').addEventListener('click', e => {
         const btn = e.target.closest('.toggle-disable-btn');
         if (!btn) return;
         const uid = btn.dataset.uid;
         const current = btn.dataset.current === 'true';
-        const label = current ? 'mengaktifkan' : 'menonaktifkan';
-        showConfirm('Yakin ingin ' + label + ' akun ini?').then(ok => {
+        showConfirm('Yakin ingin ' + (current ? 'mengaktifkan' : 'menonaktifkan') + ' akun ini?').then(ok => {
           if (!ok) return;
           db.collection('userProfiles').doc(uid).update({ disabled: !current }).then(() => {
             showToast('Akun berhasil ' + (current ? 'diaktifkan' : 'dinonaktifkan') + '.');
@@ -1280,11 +1340,11 @@
       }
     }
 
-    function loadAdminTab(tab) {
-      const content = document.getElementById('adminContent');
-      if (!content) return;
+    function loadAdminTab(tab, pane) {
+      if (!pane) pane = document.querySelector('.admin-pane[data-pane="' + tab + '"]');
+      if (!pane) return;
       if (tab === 'dashboard') {
-        content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>';
+        pane.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;"><i class="fas fa-spinner fa-spin"></i> Memuat data...</p>';
         Promise.all([
           db.collection('testimonials').get(),
           db.collection('comments').get(),
@@ -1294,7 +1354,7 @@
           const testiCount = testiSnap.size;
           const visibleTesti = testiSnap.docs.filter(d => d.data().visible).length;
           const hiddenTesti = testiCount - visibleTesti;
-          content.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">'
+          pane.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">'
             + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + testiCount + '</div><div style="font-size:.8rem;color:var(--text-light);">Total Testimoni & Masukan</div></div>'
             + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + visibleTesti + '</div><div style="font-size:.8rem;color:var(--text-light);">Testimoni & Masukan Aktif</div></div>'
             + '<div style="background:var(--card-bg-alt);border-radius:12px;padding:16px;text-align:center;"><div style="font-size:1.5rem;font-weight:700;">' + hiddenTesti + '</div><div style="font-size:.8rem;color:var(--text-light);">Testimoni & Masukan Tersembunyi</div></div>'
@@ -1306,10 +1366,10 @@
             + '<i class="fas fa-info-circle"></i> Gunakan tab di atas untuk mengelola testimoni & masukan, komentar, dan pengguna.'
             + '</div>';
         }).catch(() => {
-          content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat data.</p>';
+          pane.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat data.</p>';
         });
       } else if (tab === 'testimonials') {
-        content.innerHTML = '<div class="testimonial-form" style="margin-bottom:20px;">'
+        pane.innerHTML = '<div class="testimonial-form" style="margin-bottom:20px;">'
           + '<h3 style="margin-bottom:12px;font-size:.95rem;">Tambah Testimoni & Masukan Baru</h3>'
           + '<input id="testiName" placeholder="Nama" required>'
           + '<input id="testiRole" placeholder="Jabatan/Asal (opsional)">'
@@ -1337,7 +1397,7 @@
         loadTestiList();
         setTimeout(() => initStarPicker(document.getElementById('testiRating')), 50);
       } else if (tab === 'comments') {
-        content.innerHTML = '<div style="display:flex;gap:8px;margin-bottom:8px;"><input id="adminComSearch" type="text" placeholder="Cari nama, email, atau teks..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;"><button id="sortComBtn" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;white-space:nowrap;"><i class="fas fa-sort"></i> Terbaru</button></div><div id="adminComContainer"></div>';
+        pane.innerHTML = '<div style="display:flex;gap:8px;margin-bottom:8px;"><input id="adminComSearch" type="text" placeholder="Cari nama, email, atau teks..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.85rem;font-family:inherit;"><button id="sortComBtn" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--text);cursor:pointer;font-size:.8rem;white-space:nowrap;"><i class="fas fa-sort"></i> Terbaru</button></div><div id="adminComContainer"></div>';
         const container = document.getElementById('adminComContainer');
         let projects = {};
         let selectedProject = null;
