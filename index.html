@@ -816,6 +816,10 @@
       currentUserRole = null;
       if (user) {
         db.collection('userProfiles').doc(user.uid).get().then(doc => {
+          if (doc.exists && doc.data().disabled === true) {
+            auth.signOut(); showToast('Akun Anda telah dinonaktifkan oleh admin.');
+            return;
+          }
           currentUserRole = doc.exists ? doc.data().role : null;
         }).catch(() => {});
       }
@@ -883,10 +887,20 @@
       const pass = document.getElementById('loginPass').value;
       if (!email || !pass) return showToast('Isi email dan password!');
       auth.signInWithEmailAndPassword(email, pass)
-        .then(() => { document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000); })
+        .then(cred => {
+          return db.collection('userProfiles').doc(cred.user.uid).get().then(prof => {
+            if (prof.exists && prof.data().disabled === true) {
+              auth.signOut(); showToast('Akun ini telah dinonaktifkan oleh admin.');
+              return Promise.reject({ _handled: true });
+            }
+            document.getElementById('loginFields').style.display = 'none'; document.getElementById('loginSuccess').style.display = 'block'; setTimeout(closeLogin, 1000);
+          });
+        })
         .catch(e => {
+          if (e._handled) return;
           if (e.code === 'auth/too-many-requests') showToast('Terlalu banyak percobaan. Coba lagi 30 menit lagi.');
           else if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') showToast('Email belum terdaftar. Klik "Daftar Akun Baru" untuk mendaftar.');
+          else if (e.code === 'auth/user-disabled') showToast('Akun ini telah dinonaktifkan oleh admin.');
           else showToast('Email atau password salah. Klik "Daftar Akun Baru" jika belum punya akun.');
         });
     }
@@ -1226,6 +1240,19 @@
         });
       });
       loadAdminTab('dashboard');
+      panel.querySelector('#adminContent').addEventListener('click', e => {
+        const btn = e.target.closest('.toggle-disable-btn');
+        if (!btn) return;
+        const uid = btn.dataset.uid;
+        const current = btn.dataset.current === 'true';
+        const label = current ? 'mengaktifkan' : 'menonaktifkan';
+        showConfirm('Yakin ingin ' + label + ' akun ini?').then(ok => {
+          if (!ok) return;
+          db.collection('userProfiles').doc(uid).update({ disabled: !current }).then(() => {
+            showToast('Akun berhasil ' + (current ? 'diaktifkan' : 'dinonaktifkan') + '.');
+          }).catch(() => showToast('Gagal memperbarui status akun.'));
+        });
+      });
       }
     }
 
@@ -1354,12 +1381,17 @@
           if (snap.empty) { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada pengguna.</p>'; return; }
           content.innerHTML = '<div style="display:grid;gap:8px;">' + snap.docs.map(doc => {
             const d = doc.data();
+            const uid = doc.id;
             const date = d.createdAt ? d.createdAt.toDate().toLocaleDateString('id-ID', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
-            return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;">'
+            const disabled = d.disabled === true;
+            return '<div style="display:flex;align-items:center;gap:12px;background:var(--card-bg-alt);border-radius:12px;padding:12px 16px;opacity:' + (disabled ? '.5' : '1') + ';">'
               + getAvatarHTML(d.name, d.photoURL, 40)
-              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + esc(d.name || 'Tanpa Nama') + adminBadge(d.role === 'admin') + '</div>'
+              + '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.9rem;">' + esc(d.name || 'Tanpa Nama') + adminBadge(d.role === 'admin') + (disabled ? ' <span style="color:#ef4444;font-size:.7rem;">(dinonaktifkan)</span>' : '') + '</div>'
               + '<div style="font-size:.8rem;color:var(--text-light);">' + maskEmail(d.email) + (d.phone ? ' &middot; ' + maskPhone(d.phone) : '') + '</div></div>'
-              + '<div style="font-size:.75rem;color:var(--text-light);flex-shrink:0;text-align:right;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;background:' + (d.role === 'admin' ? '#dbeafe' : 'var(--card-bg)') + ';color:' + (d.role === 'admin' ? '#3b82f6' : 'var(--text-light)') + ';">' + (d.role || 'user') + '</span><br>' + date + '</div>'
+              + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'
+              + '<div style="font-size:.75rem;color:var(--text-light);text-align:right;"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;font-weight:600;background:' + (d.role === 'admin' ? '#dbeafe' : 'var(--card-bg)') + ';color:' + (d.role === 'admin' ? '#3b82f6' : 'var(--text-light)') + ';">' + (d.role || 'user') + '</span><br>' + date + '</div>'
+              + (d.role !== 'admin' ? '<button class="toggle-disable-btn" data-uid="' + uid + '" data-current="' + disabled + '" style="font-size:.7rem;padding:4px 10px;border-radius:8px;border:1px solid ' + (disabled ? 'var(--border)' : '#ef4444') + ';background:transparent;color:' + (disabled ? 'var(--text-light)' : '#ef4444') + ';cursor:pointer;">' + (disabled ? 'Aktifkan' : 'Nonaktifkan') + '</button>' : '')
+              + '</div>'
               + '</div>';
           }).join('') + '</div>';
         }, () => { content.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Gagal memuat pengguna.</p>'; });
