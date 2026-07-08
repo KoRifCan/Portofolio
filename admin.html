@@ -867,7 +867,7 @@
               + ' <span class="badge ' + (d.visible ? 'badge-active' : 'badge-pending') + '">' + (d.visible ? 'Aktif' : 'Pending') + '</span>'
             + '</div>'
             + (d.role ? '<div class="meta">' + esc(d.role) + '</div>' : '')
-            + (d.showEmail === 'full' ? '<div class="meta">' + esc(d.email || d.userEmail || '') + '</div>' : d.showEmail === 'masked' || d.showEmail === true ? '<div class="meta">' + esc(maskEmail(d.email || d.userEmail || '')) + '</div>' : '')
+            + '<div class="meta">' + esc(d.email || d.userEmail || '') + '</div>'
             + '<div class="text">"' + esc(d.text) + '"</div>'
             + '<div style="margin-top:4px;">' + starHTML(d.rating) + '</div>'
             + '<div class="date">' + dateStr(d.createdAt) + '</div>'
