@@ -1565,24 +1565,30 @@
         document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;color:#333;font-family:sans-serif;font-size:1.2rem;padding:24px;text-align:center;"><p>Konten tidak dapat ditampilkan.</p></div>';
       }
 
-      function checkDevTools() {
-        const start = performance.now();
-        console.log('_');
-        console.clear();
-        if (performance.now() - start > 30) nuke();
-      }
+      function time(fn) { const s = performance.now(); fn(); return performance.now() - s; }
 
-      function debuggerTrap() {
+      function scan() {
         if (blocked) return;
-        const start = performance.now();
+        var checks = [
+          function() { console.log('.'); console.clear(); },
+          function() { console.warn('.'); },
+          function() { console.error('.'); },
+          function() { console.table([1]); },
+          function() { console.dir({}); }
+        ];
+        for (var i = 0; i < checks.length; i++) {
+          if (time(checks[i]) > 25) { nuke(); return; }
+        }
+        var dStart = performance.now();
         debugger;
-        if (performance.now() - start > 20) nuke();
+        if (performance.now() - dStart > 15) { nuke(); }
       }
 
-      setInterval(() => { if (!blocked) checkDevTools(); }, 1000);
-      setInterval(() => { if (!blocked) debuggerTrap(); }, 500);
+      setInterval(function() { if (!blocked) { for (var i = 0; i < 5; i++) { debugger; } } }, 100);
+      setInterval(function() { if (!blocked) scan(); }, 600);
+      setInterval(function() { if (!blocked) scan(); }, 1200);
 
-      document.addEventListener('keydown', e => {
+      document.addEventListener('keydown', function(e) {
         if (e.key === 'F12' || 
             (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
             (e.metaKey && e.altKey && ['I','J'].includes(e.key.toUpperCase()))) {
@@ -1592,8 +1598,8 @@
         }
       }, true);
 
-      document.addEventListener('contextmenu', e => e.preventDefault());
-      checkDevTools();
+      document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+      scan();
     })();
   </script>
 </body>
