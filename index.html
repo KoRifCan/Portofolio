@@ -2495,22 +2495,33 @@
     (function() {
       let blocked = false;
 
-      // 1. DevTools detection via console timing
+      function nuke() {
+        if (blocked) return;
+        blocked = true;
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;color:#333;font-family:sans-serif;font-size:1.2rem;padding:24px;text-align:center;"><p>Konten tidak dapat ditampilkan.</p></div>';
+      }
+
+      // 1. Console timing detection
       function checkDevTools() {
         const start = performance.now();
         console.log('_');
         console.clear();
-        const diff = performance.now() - start;
-        if (diff > 50) {
-          document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;color:#333;font-family:sans-serif;font-size:1.2rem;padding:24px;text-align:center;"><p>Konten tidak dapat ditampilkan.</p></div>';
-          blocked = true;
-        }
+        if (performance.now() - start > 30) nuke();
       }
 
-      // 2. Periodic check
-      setInterval(() => { if (!blocked) checkDevTools(); }, 2000);
+      // 2. Debugger trap - triggers when Sources panel is open
+      function debuggerTrap() {
+        if (blocked) return;
+        const start = performance.now();
+        debugger;
+        if (performance.now() - start > 20) nuke();
+      }
 
-      // 3. Block F12, Ctrl+Shift+I/J/C, Cmd+Opt+I/J
+      // 3. Periodic checks
+      setInterval(() => { if (!blocked) checkDevTools(); }, 1000);
+      setInterval(() => { if (!blocked) debuggerTrap(); }, 500);
+
+      // 4. Block DevTools shortcuts
       document.addEventListener('keydown', e => {
         if (e.key === 'F12' || 
             (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
@@ -2521,10 +2532,10 @@
         }
       }, true);
 
-      // 4. Block context menu
+      // 5. Block context menu
       document.addEventListener('contextmenu', e => e.preventDefault());
 
-      // 5. Initial check
+      // 6. Initial check
       checkDevTools();
     })();
   </script>
