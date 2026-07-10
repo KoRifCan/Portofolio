@@ -1606,23 +1606,15 @@
 
       function scan() {
         if (blocked) return;
-        var methods = [
-          function(){ console.log('.'); console.clear(); },
-          function(){ console.warn('.'); },
-          function(){ console.error('.'); },
-          function(){ console.table([1]); },
-          function(){ console.dir({}); }
-        ];
-        for (var i = 0; i < methods.length; i++) {
-          if (time(methods[i]) > 20) { nuke(); return; }
-        }
+        var s = performance.now();
+        console.log('.');
+        if (performance.now() - s > 150) { nuke(); return; }
         var ds = performance.now(); debugger;
-        if (performance.now() - ds > 10) { nuke(); }
+        if (performance.now() - ds > 100) { nuke(); }
       }
 
-      setInterval(function() { if (!blocked) { for (var i = 0; i < 8; i++) debugger; } }, 80);
-      setInterval(function() { if (!blocked) scan(); }, 400);
-      setInterval(function() { if (!blocked) scan(); }, 900);
+      setInterval(function() { if (!blocked) { for (var i = 0; i < 3; i++) debugger; } }, 500);
+      setInterval(function() { if (!blocked) scan(); }, 2000);
 
       document.addEventListener('keydown', function(e) {
         if (e.key === 'F12' || 
