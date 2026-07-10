@@ -1562,7 +1562,7 @@
       function nuke() {
         if (blocked) return;
         blocked = true;
-        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;color:#333;font-family:sans-serif;font-size:1.2rem;padding:24px;text-align:center;"><p>Konten tidak dapat ditampilkan.</p></div>';
+        // Deteksi aktif, konten tetap ditampilkan
       }
 
       var trusted = ['gstatic.com', 'googleapis.com', 'cloudflare.com', 'fontawesome.com', 'web3forms.com', 'jsdelivr.net'];
