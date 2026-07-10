@@ -29,7 +29,7 @@
     :root {
       --sidebar-w: 240px;
       --header-h: 60px;
-      --primary: #0d9488;
+      --primary: #6366f1;
       --primary-hover: #4f46e5;
       --bg: #f1f5f9;
       --bg-alt: #ffffff;
@@ -267,7 +267,7 @@
     }
     .item-card .avatar {
       width: 40px; height: 40px; border-radius: 50%;
-      background: linear-gradient(135deg, #0d9488, #14b8a6);
+      background: linear-gradient(135deg, #6366f1, #a855f7);
       flex-shrink: 0;
       display: grid; place-items: center;
       font-weight: 700; font-size: .95rem;
@@ -877,7 +877,7 @@
             + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testimonials"></div>'
           + '</div>'
           + '<div class="actions">'
-            + '<button onclick="openReplyForm(\'' + d._id + '\',\'testimonials\')" class="btn btn-outline btn-xs" style="color:#0d9488;">Balas</button>'
+            + '<button onclick="openReplyForm(\'' + d._id + '\',\'testimonials\')" class="btn btn-outline btn-xs" style="color:#6366f1;">Balas</button>'
             + '<button onclick="toggleTesti(\'' + d._id + '\',' + !d.visible + ')" class="btn btn-outline btn-xs" style="color:' + (d.visible ? '#f59e0b' : '#10b981') + ';">' + (d.visible ? 'Sembunyi' : 'Tampil') + '</button>'
             + '<button onclick="deleteTesti(\'' + d._id + '\')" class="btn btn-outline btn-xs" style="color:var(--danger);">Hapus</button>'
           + '</div>'
@@ -1054,7 +1054,7 @@
               + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comments"></div>'
             + '</div>'
             + '<div class="actions">'
-              + '<button onclick="openReplyForm(\'' + d._id + '\',\'comments\')" class="btn btn-outline btn-xs" style="color:#0d9488;">Balas</button>'
+              + '<button onclick="openReplyForm(\'' + d._id + '\',\'comments\')" class="btn btn-outline btn-xs" style="color:#6366f1;">Balas</button>'
               + '<button onclick="deleteComment(\'' + d._id + '\')" class="btn btn-outline btn-xs" style="color:var(--danger);">Hapus</button>'
             + '</div>'
           + '</div>'
