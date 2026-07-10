@@ -47,7 +47,7 @@
       --card-bg-alt: #0f172a;
       --nav-bg: rgba(15,23,42,.85);
       --section-alt: #1e293b;
-      --btn-primary-bg: #6366f1;
+      --btn-primary-bg: #0d9488;
       --btn-primary-text: #fff;
     }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -81,19 +81,19 @@
     }
     nav .container { display: flex; align-items: center; justify-content: space-between; height: 64px; }
     .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: -.02em; }
-    .logo span { color: #6366f1; }
+    .logo span { color: #0d9488; }
     .nav-links { display: flex; gap: 32px; font-size: .9rem; font-weight: 500; }
     .nav-links a { transition: color .2s; position: relative; }
-    .nav-links a.active { color: #6366f1; }
+    .nav-links a.active { color: #0d9488; }
     .nav-links a::after {
       content: ''; position: absolute; bottom: -4px; left: 0;
-      width: 0; height: 2px; background: #6366f1;
+      width: 0; height: 2px; background: #0d9488;
       transition: width .25s;
     }
-    .nav-links a.active { color: #6366f1; }
+    .nav-links a.active { color: #0d9488; }
     .nav-links a.active::after { width: 100%; }
     @media (hover: hover) {
-      .nav-links a:hover { color: #6366f1; }
+      .nav-links a:hover { color: #0d9488; }
       .nav-links a:hover::after { width: 100%; }
     }
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; }
@@ -105,7 +105,7 @@
       color: var(--text-muted); font-size: 1rem; cursor: pointer;
       display: grid; place-items: center; transition: all .2s;
     }
-    .toggle-btn:hover { border-color: #6366f1; color: #6366f1; }
+    .toggle-btn:hover { border-color: #0d9488; color: #0d9488; }
 
     /* Sections */
     section { padding: 100px 0; }
@@ -132,7 +132,7 @@
       font-weight: 800; line-height: 1.1; letter-spacing: -.04em;
       margin-bottom: 16px;
     }
-    .hero-content h1 span { background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-content h1 span { color: #0d9488; }
     .hero-content p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 32px; max-width: 480px; }
     .hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
     .btn {
@@ -143,11 +143,11 @@
     .btn-primary { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
     .btn-primary:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,.25); }
     .btn-outline { background: transparent; color: var(--text); border: 2px solid var(--border); }
-    .btn-outline:hover { border-color: #6366f1; color: #6366f1; transform: translateY(-2px); }
+    .btn-outline:hover { border-color: #0d9488; color: #0d9488; transform: translateY(-2px); }
     .hero-image { position: relative; }
     .hero-image .img-wrapper {
       width: 100%; aspect-ratio: 1; border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+      background: linear-gradient(135deg, #0d9488, #14b8a6);
       display: flex; align-items: center; justify-content: center;
       font-size: 6rem; color: #fff;
       position: relative;
@@ -165,7 +165,7 @@
       display: grid; place-items: center; font-size: 1.15rem;
       color: var(--text-light); transition: all .2s;
     }
-    .hero-socials a:hover { background: #6366f1; color: #fff; border-color: #6366f1; transform: translateY(-2px); }
+    .hero-socials a:hover { background: #0d9488; color: #fff; border-color: #0d9488; transform: translateY(-2px); }
 
     /* About */
     #about { background: var(--section-alt); }
@@ -177,7 +177,7 @@
       border: 1px solid var(--border-light); transition: transform .2s;
     }
     .stat-card:hover { transform: translateY(-4px); }
-    .stat-card .number { font-size: 2rem; font-weight: 800; color: #6366f1; }
+    .stat-card .number { font-size: 2rem; font-weight: 800; color: #0d9488; }
     .stat-card .label { font-size: .85rem; color: var(--text-light); margin-top: 4px; }
 
     /* Skills */
@@ -187,8 +187,8 @@
       border-radius: 14px; padding: 24px 16px; text-align: center;
       transition: all .25s; cursor: default;
     }
-    .skill-item:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #6366f1; }
-    .skill-item i { font-size: 2rem; color: #6366f1; margin-bottom: 10px; }
+    .skill-item:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #0d9488; }
+    .skill-item i { font-size: 2rem; color: #0d9488; margin-bottom: 10px; }
     .skill-item .name { font-weight: 600; font-size: .9rem; }
     .skill-item .level { font-size: .75rem; color: var(--text-light); margin-top: 4px; }
 
@@ -203,9 +203,9 @@
     .timeline-item::before {
       content: ''; position: absolute; left: -26px; top: 6px;
       width: 12px; height: 12px; border-radius: 50%;
-      background: #6366f1; border: 3px solid #fff; box-shadow: 0 0 0 2px #6366f1;
+      background: #0d9488; border: 3px solid #fff; box-shadow: 0 0 0 2px #0d9488;
     }
-    .timeline-item .date { font-size: .85rem; color: #6366f1; font-weight: 600; margin-bottom: 4px; }
+    .timeline-item .date { font-size: .85rem; color: #0d9488; font-weight: 600; margin-bottom: 4px; }
     .timeline-item h3 { font-size: 1.15rem; font-weight: 700; }
     .timeline-item .company { color: var(--text-light); font-weight: 500; margin-bottom: 8px; }
     .timeline-item p { color: var(--text-muted); font-size: .95rem; }
@@ -219,7 +219,7 @@
     }
     .project-card:hover { transform: translateY(-8px); box-shadow: 0 20px 48px rgba(0,0,0,.15); }
     .project-card .thumb {
-      height: 200px; background: linear-gradient(135deg, #6366f1, #a855f7);
+      height: 200px; background: linear-gradient(135deg, #0d9488, #14b8a6);
       display: flex; align-items: center; justify-content: center;
       font-size: 3rem; color: rgba(255,255,255,.3); position: relative; overflow: hidden; cursor: ew-resize;
     }
@@ -259,14 +259,14 @@
     .project-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
     .project-card p { color: var(--text-light); font-size: .9rem; margin-bottom: 16px; }
     .project-card .links { display: flex; gap: 16px; }
-    .project-card .links a { font-size: .85rem; font-weight: 600; color: #6366f1; transition: color .2s; }
+    .project-card .links a { font-size: .85rem; font-weight: 600; color: #0d9488; transition: color .2s; }
     .project-card .links a:hover { color: #4338ca; }
     .project-card .comment-toggle {
       display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
       font-size: .82rem; font-weight: 600; color: var(--text-light); cursor: pointer;
       background: none; border: none; padding: 4px 0; transition: color .2s;
     }
-    .project-card .comment-toggle:hover { color: #6366f1; }
+    .project-card .comment-toggle:hover { color: #0d9488; }
     .project-card .comment-area { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); display: none; }
     .project-card .comment-area.open { display: block; }
     .project-card .comment-area textarea {
@@ -277,7 +277,7 @@
     .project-card .comment-area .btn-primary { font-size: .8rem; padding: 8px 16px; justify-content: center; }
     .comment-item { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--border-light); border-radius: 12px; margin-bottom: 10px; }
     .comment-item .c-avatar {
-      width: 32px; height: 32px; border-radius: 50%; background: #6366f1;
+      width: 32px; height: 32px; border-radius: 50%; background: #0d9488;
       display: grid; place-items: center; color: #fff; font-size: .75rem; font-weight: 700;
       flex-shrink: 0;
     }
@@ -294,17 +294,17 @@
       border-radius: 16px; padding: 24px; transition: all .25s;
       display: flex; gap: 16px; align-items: flex-start;
     }
-    .cert-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #6366f1; }
+    .cert-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.06); border-color: #0d9488; }
     .cert-card .cert-icon {
       width: 48px; height: 48px; border-radius: 12px;
-      background: linear-gradient(135deg, #6366f1, #a855f7);
+      background: linear-gradient(135deg, #0d9488, #14b8a6);
       display: grid; place-items: center; color: #fff; font-size: 1.3rem;
       flex-shrink: 0;
     }
     .cert-card .cert-body { min-width: 0; }
     .cert-card .cert-body h3 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
     .cert-card .cert-body .issuer { font-size: .82rem; color: var(--text-light); margin-bottom: 6px; }
-    .cert-card .cert-body a { font-size: .8rem; color: #6366f1; font-weight: 600; }
+    .cert-card .cert-body a { font-size: .8rem; color: #0d9488; font-weight: 600; }
     .cert-card .cert-body a:hover { text-decoration: underline; }
     @media (max-width: 768px) { .cert-grid { grid-template-columns: 1fr; } }
 
@@ -322,7 +322,7 @@
     .testimonial-card .author { display: flex; align-items: center; gap: 12px; }
     .testimonial-card .author .avatar {
       width: 44px; height: 44px; border-radius: 50%;
-      background: #6366f1; display: grid; place-items: center;
+      background: #0d9488; display: grid; place-items: center;
       color: #fff; font-weight: 700; font-size: 1.1rem;
     }
     .testimonial-card .author .name { font-weight: 600; font-size: .9rem; }
@@ -334,14 +334,14 @@
     .testimonial-card .like-btn.liked i { font-weight: 900; }
     .testi-filter { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
     .testi-filter button { padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); font-size: .8rem; font-weight: 500; cursor: pointer; transition: all .2s; }
-    .testi-filter button:hover { border-color: #6366f1; color: #6366f1; }
-    .testi-filter button.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+    .testi-filter button:hover { border-color: #0d9488; color: #0d9488; }
+    .testi-filter button.active { background: #0d9488; color: #fff; border-color: #0d9488; }
     .testimonial-card .admin-actions { margin-top: 12px; display: flex; gap: 8px; justify-content: center; }
     .testimonial-card .admin-actions button {
       font-size: .75rem; padding: 4px 12px; border-radius: 8px; border: 1px solid var(--border);
       background: var(--card-bg); color: var(--text-muted); cursor: pointer; transition: all .2s;
     }
-    .testimonial-card .admin-actions button:hover { border-color: #6366f1; color: #6366f1; }
+    .testimonial-card .admin-actions button:hover { border-color: #0d9488; color: #0d9488; }
     .testimonial-card .admin-actions .btn-del:hover { border-color: #ef4444; color: #ef4444; }
     .testimonial-card .admin-actions .btn-hide:hover { border-color: #f59e0b; color: #f59e0b; }
     .testi-pagination { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 24px; }
@@ -350,7 +350,7 @@
       background: var(--card-bg); color: var(--text); font-weight: 500; font-size: .85rem;
       cursor: pointer; transition: all .2s;
     }
-    .testi-pagination button:hover { border-color: #6366f1; color: #6366f1; }
+    .testi-pagination button:hover { border-color: #0d9488; color: #0d9488; }
     .testi-pagination button:disabled { opacity: .4; cursor: default; border-color: var(--border); color: var(--text-light); }
     .testi-pagination span { font-size: .85rem; color: var(--text-light); }
     .testimonial-form { background: var(--card-bg-alt); border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-light); text-align: left; }
@@ -370,7 +370,7 @@
     .contact-info h3 { font-size: 1.3rem; margin-bottom: 16px; }
     .contact-info p { color: #94a3b8; margin-bottom: 24px; }
     .contact-info .item { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; color: #cbd5e1; }
-    .contact-info .item i { width: 20px; color: #6366f1; }
+    .contact-info .item i { width: 20px; color: #0d9488; }
     .contact-form { display: flex; flex-direction: column; gap: 16px; }
     .contact-form input,
     .contact-form textarea {
@@ -379,9 +379,9 @@
       transition: border-color .2s;
     }
     .contact-form input:focus,
-    .contact-form textarea:focus { outline: none; border-color: #6366f1; }
+    .contact-form textarea:focus { outline: none; border-color: #0d9488; }
     .contact-form textarea { resize: vertical; min-height: 120px; }
-    .contact-form .btn-primary { background: #6366f1; justify-content: center; border: none; }
+    .contact-form .btn-primary { background: #0d9488; justify-content: center; border: none; }
     .contact-form .btn-primary:hover { filter: brightness(1.1); }
 
     /* Footer */
@@ -448,15 +448,15 @@
     .reveal-delay-4 { transition-delay: .4s; }
     .reveal-delay-5 { transition-delay: .5s; }
 
-    .reply-card { margin-top:8px; padding:10px 12px; background:var(--bg); border-radius:10px; border-left:3px solid #6366f1; font-size:.82rem; }
-    .reply-header { display:flex; align-items:center; gap:6px; font-weight:600; font-size:.78rem; color:#6366f1; }
+    .reply-card { margin-top:8px; padding:10px 12px; background:var(--bg); border-radius:10px; font-size:.82rem; }
+    .reply-header { display:flex; align-items:center; gap:6px; font-weight:600; font-size:.78rem; color:#0d9488; }
     .reply-date { font-weight:400; color:var(--text-light); font-size:.7rem; }
     .reply-delete { margin-left:auto; background:none; border:none; color:#ef4444; cursor:pointer; font-size:.75rem; }
     .reply-text { margin-top:2px; }
     .avatar-sm { width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; }
     .avatar-lg { width:64px; height:64px; border-radius:50%; object-fit:cover; }
-    .avatar-lg-placeholder { width:64px; height:64px; border-radius:50%; background:#6366f1; display:grid; place-items:center; font-size:1.8rem; color:#fff; }
-    .sm-placeholder { width:22px; height:22px; border-radius:50%; background:#6366f1; display:grid; place-items:center; color:#fff; font-weight:600; font-size:.55rem; flex-shrink:0; }
+    .avatar-lg-placeholder { width:64px; height:64px; border-radius:50%; background:#0d9488; display:grid; place-items:center; font-size:1.8rem; color:#fff; }
+    .sm-placeholder { width:22px; height:22px; border-radius:50%; background:#0d9488; display:grid; place-items:center; color:#fff; font-weight:600; font-size:.55rem; flex-shrink:0; }
     .menu-overlay { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.3); display:grid; place-items:center; }
     .menu-card { position:relative; background:var(--card-bg); border-radius:20px; padding:32px; text-align:center; max-width:340px; width:90%; }
     .modal-overlay { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,.3); display:grid; place-items:center; }
@@ -540,7 +540,7 @@
           <p>Saya percaya bahwa belajar tidak pernah berhenti. Saya selalu ingin mengembangkan diri, baik di bidang kreatif maupun teknis.</p>
         </div>
         <div>
-          <div style="width:100%;max-width:280px;aspect-ratio:1;border-radius:50%;overflow:hidden;margin:0 auto 24px;border:4px solid #6366f1;">
+          <div style="width:100%;max-width:280px;aspect-ratio:1;border-radius:50%;overflow:hidden;margin:0 auto 24px;border:4px solid #0d9488;">
             <img src="IMG_Profil.png" alt="Rifan" style="width:100%;height:100%;object-fit:cover;" />
           </div>
           <div class="about-stats">
@@ -785,7 +785,7 @@
           <span id="togglePass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-light);font-size:1.1rem;" onclick="togglePassword()"><i class="far fa-eye"></i></span>
         </div>
         <div style="text-align:right;margin-bottom:16px;" id="forgotRow">
-          <a href="#" onclick="forgotPassword()" style="font-size:.8rem;color:#6366f1;font-weight:500;">Lupa password?</a>
+          <a href="#" onclick="forgotPassword()" style="font-size:.8rem;color:#0d9488;font-weight:500;">Lupa password?</a>
         </div>
         <button onclick="handleLogin()" class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:8px;" id="loginSubmitBtn">Masuk</button>
         <button onclick="toggleRegisterMode()" class="btn btn-outline" style="width:100%;justify-content:center;" id="registerToggleBtn">Daftar Akun Baru</button>
@@ -799,7 +799,7 @@
 
   <div id="loadingOverlay" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:grid;place-items:center;transition:opacity .5s;">
     <div style="text-align:center;">
-      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:#6366f1;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+      <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:#0d9488;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
       <div style="color:var(--text-light);font-size:.9rem;">Memuat...</div>
     </div>
   </div>
@@ -1024,7 +1024,7 @@
         if (!inner) return;
         inner.innerHTML = `<div style="position:relative;display:inline-block;">
           ${photoAvatar}
-          <span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>
+          <span id="cameraIcon" style="position:absolute;bottom:4px;right:0;width:28px;height:28px;border-radius:50%;background:#0d9488;display:grid;place-items:center;color:#fff;cursor:pointer;font-size:.7rem;border:2px solid var(--card-bg);"><i class="fas fa-camera"></i></span>
         </div>
         <input id="menuPhotoInput" type="file" accept="image/*" style="display:none;">
         <p style="font-weight:600;margin-bottom:2px;margin-top:8px;" id="profileMenuName">${name}${roleBadge(profileData.role)}</p>
@@ -1076,10 +1076,10 @@
         <button onclick="this.closest('div').parentElement.remove();" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>
         <h3 style="margin-bottom:16px;text-align:center;">Ubah Profil</h3>
         <div style="text-align:center;margin-bottom:16px;">
-          <div id="photoPreview" style="width:72px;height:72px;border-radius:50%;background:#6366f1;display:grid;place-items:center;margin:0 auto 8px;font-size:1.8rem;color:#fff;overflow:hidden;object-fit:cover;${profileData.photoURL ? 'background:transparent;' : ''}">
+          <div id="photoPreview" style="width:72px;height:72px;border-radius:50%;background:#0d9488;display:grid;place-items:center;margin:0 auto 8px;font-size:1.8rem;color:#fff;overflow:hidden;object-fit:cover;${profileData.photoURL ? 'background:transparent;' : ''}">
             ${profileData.photoURL ? `<img src="${profileData.photoURL}" style="width:100%;height:100%;object-fit:cover;">` : '<i class="fas fa-user"></i>'}
           </div>
-          <label for="photoInput" style="cursor:pointer;font-size:.8rem;color:#6366f1;"><i class="fas fa-camera"></i> Ganti Foto</label>
+          <label for="photoInput" style="cursor:pointer;font-size:.8rem;color:#0d9488;"><i class="fas fa-camera"></i> Ganti Foto</label>
           <input id="photoInput" type="file" accept="image/*" style="display:none;">
         </div>
         <label style="font-size:.82rem;color:var(--text-light);display:block;margin-bottom:4px;">Nama Lengkap</label>
@@ -1193,7 +1193,7 @@
             + '<div class="testi-footer">'
             + '<button class="like-btn' + (liked ? ' liked' : '') + '" onclick="toggleLike(\'' + d._id + '\')"><i class="' + (liked ? 'fas' : 'far') + ' fa-heart"></i> ' + likeCount + '</button>'
             + '<div style="display:flex;gap:8px;">'
-            + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="background:none;border:none;color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
+            + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="background:none;border:none;color:#0d9488;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
             + (currentUser && (currentUser.uid === d.userId || currentUserRole === 'admin') ? '<button onclick="deleteTesti(\'' + d._id + '\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
             + '</div></div></div>';
         }).join('');
@@ -1280,11 +1280,11 @@
       const tabLabels = ['<i class="fas fa-chart-pie"></i> Dashboard','<i class="fas fa-comment-dots"></i> Testimoni & Masukan','<i class="fas fa-comments"></i> Komentar','<i class="fas fa-users"></i> Pengguna'];
       panel.innerHTML = '<div style="background:var(--card-bg);border-radius:20px;padding:0;max-width:720px;width:100%;margin:auto;position:relative;overflow:hidden;">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border-light);background:var(--card-bg-alt);">'
-        + '<h2 style="margin:0;font-size:1.15rem;"><i class="fas fa-shield-alt" style="color:#6366f1;margin-right:8px;"></i>Panel Admin</h2>'
+        + '<h2 style="margin:0;font-size:1.15rem;"><i class="fas fa-shield-alt" style="color:#0d9488;margin-right:8px;"></i>Panel Admin</h2>'
         + '<button onclick="this.closest(\'#adminPanel\').remove();" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);">&times;</button>'
         + '</div>'
         + '<div id="adminTabBar" style="display:flex;position:relative;border-bottom:1px solid var(--border-light);background:var(--bg);">'
-        + '<div id="tabIndicator" style="position:absolute;bottom:0;left:0;width:0;height:2px;background:#6366f1;transition:left .4s cubic-bezier(.4,0,.2,1),width .4s cubic-bezier(.4,0,.2,1);border-radius:2px 2px 0 0;"></div>'
+        + '<div id="tabIndicator" style="position:absolute;bottom:0;left:0;width:0;height:2px;background:#0d9488;transition:left .4s cubic-bezier(.4,0,.2,1),width .4s cubic-bezier(.4,0,.2,1);border-radius:2px 2px 0 0;"></div>'
         + tabNames.map((t,i) => '<button class="admin-tab' + (i===0?' active':'') + '" data-tab="' + t + '" style="flex:1;padding:12px 6px;border:none;background:transparent;cursor:pointer;color:' + (i===0?'var(--text)':'var(--text-light)') + ';font-size:.82rem;' + (i===0?'font-weight:500;':'') + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + tabLabels[i] + '</button>').join('')
         + '</div>'
         + '<div id="adminSliderWrap" style="overflow:hidden;max-height:70vh;transition:max-height .35s cubic-bezier(.4,0,.2,1);">'
@@ -1474,7 +1474,7 @@
               + (isAll ? ' <span style="font-size:.7rem;color:var(--text-muted);">[' + friendlyName(d.projectId) + ']</span>' : '')
               + '</div>'
               + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">'
-              + '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
+              + '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#0d9488;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
               + '<button onclick="deleteComment(\'' + d._id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>'
               + '</div></div>'
               + '<div style="font-size:.85rem;margin-top:8px;">' + esc(d.text) + '</div>'
@@ -1672,7 +1672,7 @@
             + renderReplies(d.replies, d._id, 'testi') + '<div class="sub-replies" data-parent="' + d._id + '" data-type="testi"></div>'
             + '</div>'
             + '<div style="display:flex;gap:4px;flex-shrink:0;flex-direction:column;">'
-            + '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#6366f1;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
+            + '<button onclick="openReplyForm(\'' + d._id + '\',\'testi\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#0d9488;cursor:pointer;font-size:.8rem;"><i class="fas fa-reply"></i></button>'
             + '<button onclick="toggleTesti(\'' + d._id + '\',' + !d.visible + ')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:' + (d.visible ? '#f59e0b' : '#10b981') + ';cursor:pointer;font-size:.8rem;">' + (d.visible ? 'Sembunyi' : 'Tampil') + '</button>'
             + '<button onclick="deleteTesti(\'' + d._id + '\')" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:#ef4444;cursor:pointer;font-size:.8rem;">Hapus</button>'
             + '</div>'
@@ -1952,7 +1952,7 @@
           + (canDelete ? '<button onclick="deleteComment(\'' + d._id + '\')" style="float:right;background:none;border:none;color:#ef4444;cursor:pointer;font-size:.8rem;"><i class="fas fa-trash"></i></button>' : '')
           + '</div><div class="c-text">' + esc(d.text) + '</div>' + renderReplies(d.replies, d._id, 'comment')
           + '<div class="sub-replies" data-parent="' + d._id + '" data-type="comment"></div>'
-          + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#6366f1;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
+          + (currentUser ? '<button onclick="openReplyForm(\'' + d._id + '\',\'comment\')" style="margin-top:6px;background:none;border:none;color:#0d9488;cursor:pointer;font-size:.78rem;"><i class="fas fa-reply"></i> Balas</button>' : '')
           + '</div></div>';
       }).join('');
       if (totalPages > 1) {
@@ -2166,7 +2166,7 @@
       size = size || 40;
       if (photoURL) return `<img src="${photoURL}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
       const initials = name ? name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) : '?';
-      return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#6366f1;display:grid;place-items:center;color:#fff;font-weight:600;font-size:${size * 0.4}px;flex-shrink:0;">${initials}</div>`;
+      return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:#0d9488;display:grid;place-items:center;color:#fff;font-weight:600;font-size:${size * 0.4}px;flex-shrink:0;">${initials}</div>`;
     }
     function adminBadge(isAdmin) {
       return isAdmin ? '<i class="fas fa-check-circle" style="color:#3b82f6;font-size:.75rem;margin-left:3px;"></i>' : '';
