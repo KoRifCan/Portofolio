@@ -2491,9 +2491,10 @@
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
   <script>
-    // === ANTI DEVTOOLS / ANTI EXTENSION DETECTION ===
+    // === ANTI DEVTOOLS / ANTI INJECTION ===
     (function() {
-      let blocked = false;
+      var blocked = false, trustedOrigins = {};
+      var SELF = 'SCRIPT';
 
       function nuke() {
         if (blocked) return;
@@ -2502,74 +2503,103 @@
         try { Object.defineProperty(document, 'body', { get: function() { return null; } }); } catch(e) {}
       }
 
-      // === MULTI-METHOD DETECTION ===
+      // === TRUSTED CDN ORIGINS ===
+      var trusted = ['gstatic.com', 'googleapis.com', 'cloudflare.com', 'fontawesome.com', 'web3forms.com', 'jsdelivr.net'];
 
-      function time(fn) {
-        const s = performance.now();
-        fn();
-        return performance.now() - s;
-      }
+      // === SCRIPT INJECTION GUARD ===
+      (function() {
+        var origAppend = Node.prototype.appendChild;
+        var origInsertBefore = Node.prototype.insertBefore;
+        var origReplaceChild = Node.prototype.replaceChild;
+        function isTrusted(url) {
+          for (var t = 0; t < trusted.length; t++) {
+            if (url.indexOf(trusted[t]) > -1) return true;
+          }
+          return false;
+        }
+        Node.prototype.appendChild = function(child) {
+          if (child && child.tagName === 'SCRIPT' && child.src && !isTrusted(child.src)) { nuke(); return child; }
+          return origAppend.call(this, child);
+        };
+        Node.prototype.insertBefore = function(child, ref) {
+          if (child && child.tagName === 'SCRIPT' && child.src && !isTrusted(child.src)) { nuke(); return child; }
+          return origInsertBefore.call(this, child, ref);
+        };
+        Node.prototype.replaceChild = function(newChild, oldChild) {
+          if (newChild && newChild.tagName === 'SCRIPT' && newChild.src && !isTrusted(newChild.src)) { nuke(); return oldChild; }
+          return origReplaceChild.call(this, newChild, oldChild);
+        };
+      })();
+
+      // === DOM MONITOR (removes injected elements) ===
+      var domWatch = new MutationObserver(function(muts) {
+        if (blocked) return;
+        for (var m = 0; m < muts.length; m++) {
+          var mut = muts[m];
+          if (mut.type === 'childList') {
+            for (var n = 0; n < mut.addedNodes.length; n++) {
+              var node = mut.addedNodes[n];
+              if (node.nodeType === 1) {
+                if (node.tagName === 'SCRIPT' && node.src) {
+                  var ok = false;
+                  for (var o = 0; o < trusted.length; o++) {
+                    if (node.src.indexOf(trusted[o]) > -1) { ok = true; break; }
+                  }
+                  if (!ok) { nuke(); return; }
+                }
+                if (node.tagName === 'IFRAME' || node.tagName === 'EMBED' || node.tagName === 'OBJECT') {
+                  nuke(); return;
+                }
+              }
+            }
+          }
+          if (mut.type === 'attributes' && mut.attributeName === 'style') {
+            if (mut.target && mut.target.tagName === 'BODY') nuke();
+          }
+        }
+      });
+      domWatch.observe(document.documentElement, {
+        childList: true, subtree: true, attributes: true, attributeFilter: ['style']
+      });
+
+      // === MULTI-METHOD DEVTOOLS DETECTION ===
+      function time(fn) { var s = performance.now(); fn(); return performance.now() - s; }
 
       function scan() {
         if (blocked) return;
-
-        // Console methods timing (DevTools slows them down)
-        var checks = [
-          function() { console.log('.'); console.clear(); },
-          function() { console.warn('.'); },
-          function() { console.error('.'); },
-          function() { console.table([1]); },
-          function() { console.dir({}); }
+        var methods = [
+          function(){ console.log('.'); console.clear(); },
+          function(){ console.warn('.'); },
+          function(){ console.error('.'); },
+          function(){ console.table([1]); },
+          function(){ console.dir({}); }
         ];
-        for (var i = 0; i < checks.length; i++) {
-          if (time(checks[i]) > 25) { nuke(); return; }
+        for (var i = 0; i < methods.length; i++) {
+          if (time(methods[i]) > 20) { nuke(); return; }
         }
-
-        // Debugger trap (triggers when Sources panel is active)
-        var dStart = performance.now();
-        debugger;
-        if (performance.now() - dStart > 15) { nuke(); return; }
+        var ds = performance.now(); debugger;
+        if (performance.now() - ds > 10) { nuke(); return; }
       }
 
-      // === AGGRESSIVE DEBUGGER LOOP (Sources panel protection) ===
-      setInterval(function() {
-        if (!blocked) {
-          for (var i = 0; i < 5; i++) { debugger; }
-        }
-      }, 100);
-
-      // === FAST POLLING ===
-      setInterval(function() { if (!blocked) scan(); }, 600);
-      setInterval(function() { if (!blocked) scan(); }, 1200);
+      // === GUARD LOOPS ===
+      setInterval(function() { if (!blocked) { for (var i = 0; i < 8; i++) debugger; } }, 80);
+      setInterval(function() { if (!blocked) scan(); }, 400);
+      setInterval(function() { if (!blocked) scan(); }, 900);
 
       // === KEYBOARD BLOCK ===
       document.addEventListener('keydown', function(e) {
         if (e.key === 'F12' || 
             (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
             (e.metaKey && e.altKey && ['I','J'].includes(e.key.toUpperCase()))) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
+          e.preventDefault(); e.stopPropagation(); return false;
         }
       }, true);
 
-      // === CONTEXT MENU ===
       document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
-      // === ELEMENT INSPECTION TRAP ===
-      (function() {
-        var trap = /x/;
-        trap.toString = function() {
-          nuke();
-          return '';
-        };
-        try { Object.defineProperty(window, 'x', { get: function() { nuke(); return trap; } }); } catch(e) {}
-      })();
+      // === FIREBUG ===
+      try { if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) nuke(); } catch(e) {}
 
-      // === FIREBUG DETECTION ===
-      if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) nuke();
-
-      // === START ===
       scan();
     })();
   </script>
