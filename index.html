@@ -852,18 +852,25 @@
     // ===== AUTH STATE =====
     let currentUser = null;
     let currentUserRole = null;
+    function checkUserExists(user) {
+      if (!user) return;
+      db.collection('userProfiles').doc(user.uid).get().then(doc => {
+        if (doc.exists && doc.data().disabled === true) {
+          auth.signOut(); showToast('Akun Anda telah dinonaktifkan oleh admin.');
+        } else if (!doc.exists) {
+          auth.signOut(); showToast('Akun Anda telah dihapus oleh admin.');
+        } else {
+          currentUserRole = doc.data().role || null;
+          if (user.emailVerified !== doc.data().emailVerified) {
+            doc.ref.update({ emailVerified: user.emailVerified }).catch(() => {});
+          }
+        }
+      }).catch(() => {});
+    }
     auth.onAuthStateChanged(user => {
       currentUser = user;
       currentUserRole = null;
-      if (user) {
-        db.collection('userProfiles').doc(user.uid).get().then(doc => {
-          if (doc.exists && doc.data().disabled === true) {
-            auth.signOut(); showToast('Akun Anda telah dinonaktifkan oleh admin.');
-            return;
-          }
-          currentUserRole = doc.exists ? doc.data().role : null;
-      }).catch(() => {});
-      }
+      if (user) checkUserExists(user);
       const overlay = document.getElementById('loadingOverlay');
       if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 500); }
       const btn = document.getElementById('loginBtn');
@@ -880,16 +887,12 @@
     });
     setInterval(() => {
       const u = firebase.auth().currentUser;
-      if (u) u.reload().then(() => {
-        db.collection('userProfiles').doc(u.uid).update({ emailVerified: u.emailVerified }).catch(() => {});
-      }).catch(() => {});
-    }, 30000);
+      if (u) checkUserExists(u);
+    }, 15000);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         const u = firebase.auth().currentUser;
-        if (u) u.reload().then(() => {
-          db.collection('userProfiles').doc(u.uid).update({ emailVerified: u.emailVerified }).catch(() => {});
-        }).catch(() => {});
+        if (u) { u.reload().then(() => checkUserExists(u)).catch(() => {}); }
       }
     });
 
