@@ -2519,17 +2519,11 @@
     document.querySelectorAll('.draggable-thumb').forEach(thumb => {
       const img = thumb.querySelector('.drag-img');
       if (!img) return;
-      let isDown = false, startX, startY, startLeft, startTop;
+      let isDown = false, startY, startTop;
       function constrain() {
         const r = thumb.getBoundingClientRect();
         const ir = img.getBoundingClientRect();
-        if (ir.width > r.width) {
-          const min = r.width - ir.width;
-          if (parseInt(img.style.left || 0) > 0) img.style.left = '0px';
-          if (parseInt(img.style.left || 0) < min) img.style.left = min + 'px';
-        } else {
-          img.style.left = '0px';
-        }
+        img.style.left = '0px';
         if (ir.height > r.height) {
           const min = r.height - ir.height;
           if (parseInt(img.style.top || 0) > 0) img.style.top = '0px';
@@ -2545,22 +2539,19 @@
       img.style.top = '0px';
       thumb.addEventListener('mousedown', e => {
         isDown = true;
-        startX = e.clientX; startY = e.clientY;
-        startLeft = parseInt(img.style.left) || 0;
+        startY = e.clientY;
         startTop = parseInt(img.style.top) || 0;
         e.preventDefault();
       });
       document.addEventListener('mousemove', e => {
         if (!isDown) return;
-        img.style.left = (startLeft + (e.clientX - startX)) + 'px';
         img.style.top = (startTop + (e.clientY - startY)) + 'px';
       });
       document.addEventListener('mouseup', () => { if (isDown) { isDown = false; constrain(); } });
       thumb.addEventListener('touchstart', e => {
         isDown = true;
         const t = e.touches[0];
-        startX = t.clientX; startY = t.clientY;
-        startLeft = parseInt(img.style.left) || 0;
+        startY = t.clientY;
         startTop = parseInt(img.style.top) || 0;
         e.preventDefault();
       }, { passive: false });
@@ -2568,7 +2559,6 @@
         if (!isDown) return;
         e.preventDefault();
         const t = e.touches[0];
-        img.style.left = (startLeft + (t.clientX - startX)) + 'px';
         img.style.top = (startTop + (t.clientY - startY)) + 'px';
       }, { passive: false });
       document.addEventListener('touchend', () => { if (isDown) { isDown = false; constrain(); } }, { passive: true });
