@@ -15,10 +15,10 @@
   <link rel="apple-touch-icon" href="IMG_Profil.png" />
   <title>Rifan Eko Candra Maulana · Portofolio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" />
-  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js" integrity="sha384-J6/i9DnWkWsyWwWJNVKfJNA+7Erlaznpv7qbt2lfqjnYt5xUjG6gjQEvByiLR53j" crossorigin="anonymous"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js" integrity="sha384-WCMvq+IYULWMFMeYO/fKLTgpCgLaOUxgQc1dFPdo6uk9tv7Cq3ZKwFEvTteutP1M" crossorigin="anonymous"></script>
-  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js" integrity="sha384-d8pcTwIXxLlzBmBTgziO/hoPmJ6tO6j7Z+ZJ4rBWfhBJh51Io3qwudexDJkAT+uW" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -2489,7 +2489,7 @@
     document.addEventListener('touchmove', e => { if (isDragging) { e.preventDefault(); updateSlider(e.touches[0].clientX); } }, { passive: false });
     document.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
   </script>
-  <script src="https://web3forms.com/client/script.js" async defer integrity="sha384-RAEN05LS0g1hNSQ83f+OkhWoEoxdCuUHArmMFGnF9YJzre1Fgg997JEue49FL+zH" crossorigin="anonymous"></script>
+  <script src="https://web3forms.com/client/script.js" async defer></script>
   <script>
     // === ANTI DEVTOOLS / ANTI INJECTION ===
     (function() {
@@ -2502,35 +2502,10 @@
         // Deteksi aktif, konten tetap ditampilkan
       }
 
-      // === TRUSTED CDN ORIGINS ===
+
+
+      // === DOM MONITOR ===
       var trusted = ['gstatic.com', 'googleapis.com', 'cloudflare.com', 'fontawesome.com', 'web3forms.com', 'jsdelivr.net'];
-
-      // === SCRIPT INJECTION GUARD ===
-      (function() {
-        var origAppend = Node.prototype.appendChild;
-        var origInsertBefore = Node.prototype.insertBefore;
-        var origReplaceChild = Node.prototype.replaceChild;
-        function isTrusted(url) {
-          for (var t = 0; t < trusted.length; t++) {
-            if (url.indexOf(trusted[t]) > -1) return true;
-          }
-          return false;
-        }
-        Node.prototype.appendChild = function(child) {
-          if (child && child.tagName === 'SCRIPT' && child.src && !isTrusted(child.src)) { nuke(); return child; }
-          return origAppend.call(this, child);
-        };
-        Node.prototype.insertBefore = function(child, ref) {
-          if (child && child.tagName === 'SCRIPT' && child.src && !isTrusted(child.src)) { nuke(); return child; }
-          return origInsertBefore.call(this, child, ref);
-        };
-        Node.prototype.replaceChild = function(newChild, oldChild) {
-          if (newChild && newChild.tagName === 'SCRIPT' && newChild.src && !isTrusted(newChild.src)) { nuke(); return oldChild; }
-          return origReplaceChild.call(this, newChild, oldChild);
-        };
-      })();
-
-      // === DOM MONITOR (removes injected elements) ===
       var domWatch = new MutationObserver(function(muts) {
         if (blocked) return;
         for (var m = 0; m < muts.length; m++) {
