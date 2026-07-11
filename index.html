@@ -238,6 +238,11 @@
       box-shadow: 0 0 8px rgba(255,255,255,.2);
     }
     .slider-shade { display: none; }
+    .draggable-thumb { overflow:hidden; cursor:grab; position:relative; }
+    .draggable-thumb:active { cursor:grabbing; }
+    .draggable-thumb .drag-img { display:block; pointer-events:none; transition:none; }
+    .drag-hint { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.5); color:#fff; font-size:.7rem; padding:4px 12px; border-radius:20px; pointer-events:none; opacity:0; transition:opacity .3s; white-space:nowrap; }
+    .draggable-thumb:hover .drag-hint { opacity:1; }
     .project-card .thumb .slider-handle .knob {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
       width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.35);
@@ -721,8 +726,9 @@
           </div>
         </div>
         <div class="project-card">
-          <div class="thumb" style="background:linear-gradient(135deg,#059669,#06b6d4);display:grid;place-items:center;font-size:4rem;color:rgba(255,255,255,.25);">
-            <i class="fas fa-wallet"></i>
+          <div class="thumb draggable-thumb" data-img="screenshot-expense.png">
+            <img class="drag-img" src="screenshot-expense.png" alt="Catatan Keuangan" style="width:100%;cursor:grab;user-select:none;-webkit-user-drag:none;">
+            <div class="drag-hint"><i class="fas fa-arrows-alt"></i> Geser untuk menjelajah</div>
           </div>
           <div class="body">
             <div class="tags"><span>React</span><span>Firebase</span><span>Tailwind</span></div>
@@ -2508,6 +2514,63 @@
     slider.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); }, { passive: true });
     document.addEventListener('touchmove', e => { if (isDragging) { e.preventDefault(); updateSlider(e.touches[0].clientX); } }, { passive: false });
     document.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
+
+    // ===== DRAGGABLE THUMB =====
+    document.querySelectorAll('.draggable-thumb').forEach(thumb => {
+      const img = thumb.querySelector('.drag-img');
+      if (!img) return;
+      let isDown = false, startX, startY, startLeft, startTop;
+      function constrain() {
+        const r = thumb.getBoundingClientRect();
+        const ir = img.getBoundingClientRect();
+        if (ir.width > r.width) {
+          const min = r.width - ir.width;
+          if (parseInt(img.style.left || 0) > 0) img.style.left = '0px';
+          if (parseInt(img.style.left || 0) < min) img.style.left = min + 'px';
+        } else {
+          img.style.left = '0px';
+        }
+        if (ir.height > r.height) {
+          const min = r.height - ir.height;
+          if (parseInt(img.style.top || 0) > 0) img.style.top = '0px';
+          if (parseInt(img.style.top || 0) < min) img.style.top = min + 'px';
+        } else {
+          img.style.top = '0px';
+        }
+      }
+      img.onload = constrain;
+      setTimeout(constrain, 500);
+      img.style.position = 'relative';
+      img.style.left = '0px';
+      img.style.top = '0px';
+      thumb.addEventListener('mousedown', e => {
+        isDown = true;
+        startX = e.clientX; startY = e.clientY;
+        startLeft = parseInt(img.style.left) || 0;
+        startTop = parseInt(img.style.top) || 0;
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!isDown) return;
+        img.style.left = (startLeft + (e.clientX - startX)) + 'px';
+        img.style.top = (startTop + (e.clientY - startY)) + 'px';
+      });
+      document.addEventListener('mouseup', () => { if (isDown) { isDown = false; constrain(); } });
+      thumb.addEventListener('touchstart', e => {
+        isDown = true;
+        const t = e.touches[0];
+        startX = t.clientX; startY = t.clientY;
+        startLeft = parseInt(img.style.left) || 0;
+        startTop = parseInt(img.style.top) || 0;
+      }, { passive: true });
+      document.addEventListener('touchmove', e => {
+        if (!isDown) return;
+        const t = e.touches[0];
+        img.style.left = (startLeft + (t.clientX - startX)) + 'px';
+        img.style.top = (startTop + (t.clientY - startY)) + 'px';
+      }, { passive: true });
+      document.addEventListener('touchend', () => { if (isDown) { isDown = false; constrain(); } }, { passive: true });
+    });
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
   <script>
