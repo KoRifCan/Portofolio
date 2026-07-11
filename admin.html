@@ -1556,45 +1556,12 @@
     }
   </script>
   <script>
-    (function() {
-      var blocked = false;
-      function nuke() {
-        if (blocked) return;
-        blocked = true;
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key))) {
+        e.preventDefault(); return false;
       }
-
-      var trusted = ['gstatic.com', 'googleapis.com', 'cloudflare.com', 'fontawesome.com', 'web3forms.com', 'jsdelivr.net'];
-
-      var domWatch = new MutationObserver(function(muts) {
-        if (blocked) return;
-        for (var m = 0; m < muts.length; m++) {
-          var mut = muts[m];
-          if (mut.type === 'childList') {
-            for (var n = 0; n < mut.addedNodes.length; n++) {
-              var node = mut.addedNodes[n];
-              if (node.nodeType === 1 && node.tagName === 'SCRIPT' && node.src) {
-                var ok = false;
-                for (var o = 0; o < trusted.length; o++) {
-                  if (node.src.indexOf(trusted[o]) > -1) { ok = true; break; }
-                }
-                if (!ok) { nuke(); return; }
-              }
-            }
-          }
-        }
-      });
-      domWatch.observe(document.documentElement, { childList: true, subtree: true });
-
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'F12' || 
-            (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
-            (e.metaKey && e.altKey && ['I','J'].includes(e.key.toUpperCase()))) {
-          e.preventDefault(); e.stopPropagation(); return false;
-        }
-      }, true);
-
-      document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-    })();
+    }, true);
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
   </script>
 </body>
 </html>

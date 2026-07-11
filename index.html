@@ -2491,84 +2491,12 @@
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
   <script>
-    // === ANTI DEVTOOLS / ANTI INJECTION ===
-    (function() {
-      var blocked = false, trustedOrigins = {};
-      var SELF = 'SCRIPT';
-
-      function nuke() {
-        if (blocked) return;
-        blocked = true;
-        // Deteksi aktif, konten tetap ditampilkan
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key))) {
+        e.preventDefault(); return false;
       }
-
-
-
-      // === DOM MONITOR ===
-      var trusted = ['gstatic.com', 'googleapis.com', 'cloudflare.com', 'fontawesome.com', 'web3forms.com', 'jsdelivr.net'];
-      var domWatch = new MutationObserver(function(muts) {
-        if (blocked) return;
-        for (var m = 0; m < muts.length; m++) {
-          var mut = muts[m];
-          if (mut.type === 'childList') {
-            for (var n = 0; n < mut.addedNodes.length; n++) {
-              var node = mut.addedNodes[n];
-              if (node.nodeType === 1) {
-                if (node.tagName === 'SCRIPT' && node.src) {
-                  var ok = false;
-                  for (var o = 0; o < trusted.length; o++) {
-                    if (node.src.indexOf(trusted[o]) > -1) { ok = true; break; }
-                  }
-                  if (!ok) { nuke(); return; }
-                }
-                if (node.tagName === 'IFRAME' || node.tagName === 'EMBED' || node.tagName === 'OBJECT') {
-                  nuke(); return;
-                }
-              }
-            }
-          }
-          if (mut.type === 'attributes' && mut.attributeName === 'style') {
-            if (mut.target && mut.target.tagName === 'BODY') nuke();
-          }
-        }
-      });
-      domWatch.observe(document.documentElement, {
-        childList: true, subtree: true, attributes: true, attributeFilter: ['style']
-      });
-
-      // === MULTI-METHOD DEVTOOLS DETECTION ===
-      function time(fn) { var s = performance.now(); fn(); return performance.now() - s; }
-
-      function scan() {
-        if (blocked) return;
-        var s = performance.now();
-        console.log('.');
-        var d = performance.now() - s;
-        if (d > 150) { nuke(); return; }
-        var ds = performance.now(); debugger;
-        if (performance.now() - ds > 100) { nuke(); }
-      }
-
-      // === GUARD LOOPS ===
-      setInterval(function() { if (!blocked) { for (var i = 0; i < 3; i++) debugger; } }, 500);
-      setInterval(function() { if (!blocked) scan(); }, 2000);
-
-      // === KEYBOARD BLOCK ===
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'F12' || 
-            (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
-            (e.metaKey && e.altKey && ['I','J'].includes(e.key.toUpperCase()))) {
-          e.preventDefault(); e.stopPropagation(); return false;
-        }
-      }, true);
-
-      document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-
-      // === FIREBUG ===
-      try { if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) nuke(); } catch(e) {}
-
-      scan();
-    })();
+    }, true);
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
   </script>
 </body>
 </html>
