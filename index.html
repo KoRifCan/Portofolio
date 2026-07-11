@@ -852,25 +852,22 @@
     // ===== AUTH STATE =====
     let currentUser = null;
     let currentUserRole = null;
-    function checkUserExists(user) {
-      if (!user) return;
-      db.collection('userProfiles').doc(user.uid).get().then(doc => {
-        if (doc.exists && doc.data().disabled === true) {
-          auth.signOut(); showToast('Akun Anda telah dinonaktifkan oleh admin.');
-        } else if (!doc.exists) {
-          auth.signOut(); showToast('Akun Anda telah dihapus oleh admin.');
-        } else {
-          currentUserRole = doc.data().role || null;
-          if (user.emailVerified !== doc.data().emailVerified) {
-            doc.ref.update({ emailVerified: user.emailVerified }).catch(() => {});
-          }
-        }
-      }).catch(() => {});
-    }
+    var userProfileUnsub = null;
     auth.onAuthStateChanged(user => {
       currentUser = user;
       currentUserRole = null;
-      if (user) checkUserExists(user);
+      if (userProfileUnsub) { userProfileUnsub(); userProfileUnsub = null; }
+      if (user) {
+        userProfileUnsub = db.collection('userProfiles').doc(user.uid).onSnapshot(doc => {
+          if (!doc.exists) {
+            auth.signOut(); showToast('Akun Anda telah dihapus oleh admin.');
+          } else if (doc.data().disabled === true) {
+            auth.signOut(); showToast('Akun Anda telah dinonaktifkan oleh admin.');
+          } else {
+            currentUserRole = doc.data().role || null;
+          }
+        });
+      }
       const overlay = document.getElementById('loadingOverlay');
       if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 500); }
       const btn = document.getElementById('loginBtn');
@@ -884,16 +881,6 @@
         btn.onclick = openLogin;
       }
       loadAllRatings();
-    });
-    setInterval(() => {
-      const u = firebase.auth().currentUser;
-      if (u) checkUserExists(u);
-    }, 15000);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        const u = firebase.auth().currentUser;
-        if (u) { u.reload().then(() => checkUserExists(u)).catch(() => {}); }
-      }
     });
 
     // ===== LOGIN MODAL =====
