@@ -726,9 +726,12 @@
           </div>
         </div>
         <div class="project-card">
-          <div class="thumb draggable-thumb" data-img="screenshot-expense.png">
-            <img class="drag-img" src="screenshot-expense.png" alt="Catatan Keuangan" style="width:100%;cursor:grab;user-select:none;-webkit-user-drag:none;">
-            <div class="drag-hint"><i class="fas fa-arrows-alt"></i> Geser untuk menjelajah</div>
+          <div class="thumb" id="expenseSlider">
+            <div class="slider-overlay" id="expenseSliderOverlay">
+              <img class="slider-img" src="Expense-Tracker-Dark.png" alt="dark">
+            </div>
+            <img class="slider-img" src="Expense-Tracker-Light.png" alt="light">
+            <div class="slider-handle" id="expenseSliderHandle"><div class="knob">⟷</div></div>
           </div>
           <div class="body">
             <div class="tags"><span>React</span><span>Firebase</span><span>Tailwind</span></div>
@@ -2514,6 +2517,28 @@
     slider.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); }, { passive: true });
     document.addEventListener('touchmove', e => { if (isDragging) { e.preventDefault(); updateSlider(e.touches[0].clientX); } }, { passive: false });
     document.addEventListener('touchend', () => { isDragging = false; }, { passive: true });
+
+    // ===== EXPENSE TRACKER SLIDER =====
+    (function() {
+      var s = document.getElementById('expenseSlider');
+      var o = document.getElementById('expenseSliderOverlay');
+      var h = document.getElementById('expenseSliderHandle');
+      if (!s || !o || !h) return;
+      var d = false;
+      function u(x) {
+        var r = s.getBoundingClientRect();
+        var p = ((x - r.left) / r.width) * 100;
+        if (p < 5) p = 5; if (p > 95) p = 95;
+        o.style.clipPath = 'inset(0 ' + (100 - p) + '% 0 0)';
+        h.style.left = p + '%';
+      }
+      s.addEventListener('mousedown', function(e) { d = true; u(e.clientX); });
+      document.addEventListener('mousemove', function(e) { if (d) u(e.clientX); });
+      document.addEventListener('mouseup', function() { d = false; });
+      s.addEventListener('touchstart', function(e) { d = true; u(e.touches[0].clientX); }, { passive: true });
+      document.addEventListener('touchmove', function(e) { if (d) { e.preventDefault(); u(e.touches[0].clientX); } }, { passive: false });
+      document.addEventListener('touchend', function() { d = false; }, { passive: true });
+    })();
 
     // ===== DRAGGABLE THUMB =====
     document.querySelectorAll('.draggable-thumb').forEach(thumb => {
