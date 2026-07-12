@@ -2562,19 +2562,14 @@
       if (!img) return;
       let isDown = false, startY, startTop;
       function constrain() {
-        const r = thumb.getBoundingClientRect();
-        const ir = img.getBoundingClientRect();
         img.style.left = '0px';
-        if (ir.height > r.height) {
-          const min = r.height - ir.height;
-          if (parseInt(img.style.top || 0) > 0) img.style.top = '0px';
-          if (parseInt(img.style.top || 0) < min) img.style.top = min + 'px';
-        } else {
-          img.style.top = '0px';
-        }
+        var t = parseInt(img.style.top) || 0;
+        if (t > 0) img.style.top = '0px';
+        var min = thumb.clientHeight - (img.naturalHeight || img.height);
+        if (t < min) img.style.top = min + 'px';
       }
       img.onload = constrain;
-      setTimeout(constrain, 500);
+      setTimeout(constrain, 1000);
       img.style.position = 'relative';
       img.style.left = '0px';
       img.style.top = '0px';
@@ -2586,7 +2581,7 @@
       });
       document.addEventListener('mousemove', e => {
         if (!isDown) return;
-        img.style.top = (startTop + (e.clientY - startY)) + 'px';
+        img.style.top = (startTop - (e.clientY - startY)) + 'px';
       });
       document.addEventListener('mouseup', () => { if (isDown) { isDown = false; constrain(); } });
       thumb.addEventListener('touchstart', e => {
@@ -2600,7 +2595,7 @@
         if (!isDown) return;
         e.preventDefault();
         const t = e.touches[0];
-        img.style.top = (startTop + (t.clientY - startY)) + 'px';
+        img.style.top = (startTop - (t.clientY - startY)) + 'px';
       }, { passive: false });
       document.addEventListener('touchend', () => { if (isDown) { isDown = false; constrain(); } }, { passive: true });
     });
