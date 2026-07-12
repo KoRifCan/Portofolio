@@ -744,6 +744,21 @@
             </div>
           </div>
         </div>
+        <div class="project-card">
+          <div class="thumb" style="background:linear-gradient(135deg,#f59e0b,#ef4444);display:grid;place-items:center;font-size:4rem;color:rgba(255,255,255,.2);">
+            <i class="fas fa-gamepad"></i>
+          </div>
+          <div class="body">
+            <div class="tags"><span>HTML5</span><span>CSS3</span><span>JavaScript</span></div>
+            <h3>Classic Games</h3>
+            <p>16 game klasik dalam satu website: Tetris, Snake, 2048, Flappy Bird, Space Shooter, Tic Tac Toe, Memory, Minesweeper, Pong, Breakout, Dino Runner, Sudoku, Connect 4, Typing Test, Simon Says, 15-Puzzle. Murni HTML5 tanpa iklan.</p>
+            <div class="links"><a href="https://korifcan.github.io/Classic-Games/" target="_blank">Demo Langsung <i class="fas fa-external-link-alt"></i></a><a href="https://github.com/KoRifCan/Classic-Games" target="_blank">Kode Sumber</a></div>
+            <div class="project-rating" data-project="classic-games" style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:.9rem;">
+              <span class="rating-stars" style="color:#f59e0b;cursor:pointer;"></span>
+              <span class="rating-avg" style="color:var(--text-light);font-size:.8rem;"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1488,7 +1503,7 @@
           const totalPages = Math.ceil(items.length / comPerPage) || 1;
           if (comPage >= totalPages) comPage = totalPages - 1;
           const pageItems = items.slice(comPage * comPerPage, (comPage + 1) * comPerPage);
-          const projectNames = { portofolio: 'Portofolio Pribadi', 'expense-tracker': 'Catatan Keuangan' };
+          const projectNames = { portofolio: 'Portofolio Pribadi', 'expense-tracker': 'Catatan Keuangan', 'classic-games': 'Classic Games' };
           function friendlyName(id) { return projectNames[id] || id; }
           const totalAll = projectIds.reduce((s, p) => s + projects[p].length, 0);
           const allBtn = '<button data-switch="__all__" style="padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:' + (isAll ? 'var(--card-bg)' : 'transparent') + ';color:var(--text);cursor:pointer;font-size:.8rem;' + (isAll ? 'font-weight:600;' : '') + '">Semua (' + totalAll + ')</button>';
@@ -1863,7 +1878,7 @@
     loadTestimonials();
 
     // ===== RATING (REAL-TIME) =====
-    const projectNames = { portofolio: 'Portofolio Pribadi', 'expense-tracker': 'Catatan Keuangan' };
+    const projectNames = { portofolio: 'Portofolio Pribadi', 'expense-tracker': 'Catatan Keuangan', 'classic-games': 'Classic Games' };
 
     function renderStars(container, avg) {
       const full = Math.round(avg);

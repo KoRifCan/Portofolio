@@ -1011,7 +1011,7 @@
         container.innerHTML = '<p style="color:var(--text-light);font-size:.9rem;text-align:center;">Belum ada komentar.</p>';
         return;
       }
-      const projectNames = { portofolio: 'Portofolio Pribadi', 'expense-tracker': 'Catatan Keuangan' };
+      const projectNames = { portofolio: 'Portofolio Pribadi', 'expense-tracker': 'Catatan Keuangan', 'classic-games': 'Classic Games' };
       function friendlyName(id) { return projectNames[id] || id; }
       const totalAll = projectIds.reduce((s, p) => s + comProjects[p].length, 0);
 
