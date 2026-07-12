@@ -238,9 +238,9 @@
       box-shadow: 0 0 8px rgba(255,255,255,.2);
     }
     .slider-shade { display: none; }
-    .draggable-thumb { overflow:hidden; cursor:grab; position:relative; touch-action:none; align-items:flex-start; }
+    .draggable-thumb { overflow:hidden; cursor:grab; position:relative; touch-action:none; }
     .draggable-thumb:active { cursor:grabbing; }
-    .draggable-thumb .drag-img { display:block; pointer-events:none; transition:none; -webkit-user-select:none; user-select:none; }
+    .draggable-thumb .drag-img { display:block; pointer-events:none; transition:none; -webkit-user-select:none; user-select:none; position:absolute; left:0; top:0; width:100%; height:auto; }
     .drag-hint { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.5); color:#fff; font-size:.7rem; padding:4px 12px; border-radius:20px; pointer-events:none; opacity:0; transition:opacity .3s; white-space:nowrap; }
     .draggable-thumb:hover .drag-hint { opacity:1; }
     .project-card .thumb .slider-handle .knob {
@@ -746,7 +746,7 @@
         </div>
         <div class="project-card">
           <div class="thumb draggable-thumb">
-            <img class="drag-img" src="Classic-Games-Screenshot.png" alt="Classic Games" style="width:100%;">
+            <img class="drag-img" src="Classic-Games-Screenshot.png" alt="Classic Games">
             <div class="drag-hint"><i class="fas fa-arrows-alt-v"></i> Geser untuk menjelajah</div>
           </div>
           <div class="body">
@@ -2564,7 +2564,7 @@
 
       function calc() {
         contH = thumb.clientHeight;
-        imgH = img.offsetHeight;
+        imgH = parseInt(img.style.height) || img.offsetHeight || 0;
       }
 
       function constrain() {
@@ -2581,10 +2581,9 @@
       }
 
       function init() {
-        calc();
-        img.style.position = 'relative';
-        img.style.left = '0px';
-        img.style.top = '0px';
+        if (img.naturalWidth && img.naturalHeight) {
+          img.style.height = (thumb.clientWidth * img.naturalHeight / img.naturalWidth) + 'px';
+        }
         constrain();
       }
 
