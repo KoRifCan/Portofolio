@@ -2560,19 +2560,36 @@
     document.querySelectorAll('.draggable-thumb').forEach(thumb => {
       const img = thumb.querySelector('.drag-img');
       if (!img) return;
-      let isDown = false, startY, startTop;
+      let isDown = false, startY, startTop, imgH, contH;
+
+      function calc() {
+        contH = thumb.clientHeight;
+        imgH = img.offsetHeight;
+      }
+
       function constrain() {
+        calc();
         img.style.left = '0px';
         var t = parseInt(img.style.top) || 0;
-        if (t > 0) img.style.top = '0px';
-        var min = thumb.clientHeight - (img.naturalHeight || img.height);
-        if (t < min) img.style.top = min + 'px';
+        if (imgH > contH) {
+          var minTop = contH - imgH;
+          if (t > 0) img.style.top = '0px';
+          if (t < minTop) img.style.top = minTop + 'px';
+        } else {
+          img.style.top = '0px';
+        }
       }
-      img.onload = constrain;
-      setTimeout(constrain, 1000);
-      img.style.position = 'relative';
-      img.style.left = '0px';
-      img.style.top = '0px';
+
+      function init() {
+        calc();
+        img.style.position = 'relative';
+        img.style.left = '0px';
+        img.style.top = '0px';
+        constrain();
+      }
+
+      if (img.complete) init(); else img.onload = init;
+
       thumb.addEventListener('mousedown', e => {
         isDown = true;
         startY = e.clientY;
@@ -2581,23 +2598,26 @@
       });
       document.addEventListener('mousemove', e => {
         if (!isDown) return;
-        img.style.top = (startTop - (e.clientY - startY)) + 'px';
+        calc();
+        var dy = e.clientY - startY;
+        img.style.top = (startTop + dy) + 'px';
       });
       document.addEventListener('mouseup', () => { if (isDown) { isDown = false; constrain(); } });
       thumb.addEventListener('touchstart', e => {
         isDown = true;
-        const t = e.touches[0];
-        startY = t.clientY;
+        startY = e.touches[0].clientY;
         startTop = parseInt(img.style.top) || 0;
         e.preventDefault();
       }, { passive: false });
       document.addEventListener('touchmove', e => {
         if (!isDown) return;
         e.preventDefault();
-        const t = e.touches[0];
-        img.style.top = (startTop - (t.clientY - startY)) + 'px';
+        calc();
+        var dy = e.touches[0].clientY - startY;
+        img.style.top = (startTop + dy) + 'px';
       }, { passive: false });
       document.addEventListener('touchend', () => { if (isDown) { isDown = false; constrain(); } }, { passive: true });
+      window.addEventListener('resize', constrain);
     });
   </script>
   <script src="https://web3forms.com/client/script.js" async defer></script>
